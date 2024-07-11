@@ -4,12 +4,12 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import env from "./env";
-import { User } from "@prisma/client";
+import { User, Organization } from "@prisma/client";
 import { db } from "./db";
 import bcrypt from "bcrypt";
 
 export type SessionUser = Omit<User, "password"> & {
-  organizationId: string | null;
+  organization: Pick<Organization, "id" | "name"> | null;
 };
 
 export type Session = {
@@ -46,7 +46,11 @@ export async function login(data: {
   const { email, password } = data;
   const user = await db.user.findUnique({
     where: { email },
-    include: { organization: true },
+    include: {
+      organization: {
+        select: { id: true, name: true },
+      },
+    },
   });
 
   if (!user) return { error: "Invalid email or password" };
@@ -56,7 +60,12 @@ export async function login(data: {
 
   const sessionUser: SessionUser = {
     ...user,
-    organizationId: user.organizationId,
+    organization: user.organization
+      ? {
+          id: user.organization.id,
+          name: user.organization.name,
+        }
+      : null,
   };
 
   const expires = new Date(Date.now() + env.EXPIRY_TIME * 1_000);
