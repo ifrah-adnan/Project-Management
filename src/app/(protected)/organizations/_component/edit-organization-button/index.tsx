@@ -17,6 +17,8 @@ import FormInput from "@/components/form-input";
 import { ArrowLeftIcon, PlusIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import FormTextarea from "@/components/form-textarea";
+import { toast } from "sonner";
+import { EditOrganization } from "../../_utils/action";
 
 export interface AddOperatorButtonProps extends ButtonProps {
   organization: {
@@ -41,8 +43,19 @@ export function EditOrganizationButton({
   };
   const { session } = useSession();
   const user = session?.user;
-  const handleSubmit = () => {
-    console.log("submit");
+  const handleSubmit = async (formData: FormData) => {
+    const data = {
+      id: formData.get("organizationId") as string,
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+    };
+    try {
+      await EditOrganization(data);
+
+      handleClose();
+    } catch (error) {
+      toast.error("An error occurred, please try again");
+    }
   };
   return (
     <Sheet onOpenChange={handleClose}>
@@ -58,6 +71,8 @@ export function EditOrganizationButton({
           className="flex flex-1 flex-col gap-2 py-4 "
           action={handleSubmit}
         >
+          <input type="hidden" name="organizationId" value={organization.id} />
+
           <FormInput
             label="Name"
             name="name"

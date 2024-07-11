@@ -125,9 +125,9 @@ export default function SideBar({ className }: { className?: string }) {
             >
               Users
             </LinkItem>
-            <LinkItem href="/organizations" icon={<BuildingIcon size={18} />}>
+            {/* <LinkItem href="/organizations" icon={<BuildingIcon size={18} />}>
               Organizations
-            </LinkItem>
+            </LinkItem> */}
           </div>
           <div className="flex items-center gap-4">
             <Link href="/settings">

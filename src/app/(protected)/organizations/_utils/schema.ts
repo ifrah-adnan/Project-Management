@@ -14,6 +14,7 @@ export const createInputSchema = z.object({
   adminPassword: z
     .string()
     .min(8, "Password must be at least 8 characters long"),
+  imagePath: z.string().optional(),
 });
 
 export type TCreateInput = z.infer<typeof createInputSchema>;

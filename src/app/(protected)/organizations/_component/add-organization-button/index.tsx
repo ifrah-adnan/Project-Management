@@ -14,7 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ArrowLeftIcon, PlusIcon } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { FieldErrors } from "@/actions/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -63,6 +63,7 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
       adminEmail: formData.get("adminEmail") as string,
       adminPassword: formData.get("adminPassword") as string,
     };
+
     const parsed = createInputSchema.safeParse(data);
 
     if (!parsed.success) {
@@ -108,6 +109,7 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
               Please correct the errors below.
             </div>
           )}
+
           <FormInput
             name="name"
             label="Name *"

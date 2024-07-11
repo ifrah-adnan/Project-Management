@@ -11,7 +11,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
-
+import { writeFile } from "fs/promises";
+import path from "path";
 export async function createOrganizationWithAdmin(data: TCreateInput) {
   try {
     const validatedData = createInputSchema.parse(data);
@@ -23,6 +24,7 @@ export async function createOrganizationWithAdmin(data: TCreateInput) {
         data: {
           name: validatedData.name,
           description: validatedData.description,
+          imagePath: validatedData.imagePath,
         },
       });
 
@@ -40,6 +42,7 @@ export async function createOrganizationWithAdmin(data: TCreateInput) {
     });
 
     revalidatePath("/organisations");
+    return result;
   } catch (error) {
     console.error("Error creating organization and admin:", error);
     throw error;
@@ -190,6 +193,29 @@ export async function AddAdminToOrganization(data: TCreateAdmin) {
     return { admin };
   } catch (error) {
     console.error("Error create admin:", error);
+    throw error;
+  }
+}
+type UpdateOrganization = {
+  id: string;
+  name: string;
+  description: string;
+};
+export async function EditOrganization(data: UpdateOrganization) {
+  try {
+    await db.organization.update({
+      where: {
+        id: data.id,
+      },
+      data: {
+        name: data.name,
+        description: data.description,
+      },
+    });
+    revalidatePath(`/organizations`);
+    return { id: data.id };
+  } catch (error) {
+    console.error("Error editing organization:", error);
     throw error;
   }
 }
