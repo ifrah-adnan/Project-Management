@@ -12,6 +12,7 @@ import {
   PencilIcon,
   Search,
   PlusCircle,
+  Image,
 } from "lucide-react";
 import Link from "next/link";
 import { ConfirmButton } from "@/components/confirm-button";
@@ -43,12 +44,12 @@ import {
 import { FieldErrors } from "@/actions/utils";
 import { toast } from "sonner";
 import { ViewAllAdminsDialog } from "@/app/(protected)/organizations/_component/View-all-Admin";
-
 type TDataO = {
   id: string;
   name: string;
   description: string;
   createdAt: string;
+  imagePath: string;
   users: { id: string; name: string; email: string }[];
 };
 
@@ -117,7 +118,7 @@ export function AdminComponent({
         <Input
           type="text"
           placeholder="Search organizations..."
-          className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className=" w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -135,8 +136,16 @@ export function AdminComponent({
           >
             <CardContent className="flex-grow p-6">
               <div className="mb-4 flex items-center justify-between">
-                <div className="space-x- flex items-center">
-                  <Building size={24} className="text-blue-600" />
+                <div className="flex items-center space-x-4">
+                  {org.imagePath ? (
+                    <img
+                      src={org.imagePath}
+                      alt={`${org.name} logo`}
+                      className="h-12 w-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <Building size={24} className="text-blue-600" />
+                  )}
                   <h3 className="text-xl font-bold text-gray-800">
                     {org.name}
                   </h3>

@@ -13,7 +13,10 @@ import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
 import { writeFile } from "fs/promises";
 import path from "path";
-export async function createOrganizationWithAdmin(data: TCreateInput) {
+export async function createOrganizationWithAdmin(
+  data: TCreateInput,
+  imagePath: string | null,
+) {
   try {
     const validatedData = createInputSchema.parse(data);
 
@@ -24,7 +27,7 @@ export async function createOrganizationWithAdmin(data: TCreateInput) {
         data: {
           name: validatedData.name,
           description: validatedData.description,
-          imagePath: validatedData.imagePath,
+          imagePath: imagePath,
         },
       });
 
@@ -63,6 +66,7 @@ export type TData = {
   name: string;
   description: string;
   createdAt: string;
+  imagePath: string;
   users: { id: string; name: string; email: string }[];
 }[];
 export async function OrganizationfindMany(params = defaultParams): Promise<{
@@ -93,6 +97,7 @@ export async function OrganizationfindMany(params = defaultParams): Promise<{
         name: true,
         description: true,
         createdAt: true,
+        imagePath: true,
         users: {
           where: {
             role: "ADMIN",

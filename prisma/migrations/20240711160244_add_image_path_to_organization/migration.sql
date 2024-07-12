@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER', 'SYS_ADMIN', 'CLIENT', 'OPERATOR');
+CREATE TYPE "Role" AS ENUM ('SYS_ADMIN', 'ADMIN', 'USER', 'CLIENT', 'OPERATOR');
 
 -- CreateEnum
 CREATE TYPE "Status" AS ENUM ('ACTIVE', 'ON_HOLD', 'COMPLETED', 'CANCELLED');
@@ -15,6 +15,7 @@ CREATE TABLE "organizations" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
+    "imagePath" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
