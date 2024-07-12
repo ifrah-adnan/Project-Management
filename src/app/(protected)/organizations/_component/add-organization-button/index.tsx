@@ -36,12 +36,14 @@ export interface AddOperatorButtonProps extends ButtonProps {}
 
 export function AddOrganizationButton(props: AddOperatorButtonProps) {
   const closeRef = React.useRef<HTMLButtonElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null); // Ref for file input
   const [fieldErrors, setFieldErrors] = React.useState<
     FieldErrors<TCreateInput>
   >({});
   const [operations, setOperations] = React.useState<
     { name: string; id: string }[]
   >([]);
+  const [imageUrl, setImageUrl] = React.useState<string | null>(null); // State to store the uploaded image URL
   const router = useRouter();
 
   const { data, isLoading, error } = useSWR("addUserData", async () => {
@@ -52,6 +54,10 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
   const handleClose = () => {
     setFieldErrors({});
     setOperations([]);
+    setImageUrl(null); // Reset image URL
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Reset file input
+    }
     closeRef.current?.click();
   };
 
@@ -73,9 +79,10 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
       );
       return;
     }
+    const imagePath = imageUrl; // Get the uploaded image URL
 
     try {
-      await createOrganizationWithAdmin(data);
+      await createOrganizationWithAdmin(data, imagePath);
       toast.success("Organization and admin created successfully");
       handleClose();
     } catch (error) {
@@ -83,6 +90,33 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
       toast.error("An unexpected error occurred");
     }
   };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setImageUrl(result.url); // Update state with the URL of the uploaded image
+          toast.success("File uploaded successfully");
+        } else {
+          toast.error("File upload failed");
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        toast.error("An unexpected error occurred during file upload");
+      }
+    }
+  };
+
   const { session } = useSession();
   const user = session?.user;
 
@@ -101,7 +135,11 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
           </SheetDescription>
         </SheetHeader>
         <form
-          action={handleSubmit}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            handleSubmit(formData);
+          }}
           className="flex flex-1 flex-col gap-2 py-4 "
         >
           {Object.keys(fieldErrors).length > 0 && (
@@ -147,6 +185,26 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
             required
             errors={fieldErrors.adminPassword}
           />
+
+          {/* File upload input */}
+          <Label htmlFor="file" className="mt-4">
+            Upload Image
+          </Label>
+          <input
+            type="file"
+            id="file"
+            name="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="mb-4"
+            ref={fileInputRef} // Add ref to file input
+          />
+
+          {imageUrl && (
+            <div className="mb-4">
+              <img src={imageUrl} alt="Uploaded image" className="max-w-full" />
+            </div>
+          )}
 
           <div className="mt-auto flex items-center justify-end gap-4">
             <SheetClose ref={closeRef}></SheetClose>
