@@ -45,7 +45,7 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
 
 async function getSessionAndOrganizationId(): Promise<{ session: Session; organizationId: string }> {
   const session = await getServerSession();
-  if (!session) throw new Error("Unauthorized");
+  if (!session || !session.user.organization?.id) throw new Error("Unauthorized");
   return { session, organizationId: session.user.organization.id };
 }
 
@@ -124,9 +124,12 @@ export async function findMany(params = defaultParams): Promise<{
 
   const total = await db.commandProject.count({ where });
 
-  return { data: result, total };
+  const data = result.map((item) => ({
+    ...item,
+    organizationId: organizationId,
+  }));
+  return { data: data, total };
 }
-
 export async function deleteById(id: string) {
   const { organizationId } = await getSessionAndOrganizationId();
   return await db.project.deleteMany({
@@ -146,11 +149,11 @@ export async function getSprint(commandProjectId: string) {
 
 const configureSpringHandler = async (data: TConfigureSprint) => {
   const { organizationId } = await getSessionAndOrganizationId();
-  const { commandProjectId } = data;
+  const { commandProjectId, ...sprintData } = data;
   return db.sprint.upsert({
     where: { commandProjectId },
-    update: { ...data },
-    create: { ...data, commandProjectId, organizationId },
+    update: { ...sprintData },
+    create: { ...sprintData, commandProjectId, organizationId },
   });
 };
 

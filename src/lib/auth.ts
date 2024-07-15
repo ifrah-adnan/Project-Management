@@ -81,14 +81,25 @@ export async function logout() {
   redirect("/sign-in");
 }
 
-export async function getServerSession() {
+export async function getServerSession(): Promise<Session | null> {
   try {
     const session = cookies().get("session")?.value;
     if (!session) return null;
-    return await decrypt(session);
+    const decryptedSession = await decrypt(session);
+    return decryptedSession;
   } catch {
     return null;
   }
+}
+
+export async function getSessionAndOrganizationId(): Promise<{
+  organizationId: string;
+}> {
+  const session = await getServerSession();
+  if (!session || !session.user.organization) {
+    throw new Error("Unauthorized or user not associated with an organization");
+  }
+  return { organizationId: session.user.organization.id };
 }
 
 export async function updateSession(request: NextRequest) {
