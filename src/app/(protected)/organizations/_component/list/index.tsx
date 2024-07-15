@@ -93,7 +93,8 @@ export default function ListO({ data, total }: { data: TData; total: number }) {
 
   return (
     <main className="p-6">
-      <Card className="mx-auto flex h-full w-full max-w-screen-2xl flex-1 flex-col overflow-auto p-4 ">
+      <Card className="mx-auto flex h-full w-full max-w-screen-2xl flex-1 flex-col overflow-auto bg-white p-4 text-black dark:bg-gray-800 dark:text-white">
+        {" "}
         <Table>
           <thead>
             <tr>
@@ -214,7 +215,6 @@ export default function ListO({ data, total }: { data: TData; total: number }) {
             ))}
           </tbody>
         </Table>
-
         {data.length === 0 && (
           <div className="grid flex-1 place-content-center">
             <span className=" text-center text-3xl font-semibold opacity-50">

@@ -13,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ArrowLeftIcon, PlusIcon } from "lucide-react";
+import { ArrowLeftIcon, ImageIcon, PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import { FieldErrors } from "@/actions/utils";
 import { toast } from "sonner";
@@ -187,24 +187,48 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
           />
 
           {/* File upload input */}
-          <Label htmlFor="file" className="mt-4">
-            Upload Image
-          </Label>
-          <input
-            type="file"
-            id="file"
-            name="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="mb-4"
-            ref={fileInputRef} // Add ref to file input
-          />
-
-          {imageUrl && (
-            <div className="mb-4">
-              <img src={imageUrl} alt="Uploaded image" className="max-w-full" />
+          <div className="mt-6">
+            <Label
+              htmlFor="file"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              Organization Logo
+            </Label>
+            <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5">
+              <div className="space-y-1 text-center">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt="Preview"
+                    className="mx-auto h-32 w-32 rounded-md object-cover"
+                  />
+                ) : (
+                  <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                )}
+                <div className="flex text-sm text-gray-600">
+                  <label
+                    htmlFor="file"
+                    className="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
+                  >
+                    <span>Upload a file</span>
+                    <input
+                      id="file"
+                      name="file"
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
+                    />
+                  </label>
+                  <p className="pl-1">or drag and drop</p>
+                </div>
+                <p className="text-xs text-gray-500">
+                  PNG, JPG, GIF up to 10MB
+                </p>
+              </div>
             </div>
-          )}
+          </div>
 
           <div className="mt-auto flex items-center justify-end gap-4">
             <SheetClose ref={closeRef}></SheetClose>
