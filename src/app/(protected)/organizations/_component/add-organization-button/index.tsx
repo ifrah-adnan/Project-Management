@@ -13,8 +13,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ArrowLeftIcon, PlusIcon } from "lucide-react";
-import React from "react";
+import { ArrowLeftIcon, ImageIcon, PlusIcon } from "lucide-react";
+import React, { useState } from "react";
 import { FieldErrors } from "@/actions/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -36,12 +36,14 @@ export interface AddOperatorButtonProps extends ButtonProps {}
 
 export function AddOrganizationButton(props: AddOperatorButtonProps) {
   const closeRef = React.useRef<HTMLButtonElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null); // Ref for file input
   const [fieldErrors, setFieldErrors] = React.useState<
     FieldErrors<TCreateInput>
   >({});
   const [operations, setOperations] = React.useState<
     { name: string; id: string }[]
   >([]);
+  const [imageUrl, setImageUrl] = React.useState<string | null>(null); // State to store the uploaded image URL
   const router = useRouter();
 
   const { data, isLoading, error } = useSWR("addUserData", async () => {
@@ -52,6 +54,10 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
   const handleClose = () => {
     setFieldErrors({});
     setOperations([]);
+    setImageUrl(null); // Reset image URL
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Reset file input
+    }
     closeRef.current?.click();
   };
 
@@ -63,6 +69,7 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
       adminEmail: formData.get("adminEmail") as string,
       adminPassword: formData.get("adminPassword") as string,
     };
+
     const parsed = createInputSchema.safeParse(data);
 
     if (!parsed.success) {
@@ -72,9 +79,10 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
       );
       return;
     }
+    const imagePath = imageUrl; // Get the uploaded image URL
 
     try {
-      await createOrganizationWithAdmin(data);
+      await createOrganizationWithAdmin(data, imagePath);
       toast.success("Organization and admin created successfully");
       handleClose();
     } catch (error) {
@@ -82,6 +90,33 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
       toast.error("An unexpected error occurred");
     }
   };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setImageUrl(result.url); // Update state with the URL of the uploaded image
+          toast.success("File uploaded successfully");
+        } else {
+          toast.error("File upload failed");
+        }
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        toast.error("An unexpected error occurred during file upload");
+      }
+    }
+  };
+
   const { session } = useSession();
   const user = session?.user;
 
@@ -100,7 +135,11 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
           </SheetDescription>
         </SheetHeader>
         <form
-          action={handleSubmit}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            handleSubmit(formData);
+          }}
           className="flex flex-1 flex-col gap-2 py-4 "
         >
           {Object.keys(fieldErrors).length > 0 && (
@@ -108,6 +147,7 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
               Please correct the errors below.
             </div>
           )}
+
           <FormInput
             name="name"
             label="Name *"
@@ -145,6 +185,50 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
             required
             errors={fieldErrors.adminPassword}
           />
+
+          {/* File upload input */}
+          <div className="mt-6">
+            <Label
+              htmlFor="file"
+              className="mb-2 block text-sm font-medium text-gray-700"
+            >
+              Organization Logo
+            </Label>
+            <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5">
+              <div className="space-y-1 text-center">
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt="Preview"
+                    className="mx-auto h-32 w-32 rounded-md object-cover"
+                  />
+                ) : (
+                  <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                )}
+                <div className="flex text-sm text-gray-600">
+                  <label
+                    htmlFor="file"
+                    className="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
+                  >
+                    <span>Upload a file</span>
+                    <input
+                      id="file"
+                      name="file"
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
+                    />
+                  </label>
+                  <p className="pl-1">or drag and drop</p>
+                </div>
+                <p className="text-xs text-gray-500">
+                  PNG, JPG, GIF up to 10MB
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div className="mt-auto flex items-center justify-end gap-4">
             <SheetClose ref={closeRef}></SheetClose>

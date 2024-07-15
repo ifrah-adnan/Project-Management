@@ -11,8 +11,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
 import { Prisma } from "@prisma/client";
-
-export async function createOrganizationWithAdmin(data: TCreateInput) {
+import { writeFile } from "fs/promises";
+import path from "path";
+export async function createOrganizationWithAdmin(
+  data: TCreateInput,
+  imagePath: string | null,
+) {
   try {
     const validatedData = createInputSchema.parse(data);
 
@@ -23,6 +27,7 @@ export async function createOrganizationWithAdmin(data: TCreateInput) {
         data: {
           name: validatedData.name,
           description: validatedData.description,
+          imagePath: imagePath,
         },
       });
 
@@ -40,6 +45,7 @@ export async function createOrganizationWithAdmin(data: TCreateInput) {
     });
 
     revalidatePath("/organisations");
+    return result;
   } catch (error) {
     console.error("Error creating organization and admin:", error);
     throw error;
@@ -60,6 +66,7 @@ export type TData = {
   name: string;
   description: string;
   createdAt: string;
+  imagePath: string;
   users: { id: string; name: string; email: string }[];
 }[];
 export async function OrganizationfindMany(params = defaultParams): Promise<{
@@ -90,6 +97,7 @@ export async function OrganizationfindMany(params = defaultParams): Promise<{
         name: true,
         description: true,
         createdAt: true,
+        imagePath: true,
         users: {
           where: {
             role: "ADMIN",
@@ -190,6 +198,29 @@ export async function AddAdminToOrganization(data: TCreateAdmin) {
     return { admin };
   } catch (error) {
     console.error("Error create admin:", error);
+    throw error;
+  }
+}
+type UpdateOrganization = {
+  id: string;
+  name: string;
+  description: string;
+};
+export async function EditOrganization(data: UpdateOrganization) {
+  try {
+    await db.organization.update({
+      where: {
+        id: data.id,
+      },
+      data: {
+        name: data.name,
+        description: data.description,
+      },
+    });
+    revalidatePath(`/organizations`);
+    return { id: data.id };
+  } catch (error) {
+    console.error("Error editing organization:", error);
     throw error;
   }
 }
