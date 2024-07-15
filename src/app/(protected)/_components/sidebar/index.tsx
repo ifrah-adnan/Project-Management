@@ -23,6 +23,11 @@ import { usePathname } from "next/navigation";
 import { useSession } from "@/components/session-provider";
 import UserButton from "../userButton";
 import { ModeToggle } from "../ModeToggle/mode-toggle";
+import { getServerSession } from "@/lib/auth";
+import {
+  OrganizationfindMany,
+  getOrganizationId,
+} from "../../organizations/_utils/action";
 
 export function LinkItem({
   href,
@@ -71,9 +76,36 @@ export default function SideBar({ className }: { className?: string }) {
   const { session } = useSession();
   const user = session?.user;
   const pathname = usePathname();
+  const [organizationImage, setOrganizationImage] = React.useState<
+    string | null
+  >(null);
+  const [isOrganizationPage, setIsOrganizationPage] = React.useState(false);
 
   const [firstName] = (user?.name || "").split(" ");
-  console.log(pathname);
+
+  React.useEffect(() => {
+    const fetchOrganizationImage = async () => {
+      if (pathname === "/organizations") {
+        setOrganizationImage("/logo.svg"); // Remplacez par le chemin de votre logo par défaut
+        setIsOrganizationPage(true);
+      } else {
+        setIsOrganizationPage(false);
+        const serverSession = await getServerSession();
+        if (serverSession && serverSession.user.organizationId) {
+          const organizationData = await getOrganizationId(
+            serverSession.user.organizationId,
+          );
+          if (organizationData && organizationData.imagePath) {
+            setOrganizationImage(organizationData.imagePath);
+          } else {
+            setOrganizationImage("/logo.svg"); // Logo par défaut si aucune image n'est trouvée
+          }
+        }
+      }
+    };
+
+    fetchOrganizationImage();
+  }, [pathname]);
 
   return (
     <div
@@ -82,17 +114,28 @@ export default function SideBar({ className }: { className?: string }) {
         className,
       )}
     >
-      <Link href="/">
+      <Link
+        href="/"
+        className="relative flex h-12 w-40 items-center justify-center"
+      >
         <Image
-          priority
-          src="/logo.svg"
+          src={organizationImage || "/logo.svg"}
           alt="Logo"
-          className="h-8 w-24"
-          width={97}
-          height={33}
+          fill
+          sizes="(max-width: 160px) 100vw, 160px"
+          className="object-contain transition-opacity duration-300 ease-in-out"
+          quality={100}
+          priority
+          style={{
+            opacity: 1,
+            objectFit: "contain",
+            width: "100%",
+            height: "100%",
+            padding: "4px",
+          }}
         />
       </Link>
-      {pathname === "/organizations" ? (
+      {isOrganizationPage ? (
         <div className="flex items-center gap-4">
           <Link href="/settings">
             <SettingsIcon size={18} />
