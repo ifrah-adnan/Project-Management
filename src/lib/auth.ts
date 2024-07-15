@@ -118,3 +118,20 @@ export async function updateSession(request: NextRequest) {
   });
   return res;
 }
+export async function setOrganizationId(organizationId: string) {
+  const session = await getServerSession();
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  session.user.organizationId = organizationId;
+
+  const expiryTimeInSeconds = process.env.EXPIRY_TIME
+    ? parseInt(process.env.EXPIRY_TIME, 10)
+    : 3600;
+  const expires = new Date(Date.now() + expiryTimeInSeconds * 1000);
+  const updatedSession = await encrypt({ user: session.user, expires });
+
+  cookies().set("session", updatedSession, { expires, httpOnly: true });
+}

@@ -69,6 +69,22 @@ export type TData = {
   imagePath: string;
   users: { id: string; name: string; email: string }[];
 }[];
+export async function getOrganizationId(id: any) {
+  const organization = await db.organization.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      createdAt: true,
+      imagePath: true,
+    },
+  });
+  if (!organization) {
+    throw new Error("Organization not found");
+  }
+  return organization;
+}
 export async function OrganizationfindMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
