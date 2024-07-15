@@ -16,12 +16,14 @@ model Organization {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  users      User[]
-  projects   Project[]
-  commands   Command[]
-  posts      Post[]
-  expertises Expertise[]
-  devices    Device[]
+  users          User[]
+  projects       Project[]
+  commands       Command[]
+  posts          Post[]
+  expertises     Expertise[]
+  devices        Device[]
+  commandProject CommandProject[]
+  sprints        Sprint[]
 
   @@map("organizations")
 }
@@ -84,23 +86,24 @@ model Command {
 }
 
 model CommandProject {
-  id     String @id @default(uuid())
-  userId String @default("ee") @map("user_id")
-
-  commandId String     @map("command_id")
-  projectId String     @map("project_id")
-  target    Int
-  done      Int        @default(0)
-  startDate DateTime?  @map("start_date")
-  endDate   DateTime   @map("end_date")
-  status    Status     @default(ACTIVE)
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @default(now()) @updatedAt @map("updated_at")
-  command   Command    @relation(fields: [commandId], references: [id])
-  project   Project    @relation(fields: [projectId], references: [id])
-  planings  Planning[]
-  sprint    Sprint?
-  user      User       @relation(fields: [userId], references: [id])
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  commandId      String       @map("command_id")
+  projectId      String       @map("project_id")
+  organizationId String       @map("organization_id")
+  target         Int
+  done           Int          @default(0)
+  startDate      DateTime?    @map("start_date")
+  endDate        DateTime     @map("end_date")
+  status         Status       @default(ACTIVE)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  command        Command      @relation(fields: [commandId], references: [id])
+  project        Project      @relation(fields: [projectId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  sprint         Sprint?
+  planings       Planning[]
 
   @@unique([commandId, projectId])
   @@map("command_projects")
@@ -152,9 +155,11 @@ model Sprint {
   days             Int
   status           Status         @default(ACTIVE)
   commandProjectId String         @unique @map("command_project_id")
+  organizationId   String         @map("organization_id")
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @default(now()) @updatedAt @map("updated_at")
   commandProject   CommandProject @relation(fields: [commandProjectId], references: [id])
+  organization     Organization   @relation(fields: [organizationId], references: [id])
 
   @@map("sprints")
 }

@@ -11,7 +11,7 @@ import {
 } from "./schemas";
 import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { Session } from "@/lib/auth";
+import { Session, getServerSession } from "@/lib/auth";
 import { uploadFile } from "@/actions/upload";
 import { roleSchema } from "@/utils";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -30,10 +30,20 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   return { createdAt: "desc" as "desc" };
 };
 
+async function checkUserPermissions(session: Session | null) {
+  if (!session || !["SYS_ADMIN", "ADMIN"].includes(session.user.role)) {
+    throw new Error("Insufficient permissions");
+  }
+  return session.user.organization?.id;
+}
+
 export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
+  const session = await getServerSession();
+  const organizationId = await checkUserPermissions(session || null);
+
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
@@ -42,6 +52,7 @@ export async function findMany(params = defaultParams): Promise<{
   const parsedRole = roleSchema.safeParse(params.role);
 
   const where: Prisma.UserWhereInput = {
+    organizationId,
     role: parsedRole.success ? parsedRole.data : undefined,
     OR: params.search
       ? [
@@ -89,14 +100,24 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string) {
-  return await db.user.delete({ where: { id } });
+  const session = await getServerSession();
+  const organizationId = await checkUserPermissions(session);
+
+  return await db.user.deleteMany({
+    where: {
+      id,
+      organizationId,
+    },
+  });
 }
 
 const handler = async (
   data: TCreateInput,
-  session?: Session | null,
   formData?: FormData | null,
 ) => {
+  const session = await getServerSession();
+  const organizationId = await checkUserPermissions(session);
+
   const { password, expertise, ...rest } = data;
   const hashed = await bcrypt.hash(data.password, 12);
 
@@ -104,19 +125,15 @@ const handler = async (
     data: {
       ...rest,
       password: hashed,
+      organizationId,
       expertises: expertise?.length
         ? { connect: expertise.map((id) => ({ id })) }
         : undefined,
     },
   });
+
   const image = formData?.get("file") as File | undefined;
   if (image) {
-    // const res = await fetch("http://localhost:3000/api/upload", {
-    //   method: "POST",
-    //   body: formData,
-    // });
-    // const data = await res.json();
-    // const url = data.url;
     const { url } = await uploadFile(image);
     await db.user.update({
       where: { id: user.id },
@@ -129,21 +146,36 @@ const handler = async (
 export const create = createSafeAction({ scheme: createInputSchema, handler });
 
 export async function getPosts() {
-  return await db.post.findMany({ select: { id: true, name: true } });
+  const session = await getServerSession();
+  const organizationId = await checkUserPermissions(session);
+
+  return await db.post.findMany({
+    where: { organizationId },
+    select: { id: true, name: true },
+  });
 }
 
 export async function getExpertises() {
-  return await db.expertise.findMany({ select: { id: true, name: true } });
+  const session = await getServerSession();
+  const organizationId = await checkUserPermissions(session);
+
+  return await db.expertise.findMany({
+    where: { organizationId },
+    select: { id: true, name: true },
+  });
 }
 export interface TEditInput extends TCreateInput {
   userId: string;
 }
 
 const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
+  const session = await getServerSession();
+  const organizationId = await checkUserPermissions(session);
+
   const { password, ...rest } = data;
   const hashed = password ? await bcrypt.hash(password, 12) : undefined;
   const user = await db.user.update({
-    where: { id: userId },
+    where: { id: userId, organizationId },
     data: {
       ...rest,
       password: hashed,
@@ -154,10 +186,12 @@ const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
   });
   return user;
 };
+
 export const update = createSafeAction({
   scheme: updateInputSchema,
   handler: editHandler,
 });
+
 export async function handleDelete(id: string) {
   await deleteById(id);
   revalidatePath("/users");

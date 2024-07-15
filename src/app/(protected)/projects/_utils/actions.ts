@@ -13,8 +13,7 @@ import {
 } from "./schemas";
 import { $Enums, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { FieldErrors } from "react-hook-form";
-import { connect } from "http2";
+import { getServerSession, Session } from "@/lib/auth";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -44,16 +43,25 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   return { createdAt: "desc" as "desc" };
 };
 
+async function getSessionAndOrganizationId(): Promise<{ session: Session; organizationId: string }> {
+  const session = await getServerSession();
+  if (!session || !session.user.organization?.id) throw new Error("Unauthorized");
+  return { session, organizationId: session.user.organization.id };
+}
+
 export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
+  const { organizationId } = await getSessionAndOrganizationId();
+
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
   const where: Prisma.CommandProjectWhereInput = {
+    organizationId,
     OR: params.search
       ? [
           {
@@ -88,6 +96,7 @@ export async function findMany(params = defaultParams): Promise<{
   const orderBy = getOrderBy(params.orderBy, params.order);
 
   const result = await db.commandProject.findMany({
+    where,
     select: {
       id: true,
       project: { select: { name: true, status: true, id: true } },
@@ -115,29 +124,36 @@ export async function findMany(params = defaultParams): Promise<{
 
   const total = await db.commandProject.count({ where });
 
-  const data = result;
-
-  return { data, total };
+  const data = result.map((item) => ({
+    ...item,
+    organizationId: organizationId,
+  }));
+  return { data: data, total };
 }
-
 export async function deleteById(id: string) {
-  return await db.project.delete({ where: { id } });
+  const { organizationId } = await getSessionAndOrganizationId();
+  return await db.project.deleteMany({
+    where: { id, organizationId },
+  });
 }
 
 export async function getSprint(commandProjectId: string) {
-  return await db.sprint.findUnique({
+  const { organizationId } = await getSessionAndOrganizationId();
+  return await db.sprint.findFirst({
     where: {
       commandProjectId,
+      commandProject: { organizationId },
     },
   });
 }
 
 const configureSpringHandler = async (data: TConfigureSprint) => {
-  const { commandProjectId } = data;
+  const { organizationId } = await getSessionAndOrganizationId();
+  const { commandProjectId, ...sprintData } = data;
   return db.sprint.upsert({
     where: { commandProjectId },
-    update: { ...data },
-    create: { ...data, commandProjectId },
+    update: { ...sprintData },
+    create: { ...sprintData, commandProjectId, organizationId },
   });
 };
 
@@ -147,12 +163,11 @@ export const configureSprint = createSafeAction({
 });
 
 const handler = async (data: TCreateInput) => {
+  const { organizationId } = await getSessionAndOrganizationId();
   const user = await db.commandProject.create({
     data: {
-      commandId: data.command_id,
-      projectId: data.project_id,
-      target: data.target,
-      endDate: data.endDate,
+      ...data,
+      organizationId,
     },
   });
   return user;
@@ -160,12 +175,6 @@ const handler = async (data: TCreateInput) => {
 
 export const create = createSafeAction({ scheme: createInputSchema, handler });
 
-interface CommandProjectInput {
-  command_id: string;
-  project_id: string;
-  target: number;
-  endDate: Date;
-}
 export async function createCommandProject(
   data: TCreateInput,
   userId: string,
@@ -174,13 +183,12 @@ export async function createCommandProject(
   fieldErrors?: Record<string, string>;
   error?: string;
 }> {
+  const { organizationId } = await getSessionAndOrganizationId();
   const commandProject = await db.commandProject.create({
     data: {
-      commandId: data.command_id,
-      projectId: data.project_id,
-      target: data.target,
-      endDate: data.endDate,
-      userId: userId,
+      ...data,
+      userId,
+      organizationId,
     },
   });
   return { result: commandProject };
@@ -194,12 +202,13 @@ export interface TEditInput {
   endDate: Date;
   status: $Enums.Status;
 }
+
 const updateHandler = async ({ projectToUpdateId, ...data }: TEditInput) => {
-  const { ...rest } = data;
-  const user = await db.commandProject.update({
-    where: { id: projectToUpdateId },
+  const { organizationId } = await getSessionAndOrganizationId();
+  const user = await db.commandProject.updateMany({
+    where: { id: projectToUpdateId, organizationId },
     data: {
-      ...rest,
+      ...data,
     },
   });
   return user;
@@ -211,8 +220,10 @@ export const edit = createSafeAction({
 });
 
 export async function getProjectsNotInCommand(commandId: string) {
+  const { organizationId } = await getSessionAndOrganizationId();
   return await db.project.findMany({
     where: {
+      organizationId,
       commandProjects: {
         every: {
           commandId: { not: commandId },
@@ -223,7 +234,10 @@ export async function getProjectsNotInCommand(commandId: string) {
 }
 
 export async function deleteCommandProjectById(id: string) {
-  return await db.commandProject.delete({ where: { id } });
+  const { organizationId } = await getSessionAndOrganizationId();
+  return await db.commandProject.deleteMany({
+    where: { id, organizationId },
+  });
 }
 
 export async function handleDeleteCommandProject(itemId: string) {
@@ -240,15 +254,16 @@ const updateDoneValueHandler = async ({
   projectToUpdateId,
   ...data
 }: TUpdateValueInput) => {
-  const { ...rest } = data;
-  const user = await db.commandProject.update({
-    where: { id: projectToUpdateId },
+  const { organizationId } = await getSessionAndOrganizationId();
+  const user = await db.commandProject.updateMany({
+    where: { id: projectToUpdateId, organizationId },
     data: {
-      ...rest,
+      ...data,
     },
   });
   return user;
 };
+
 export const editDoneValue = createSafeAction({
   scheme: updateDoneValueSchema,
   handler: updateDoneValueHandler,
@@ -257,8 +272,9 @@ export const editDoneValue = createSafeAction({
 export async function getCommandProject(
   id: string,
 ): Promise<CommandProject | null> {
-  return await db.commandProject.findUnique({
-    where: { id },
+  const { organizationId } = await getSessionAndOrganizationId();
+  return await db.commandProject.findFirst({
+    where: { id, organizationId },
     select: {
       id: true,
       commandId: true,

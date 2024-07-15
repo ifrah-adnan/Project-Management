@@ -9,6 +9,7 @@ export const createInputSchema = z.object({
   target: z.number().int(),
   endDate: z.date(),
 });
+
 export const configureSpringSchema = z.object({
   commandProjectId: z.string().min(2, {
     message: "name must be at least 2 characters long",
@@ -53,6 +54,7 @@ export type TData = {
     id: string;
     name: string;
   };
+  organizationId: string; 
 }[];
 
 export type TProjectNotInCommand = {
@@ -63,7 +65,9 @@ export type TProjectNotInCommand = {
   workFlowId: string | null;
   createdAt: Date;
   updatedAt: Date;
+  organizationId: string; 
 }[];
+
 export const createInputSchemaForUpdate = z.object({
   projectToUpdateId: z.string().uuid().optional(),
   commandId: z.string().min(1, { message: "Client is required" }),
@@ -72,7 +76,9 @@ export const createInputSchemaForUpdate = z.object({
   endDate: z.date(),
   status: z.enum(["ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"]),
 });
+
 export const updateDoneValueSchema = z.object({
   projectToUpdateId: z.string().uuid().optional(),
   done: z.number().int(),
 });
+

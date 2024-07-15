@@ -75,6 +75,7 @@ export function LinkItem({
 export default function SideBar({ className }: { className?: string }) {
   const { session } = useSession();
   const user = session?.user;
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SYS_ADMIN";
   const pathname = usePathname();
   const [organizationImage, setOrganizationImage] = React.useState<
     string | null
@@ -161,13 +162,15 @@ export default function SideBar({ className }: { className?: string }) {
             <LinkItem href="/devices" icon={<RadioReceiver size={18} />}>
               Devices
             </LinkItem>
-            <LinkItem
-              href="/users"
-              icon={<UsersIcon size={18} />}
-              className="hidden lg:flex"
-            >
-              Users
-            </LinkItem>
+            {isAdmin && (
+              <LinkItem
+                href="/users"
+                icon={<UsersIcon size={18} />}
+                className="hidden lg:flex"
+              >
+                Users
+              </LinkItem>
+            )}
             {/* <LinkItem href="/organizations" icon={<BuildingIcon size={18} />}>
               Organizations
             </LinkItem> */}

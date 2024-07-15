@@ -13,6 +13,7 @@ import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { logHistory } from "../../History/_utils/action";
 import { comma } from "postcss/lib/list";
 import { revalidatePath } from "next/cache";
+import { getSessionAndOrganizationId } from "@/lib/auth";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -33,12 +34,14 @@ export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
+  const { organizationId } = await getSessionAndOrganizationId();
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
   const where: Prisma.CommandWhereInput = {
+    organizationId,
     OR: params.search
       ? [
           {
@@ -64,7 +67,6 @@ export async function findMany(params = defaultParams): Promise<{
             name: true,
           },
         },
-
         reference: true,
         client: { select: { id: true, name: true, image: true } },
         commandProjects: {
@@ -85,9 +87,14 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string, userId: string) {
-  await db.commandProject.deleteMany({ where: { commandId: id } });
+  const { organizationId } = await getSessionAndOrganizationId();
+  await db.commandProject.deleteMany({
+    where: { commandId: id, organizationId },
+  });
 
-  const deletedCommand = await db.command.delete({ where: { id } });
+  const deletedCommand = await db.command.delete({
+    where: { id, organizationId },
+  });
 
   await logHistory(
     ActionType.DELETE,
@@ -97,17 +104,21 @@ export async function deleteById(id: string, userId: string) {
     userId,
   );
 }
+
 const handler = async (data: TCreateInput) => {
+  const { organizationId } = await getSessionAndOrganizationId();
   const user = await db.command.create({
     data: {
       reference: data.reference,
       client: data.clientId ? { connect: { id: data.clientId } } : undefined,
+      organization: { connect: { id: organizationId } },
       commandProjects: {
         createMany: {
           data: data.commandProjects.map((cp) => ({
             endDate: cp.endDate,
             projectId: cp.projectId,
             target: cp.target,
+            organizationId,
           })),
         },
       },
@@ -139,16 +150,19 @@ export async function createCommandd({
   error?: string;
   fieldErrors?: Record<string, string>;
 }> {
+  const { organizationId } = await getSessionAndOrganizationId();
   const command = await db.command.create({
     data: {
       reference,
       client: clientId ? { connect: { id: clientId } } : undefined,
+      organization: { connect: { id: organizationId } },
       commandProjects: {
         createMany: {
           data: commandProjects.map((cp) => ({
             endDate: cp.endDate,
             projectId: cp.projectId,
             target: cp.target,
+            organizationId,
           })),
         },
       },
@@ -159,7 +173,6 @@ export async function createCommandd({
     ActionType.CREATE,
     "command created",
     EntityType.COMMAND,
-
     command.id,
     userId,
   );
@@ -167,26 +180,34 @@ export async function createCommandd({
 }
 
 export async function getProjectsNames() {
+  const { organizationId } = await getSessionAndOrganizationId();
   return await db.project.findMany({
+    where: { organizationId },
     select: { id: true, name: true },
   });
 }
 
 export async function getCommands() {
+  const { organizationId } = await getSessionAndOrganizationId();
   return await db.command.findMany({
+    where: { organizationId },
     select: { reference: true, id: true },
   });
 }
+
 export async function getProjects() {
+  const { organizationId } = await getSessionAndOrganizationId();
   return await db.project.findMany({
+    where: { organizationId },
     select: { name: true, id: true },
   });
 }
 
 export async function getClients() {
+  const { organizationId } = await getSessionAndOrganizationId();
   return await db.user.findMany({
+    where: { organizationId, role: "CLIENT" },
     select: { name: true, id: true, image: true },
-    where: { role: "CLIENT" },
   });
 }
 
@@ -197,10 +218,12 @@ export interface TEditInput {
 }
 
 const createCommandHandler = async (data: TEditInput) => {
+  const { organizationId } = await getSessionAndOrganizationId();
   const user = await db.command.create({
     data: {
       reference: data.reference,
       client: data.clientId ? { connect: { id: data.clientId } } : undefined,
+      organization: { connect: { id: organizationId } },
     },
   });
   return user;
@@ -212,9 +235,10 @@ export const createCommand = createSafeAction({
 });
 
 const editCommandHandler = async ({ commandId, ...data }: TEditInput) => {
+  const { organizationId } = await getSessionAndOrganizationId();
   const { ...rest } = data;
   const result = await db.command.update({
-    where: { id: commandId },
+    where: { id: commandId, organizationId },
     data: {
       ...rest,
     },
@@ -226,6 +250,7 @@ export const edit = createSafeAction({
   scheme: createInputSchemaforUpdate,
   handler: editCommandHandler,
 });
+
 export async function handleDelete(id: string, userId: string) {
   await deleteById(id, userId);
   revalidatePath("/commands");

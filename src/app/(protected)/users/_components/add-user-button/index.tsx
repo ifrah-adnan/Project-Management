@@ -33,6 +33,7 @@ import { MultiSelect } from "@/components/multi-select";
 import { Input } from "@/components/ui/input";
 import { Role } from "@prisma/client";
 import { roles } from "@/utils/constants";
+import { getServerSession } from "@/lib/auth";
 
 export interface AddUserButtonProps extends ButtonProps {}
 
@@ -61,6 +62,12 @@ export function AddUserButton(props: AddUserButtonProps) {
   };
 
   const handleSubmit = async (formData: FormData) => {
+    const session = await getServerSession();
+    if (!session || !["SYS_ADMIN", "ADMIN"].includes(session.user.role)) {
+      toast.error("Insufficient permissions");
+      return;
+    }
+
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
