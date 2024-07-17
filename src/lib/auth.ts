@@ -94,7 +94,8 @@ export async function getServerSession(): Promise<Session | null> {
 }
 
 export async function getSessionAndOrganizationId(): Promise<{
-  organizationId: string;
+  organizationId: string | null;
+  isSysAdmin: boolean;
 }> {
   const session = await getServerSession();
   if (!session || !session.user) {
@@ -102,23 +103,32 @@ export async function getSessionAndOrganizationId(): Promise<{
   }
 
   let organizationId: string | null = null;
+  const isSysAdmin = session.user.role === "SYS_ADMIN";
 
-  // Check if the user is a SYS_ADMIN
-  if (session.user.role === "SYS_ADMIN") {
-    // Get the organizationId from the URL query parameter
-    const headersList = headers();
-    const url = new URL(headersList.get("x-url") || "", "http://localhost");
-    organizationId = url.searchParams.get("organizationId");
+  // Get the organizationId from the URL query parameter
+  const headersList = headers();
+  const url = new URL(headersList.get("x-url") || "", "http://localhost");
+  const urlOrganizationId = url.searchParams.get("organizationId");
+
+  if (isSysAdmin) {
+    // For SYS_ADMIN, use the organizationId from the URL, which can be null
+    organizationId = urlOrganizationId;
   } else {
-    // For non-SYS_ADMIN users, use the organization from their session
+    // For other roles, use the organization from their session
     organizationId = session.user.organization?.id || null;
+
+    // Ensure the URL organizationId matches the session organizationId for non-SYS_ADMIN users
+    if (urlOrganizationId && urlOrganizationId !== organizationId) {
+      throw new Error("Unauthorized access to organization");
+    }
+
+    // For non-SYS_ADMIN users, we still need to ensure they have an associated organization
+    if (!organizationId) {
+      throw new Error("User not associated with an organization");
+    }
   }
 
-  if (!organizationId) {
-    throw new Error("Unauthorized or user not associated with an organization");
-  }
-
-  return { organizationId };
+  return { organizationId, isSysAdmin };
 }
 
 export async function updateSession(request: NextRequest) {
