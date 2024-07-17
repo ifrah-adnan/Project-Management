@@ -80,6 +80,9 @@ export default function SideBar({ className }: { className?: string }) {
   const [organizationImage, setOrganizationImage] = React.useState<
     string | null
   >(null);
+  const [organizationName, setOrganizationName] = React.useState<string | null>(
+    null,
+  );
   const [isOrganizationPage, setIsOrganizationPage] = React.useState(false);
 
   const [firstName] = (user?.name || "").split(" ");
@@ -87,7 +90,7 @@ export default function SideBar({ className }: { className?: string }) {
   React.useEffect(() => {
     const fetchOrganizationImage = async () => {
       if (pathname === "/organizations") {
-        setOrganizationImage("/logo.svg"); // Remplacez par le chemin de votre logo par défaut
+        setOrganizationImage("/logo.svg");
         setIsOrganizationPage(true);
       } else {
         setIsOrganizationPage(false);
@@ -96,10 +99,11 @@ export default function SideBar({ className }: { className?: string }) {
           const organizationData = await getOrganizationId(
             serverSession.user.organizationId,
           );
+          setOrganizationName(organizationData.name);
           if (organizationData && organizationData.imagePath) {
             setOrganizationImage(organizationData.imagePath);
           } else {
-            setOrganizationImage("/logo.svg"); // Logo par défaut si aucune image n'est trouvée
+            setOrganizationImage("/logo.svg");
           }
         }
       }
@@ -119,22 +123,20 @@ export default function SideBar({ className }: { className?: string }) {
         href="/"
         className="relative flex h-12 w-40 items-center justify-center"
       >
-        <Image
-          src={organizationImage || "/logo.svg"}
-          alt="Logo"
-          fill
-          sizes="(max-width: 160px) 100vw, 160px"
-          className="object-contain transition-opacity duration-300 ease-in-out"
-          quality={100}
-          priority
-          style={{
-            opacity: 1,
-            objectFit: "contain",
-            width: "100%",
-            height: "100%",
-            padding: "4px",
-          }}
-        />
+        <div className="relative h-12 w-12">
+          <Image
+            src={organizationImage || "/logo.svg"}
+            alt="Logo"
+            fill
+            sizes="48px"
+            className="object-contain transition-opacity duration-300 ease-in-out"
+            quality={100}
+            priority
+          />
+        </div>
+        <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+          {organizationName}
+        </span>
       </Link>
       {isOrganizationPage ? (
         <div className="flex items-center gap-4">

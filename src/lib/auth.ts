@@ -96,7 +96,7 @@ export async function getSessionAndOrganizationId(): Promise<{
   organizationId: string;
 }> {
   const session = await getServerSession();
-  if (!session || !session.user.organization) {
+  if (!session || !session.user?.organization) {
     throw new Error("Unauthorized or user not associated with an organization");
   }
   return { organizationId: session.user.organization.id };

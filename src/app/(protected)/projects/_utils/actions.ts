@@ -43,9 +43,17 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   return { createdAt: "desc" as "desc" };
 };
 
-async function getSessionAndOrganizationId(): Promise<{ session: Session; organizationId: string }> {
+async function getSessionAndOrganizationId(): Promise<{
+  session: Session;
+  organizationId: string;
+}> {
   const session = await getServerSession();
-  if (!session || !session.user.organization?.id) throw new Error("Unauthorized");
+  if (
+    !session ||
+    !session.user.organization?.id ||
+    session.user.role !== "SYS_ADMIN"
+  )
+    throw new Error("Unauthorized");
   return { session, organizationId: session.user.organization.id };
 }
 
