@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LinkItem } from "../sidebar";
 import { useSession } from "@/components/session-provider";
 import { usePathname } from "next/navigation";
+import { useOrganizationNavigation } from "@/hooks/use-organizationNavigation";
 
 const variants = {
   open: {
@@ -40,13 +41,13 @@ export const Navigation = ({
   const { session } = useSession();
   const { user } = session;
   const pathname = usePathname();
+  const navigateWithOrganization = useOrganizationNavigation();
 
   React.useEffect(() => {
     if (setOpen) {
       setOpen(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, setOpen]);
   return (
     <motion.div
       variants={variants}
@@ -55,28 +56,60 @@ export const Navigation = ({
         className,
       )}
     >
-      <LinkItem href="/" icon={<Monitor size={18} />}>
+      <LinkItem
+        href="/"
+        icon={<Monitor size={18} />}
+        onClick={() => navigateWithOrganization("/")}
+      >
         dashboard
       </LinkItem>
-      <LinkItem href="/projects" icon={<FolderKanban size={18} />}>
+      <LinkItem
+        href="/projects"
+        icon={<FolderKanban size={18} />}
+        onClick={() => navigateWithOrganization("/projects")}
+      >
         projects
       </LinkItem>
-      <LinkItem href="/products" icon={<SquareKanbanIcon size={18} />}>
+      <LinkItem
+        href="/products"
+        icon={<SquareKanbanIcon size={18} />}
+        onClick={() => navigateWithOrganization("/products")}
+      >
         products
       </LinkItem>
-      <LinkItem href="/commands" icon={<ShoppingBasketIcon size={18} />}>
+      <LinkItem
+        href="/commands"
+        icon={<ShoppingBasketIcon size={18} />}
+        onClick={() => navigateWithOrganization("/commands")}
+      >
         commands
       </LinkItem>
-      <LinkItem href="/sprints" icon={<FolderClockIcon size={18} />}>
+      <LinkItem
+        href="/sprints"
+        icon={<FolderClockIcon size={18} />}
+        onClick={() => navigateWithOrganization("/sprints")}
+      >
         sprints
       </LinkItem>
-      <LinkItem href="/posts" icon={<DockIcon size={18} />}>
+      <LinkItem
+        href="/posts"
+        icon={<DockIcon size={18} />}
+        onClick={() => navigateWithOrganization("/posts")}
+      >
         posts
       </LinkItem>
-      <LinkItem href="/operators" icon={<UsersIcon size={18} />}>
+      <LinkItem
+        href="/operators"
+        icon={<UsersIcon size={18} />}
+        onClick={() => navigateWithOrganization("/operators")}
+      >
         operators
       </LinkItem>
-      <LinkItem href="/expertise" icon={<BookTextIcon size={18} />}>
+      <LinkItem
+        href="/expertise"
+        icon={<BookTextIcon size={18} />}
+        onClick={() => navigateWithOrganization("/expertise")}
+      >
         operation Type
       </LinkItem>
       {/* <LinkItem href="/bom" icon={<ReceiptTextIcon size={18} />}>
@@ -85,7 +118,11 @@ export const Navigation = ({
         <LinkItem href="/boa" icon={<ReceiptTextIcon size={18} />}>
           boa
         </LinkItem> */}
-      <LinkItem href="/operations" icon={<ScrollTextIcon size={18} />}>
+      <LinkItem
+        href="/operations"
+        icon={<ScrollTextIcon size={18} />}
+        onClick={() => navigateWithOrganization("/operations")}
+      >
         operations history
       </LinkItem>
 
@@ -93,6 +130,7 @@ export const Navigation = ({
         className="mt-auto"
         href="/settings"
         icon={<SettingsIcon size={18} />}
+        onClick={() => navigateWithOrganization("/settings")}
       >
         settings
       </LinkItem>

@@ -7,6 +7,7 @@ import env from "./env";
 import { User, Organization } from "@prisma/client";
 import { db } from "./db";
 import bcrypt from "bcrypt";
+import { headers } from "next/headers";
 
 export type SessionUser = Omit<User, "password"> & {
   organization: Pick<Organization, "id" | "name"> | null;
@@ -93,13 +94,41 @@ export async function getServerSession(): Promise<Session | null> {
 }
 
 export async function getSessionAndOrganizationId(): Promise<{
-  organizationId: string;
+  organizationId: string | null;
+  isSysAdmin: boolean;
 }> {
   const session = await getServerSession();
-  if (!session || !session.user?.organization) {
-    throw new Error("Unauthorized or user not associated with an organization");
+  if (!session || !session.user) {
+    throw new Error("Unauthorized");
   }
-  return { organizationId: session.user.organization.id };
+
+  let organizationId: string | null = null;
+  const isSysAdmin = session.user.role === "SYS_ADMIN";
+
+  // Get the organizationId from the URL query parameter
+  const headersList = headers();
+  const url = new URL(headersList.get("x-url") || "", "http://localhost");
+  const urlOrganizationId = url.searchParams.get("organizationId");
+
+  if (isSysAdmin) {
+    // For SYS_ADMIN, use the organizationId from the URL, which can be null
+    organizationId = urlOrganizationId;
+  } else {
+    // For other roles, use the organization from their session
+    organizationId = session.user.organization?.id || null;
+
+    // Ensure the URL organizationId matches the session organizationId for non-SYS_ADMIN users
+    if (urlOrganizationId && urlOrganizationId !== organizationId) {
+      throw new Error("Unauthorized access to organization");
+    }
+
+    // For non-SYS_ADMIN users, we still need to ensure they have an associated organization
+    if (!organizationId) {
+      throw new Error("User not associated with an organization");
+    }
+  }
+
+  return { organizationId, isSysAdmin };
 }
 
 export async function updateSession(request: NextRequest) {
@@ -125,13 +154,22 @@ export async function setOrganizationId(organizationId: string) {
     throw new Error("Unauthorized");
   }
 
-  session.user.organizationId = organizationId;
+  // For SYS_ADMIN, we don't update the session, just store the organizationId in a cookie
+  if (session.user.role === "SYS_ADMIN") {
+    cookies().set("selected-organization-id", organizationId, {
+      httpOnly: true,
+      maxAge: 3600, // 1 hour, adjust as needed
+    });
+  } else {
+    // For other roles, update the session as before
+    session.user.organization = { id: organizationId, name: "" }; // You might want to fetch the org name here
 
-  const expiryTimeInSeconds = process.env.EXPIRY_TIME
-    ? parseInt(process.env.EXPIRY_TIME, 10)
-    : 3600;
-  const expires = new Date(Date.now() + expiryTimeInSeconds * 1000);
-  const updatedSession = await encrypt({ user: session.user, expires });
+    const expiryTimeInSeconds = process.env.EXPIRY_TIME
+      ? parseInt(process.env.EXPIRY_TIME, 10)
+      : 3600;
+    const expires = new Date(Date.now() + expiryTimeInSeconds * 1000);
+    const updatedSession = await encrypt({ user: session.user, expires });
 
-  cookies().set("session", updatedSession, { expires, httpOnly: true });
+    cookies().set("session", updatedSession, { expires, httpOnly: true });
+  }
 }

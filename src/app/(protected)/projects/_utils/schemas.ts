@@ -54,7 +54,7 @@ export type TData = {
     id: string;
     name: string;
   };
-  organizationId: string; 
+  organizationId: string;
 }[];
 
 export type TProjectNotInCommand = {
@@ -65,7 +65,7 @@ export type TProjectNotInCommand = {
   workFlowId: string | null;
   createdAt: Date;
   updatedAt: Date;
-  organizationId: string; 
+  organizationId: string;
 }[];
 
 export const createInputSchemaForUpdate = z.object({
@@ -81,4 +81,3 @@ export const updateDoneValueSchema = z.object({
   projectToUpdateId: z.string().uuid().optional(),
   done: z.number().int(),
 });
-

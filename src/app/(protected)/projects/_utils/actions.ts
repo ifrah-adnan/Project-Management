@@ -13,7 +13,11 @@ import {
 } from "./schemas";
 import { $Enums, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { getServerSession, Session } from "@/lib/auth";
+import {
+  getServerSession,
+  Session,
+  getSessionAndOrganizationId,
+} from "@/lib/auth";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -43,33 +47,18 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   return { createdAt: "desc" as "desc" };
 };
 
-async function getSessionAndOrganizationId(): Promise<{
-  session: Session;
-  organizationId: string;
-}> {
-  const session = await getServerSession();
-  if (
-    !session ||
-    !session.user.organization?.id ||
-    session.user.role !== "SYS_ADMIN"
-  )
-    throw new Error("Unauthorized");
-  return { session, organizationId: session.user.organization.id };
-}
-
 export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
-  const { organizationId } = await getSessionAndOrganizationId();
+  const { organizationId, isSysAdmin } = await getSessionAndOrganizationId();
 
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
-  const where: Prisma.CommandProjectWhereInput = {
-    organizationId,
+  let where: Prisma.CommandProjectWhereInput = {
     OR: params.search
       ? [
           {
@@ -101,6 +90,13 @@ export async function findMany(params = defaultParams): Promise<{
         ]
       : undefined,
   };
+
+  if (organizationId) {
+    where.organizationId = organizationId;
+  } else if (!isSysAdmin) {
+    return { data: [], total: 0 };
+  }
+
   const orderBy = getOrderBy(params.orderBy, params.order);
 
   const result = await db.commandProject.findMany({
@@ -134,10 +130,11 @@ export async function findMany(params = defaultParams): Promise<{
 
   const data = result.map((item) => ({
     ...item,
-    organizationId: organizationId,
+    organizationId: organizationId || undefined,
   }));
-  return { data: data, total };
+  return { data, total };
 }
+
 export async function deleteById(id: string) {
   const { organizationId } = await getSessionAndOrganizationId();
   return await db.project.deleteMany({
@@ -172,13 +169,12 @@ export const configureSprint = createSafeAction({
 
 const handler = async (data: TCreateInput) => {
   const { organizationId } = await getSessionAndOrganizationId();
-  const user = await db.commandProject.create({
+  return await db.commandProject.create({
     data: {
       ...data,
       organizationId,
     },
   });
-  return user;
 };
 
 export const create = createSafeAction({ scheme: createInputSchema, handler });
@@ -202,24 +198,14 @@ export async function createCommandProject(
   return { result: commandProject };
 }
 
-export interface TEditInput {
-  projectToUpdateId?: string;
-  commandId: string;
-  projectId: string;
-  target: number;
-  endDate: Date;
-  status: $Enums.Status;
-}
-
 const updateHandler = async ({ projectToUpdateId, ...data }: TEditInput) => {
   const { organizationId } = await getSessionAndOrganizationId();
-  const user = await db.commandProject.updateMany({
+  return await db.commandProject.updateMany({
     where: { id: projectToUpdateId, organizationId },
     data: {
       ...data,
     },
   });
-  return user;
 };
 
 export const edit = createSafeAction({
@@ -263,13 +249,12 @@ const updateDoneValueHandler = async ({
   ...data
 }: TUpdateValueInput) => {
   const { organizationId } = await getSessionAndOrganizationId();
-  const user = await db.commandProject.updateMany({
+  return await db.commandProject.updateMany({
     where: { id: projectToUpdateId, organizationId },
     data: {
       ...data,
     },
   });
-  return user;
 };
 
 export const editDoneValue = createSafeAction({
