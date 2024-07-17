@@ -7,6 +7,7 @@ import env from "./env";
 import { User, Organization } from "@prisma/client";
 import { db } from "./db";
 import bcrypt from "bcrypt";
+import { headers } from "next/headers";
 
 export type SessionUser = Omit<User, "password"> & {
   organization: Pick<Organization, "id" | "name"> | null;
@@ -96,10 +97,28 @@ export async function getSessionAndOrganizationId(): Promise<{
   organizationId: string;
 }> {
   const session = await getServerSession();
-  if (!session || !session.user.organization) {
+  if (!session || !session.user) {
+    throw new Error("Unauthorized");
+  }
+
+  let organizationId: string | null = null;
+
+  // Check if the user is a SYS_ADMIN
+  if (session.user.role === "SYS_ADMIN") {
+    // Get the organizationId from the URL query parameter
+    const headersList = headers();
+    const url = new URL(headersList.get("x-url") || "", "http://localhost");
+    organizationId = url.searchParams.get("organizationId");
+  } else {
+    // For non-SYS_ADMIN users, use the organization from their session
+    organizationId = session.user.organization?.id || null;
+  }
+
+  if (!organizationId) {
     throw new Error("Unauthorized or user not associated with an organization");
   }
-  return { organizationId: session.user.organization.id };
+
+  return { organizationId };
 }
 
 export async function updateSession(request: NextRequest) {
@@ -125,13 +144,22 @@ export async function setOrganizationId(organizationId: string) {
     throw new Error("Unauthorized");
   }
 
-  session.user.organizationId = organizationId;
+  // For SYS_ADMIN, we don't update the session, just store the organizationId in a cookie
+  if (session.user.role === "SYS_ADMIN") {
+    cookies().set("selected-organization-id", organizationId, {
+      httpOnly: true,
+      maxAge: 3600, // 1 hour, adjust as needed
+    });
+  } else {
+    // For other roles, update the session as before
+    session.user.organization = { id: organizationId, name: "" }; // You might want to fetch the org name here
 
-  const expiryTimeInSeconds = process.env.EXPIRY_TIME
-    ? parseInt(process.env.EXPIRY_TIME, 10)
-    : 3600;
-  const expires = new Date(Date.now() + expiryTimeInSeconds * 1000);
-  const updatedSession = await encrypt({ user: session.user, expires });
+    const expiryTimeInSeconds = process.env.EXPIRY_TIME
+      ? parseInt(process.env.EXPIRY_TIME, 10)
+      : 3600;
+    const expires = new Date(Date.now() + expiryTimeInSeconds * 1000);
+    const updatedSession = await encrypt({ user: session.user, expires });
 
-  cookies().set("session", updatedSession, { expires, httpOnly: true });
+    cookies().set("session", updatedSession, { expires, httpOnly: true });
+  }
 }
