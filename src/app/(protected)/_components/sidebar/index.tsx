@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/components/session-provider";
 import UserButton from "../userButton";
 import { ModeToggle } from "../ModeToggle/mode-toggle";
@@ -34,25 +34,34 @@ export function LinkItem({
   icon,
   className,
   children,
+  onClick,
 }: {
   href: string;
   icon: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }) {
   const pathname = usePathname();
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
+
   return (
     <Link
       href={href}
       className={cn(
-        "relative flex  h-[3.5rem]  items-center   text-foreground transition-colors duration-300",
+        "relative flex h-[3.5rem] items-center text-foreground transition-colors duration-300",
         className,
         {
-          " text-[#FA993A]": isActive,
-          " hover:text-[#FA993A]": !isActive,
+          "text-[#FA993A]": isActive,
+          "hover:text-[#FA993A]": !isActive,
         },
       )}
+      onClick={(e) => {
+        if (onClick) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div
         className={cn("absolute bottom-0 h-1 w-full bg-[#FA993A]", {
@@ -61,7 +70,7 @@ export function LinkItem({
         })}
       ></div>
       <span
-        className={cn("w-8   opacity-75 [&_svg]:size-5", {
+        className={cn("w-8 opacity-75 [&_svg]:size-5", {
           "opacity-100": isActive,
         })}
       >
@@ -77,6 +86,7 @@ export default function SideBar({ className }: { className?: string }) {
   const user = session?.user;
   const isAdmin = user?.role === "ADMIN" || user?.role === "SYS_ADMIN";
   const pathname = usePathname();
+  const router = useRouter();
   const [organizationImage, setOrganizationImage] = React.useState<
     string | null
   >(null);
@@ -87,7 +97,7 @@ export default function SideBar({ className }: { className?: string }) {
   React.useEffect(() => {
     const fetchOrganizationImage = async () => {
       if (pathname === "/organizations") {
-        setOrganizationImage("/logo.svg"); // Remplacez par le chemin de votre logo par défaut
+        setOrganizationImage("/logo.svg");
         setIsOrganizationPage(true);
       } else {
         setIsOrganizationPage(false);
@@ -99,7 +109,7 @@ export default function SideBar({ className }: { className?: string }) {
           if (organizationData && organizationData.imagePath) {
             setOrganizationImage(organizationData.imagePath);
           } else {
-            setOrganizationImage("/logo.svg"); // Logo par défaut si aucune image n'est trouvée
+            setOrganizationImage("/logo.svg");
           }
         }
       }
@@ -107,6 +117,16 @@ export default function SideBar({ className }: { className?: string }) {
 
     fetchOrganizationImage();
   }, [pathname]);
+
+  const navigateWithOrganization = (path: string) => {
+    const url = new URL(window.location.href);
+    const organizationId = url.searchParams.get("organizationId");
+    if (organizationId) {
+      router.push(`${path}?organizationId=${organizationId}`);
+    } else {
+      router.push(path);
+    }
+  };
 
   return (
     <div
@@ -147,19 +167,39 @@ export default function SideBar({ className }: { className?: string }) {
       ) : (
         <>
           <div className="flex gap-4 lg:gap-6 [&>*]:capitalize">
-            <LinkItem href="/projects" icon={<FolderKanban size={18} />}>
+            <LinkItem
+              href="/projects"
+              icon={<FolderKanban size={18} />}
+              onClick={() => navigateWithOrganization("/projects")}
+            >
               Projects
             </LinkItem>
-            <LinkItem href="/commands" icon={<ShoppingBasketIcon size={18} />}>
+            <LinkItem
+              href="/commands"
+              icon={<ShoppingBasketIcon size={18} />}
+              onClick={() => navigateWithOrganization("/commands")}
+            >
               Commands
             </LinkItem>
-            <LinkItem href="/posts" icon={<DockIcon size={18} />}>
+            <LinkItem
+              href="/posts"
+              icon={<DockIcon size={18} />}
+              onClick={() => navigateWithOrganization("/posts")}
+            >
               Posts
             </LinkItem>
-            <LinkItem href="/expertise" icon={<DockIcon size={18} />}>
+            <LinkItem
+              href="/expertise"
+              icon={<DockIcon size={18} />}
+              onClick={() => navigateWithOrganization("/expertise")}
+            >
               Expertises
             </LinkItem>
-            <LinkItem href="/devices" icon={<RadioReceiver size={18} />}>
+            <LinkItem
+              href="/devices"
+              icon={<RadioReceiver size={18} />}
+              onClick={() => navigateWithOrganization("/devices")}
+            >
               Devices
             </LinkItem>
             {isAdmin && (
@@ -167,13 +207,11 @@ export default function SideBar({ className }: { className?: string }) {
                 href="/users"
                 icon={<UsersIcon size={18} />}
                 className="hidden lg:flex"
+                onClick={() => navigateWithOrganization("/users")}
               >
                 Users
               </LinkItem>
             )}
-            {/* <LinkItem href="/organizations" icon={<BuildingIcon size={18} />}>
-              Organizations
-            </LinkItem> */}
           </div>
           <div className="flex items-center gap-4">
             <Link href="/settings">

@@ -11,7 +11,6 @@ import {
 } from "./schemas";
 import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { logHistory } from "../../History/_utils/action";
-import { comma } from "postcss/lib/list";
 import { revalidatePath } from "next/cache";
 import { getSessionAndOrganizationId } from "@/lib/auth";
 
@@ -34,25 +33,32 @@ export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
-  const { organizationId } = await getSessionAndOrganizationId();
+  const { organizationId, isSysAdmin } = await getSessionAndOrganizationId();
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
-  const where: Prisma.CommandWhereInput = {
-    organizationId,
-    OR: params.search
-      ? [
-          {
-            reference: { contains: params.search, mode: "insensitive" },
-          },
-          {
-            client: { name: { contains: params.search, mode: "insensitive" } },
-          },
-        ]
-      : undefined,
-  };
+  let where: Prisma.CommandWhereInput = {};
+
+  if (organizationId) {
+    where.organizationId = organizationId;
+  } else if (!isSysAdmin) {
+    // If not a SYS_ADMIN and no organizationId, return no results
+    return { data: [], total: 0 };
+  }
+
+  if (params.search) {
+    where.OR = [
+      {
+        reference: { contains: params.search, mode: "insensitive" },
+      },
+      {
+        client: { name: { contains: params.search, mode: "insensitive" } },
+      },
+    ];
+  }
+
   const [result, total] = await Promise.all([
     db.command.findMany({
       where,
@@ -87,13 +93,23 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string, userId: string) {
-  const { organizationId } = await getSessionAndOrganizationId();
+  const { organizationId, isSysAdmin } = await getSessionAndOrganizationId();
+
+  if (!organizationId && !isSysAdmin) {
+    throw new Error("Unauthorized");
+  }
+
+  const deleteWhere: Prisma.CommandWhereUniqueInput = { id };
+  if (organizationId) {
+    deleteWhere.organizationId = organizationId;
+  }
+
   await db.commandProject.deleteMany({
-    where: { commandId: id, organizationId },
+    where: { commandId: id, ...(organizationId ? { organizationId } : {}) },
   });
 
   const deletedCommand = await db.command.delete({
-    where: { id, organizationId },
+    where: deleteWhere,
   });
 
   await logHistory(
@@ -151,10 +167,28 @@ export async function createCommandd({
   fieldErrors?: Record<string, string>;
 }> {
   const { organizationId } = await getSessionAndOrganizationId();
+
+  // Verify that the client belongs to the same organization
+  const client = await db.user.findFirst({
+    where: { id: clientId, organizationId, role: "CLIENT" },
+  });
+  if (!client) {
+    return { error: "Invalid client for this organization" };
+  }
+
+  // Verify that all projects belong to the same organization
+  const projectIds = commandProjects.map((cp) => cp.projectId);
+  const projects = await db.project.findMany({
+    where: { id: { in: projectIds }, organizationId },
+  });
+  if (projects.length !== projectIds.length) {
+    return { error: "One or more projects are invalid for this organization" };
+  }
+
   const command = await db.command.create({
     data: {
       reference,
-      client: clientId ? { connect: { id: clientId } } : undefined,
+      client: { connect: { id: clientId } },
       organization: { connect: { id: organizationId } },
       commandProjects: {
         createMany: {
@@ -166,7 +200,7 @@ export async function createCommandd({
           })),
         },
       },
-      user: userId ? { connect: { id: userId } } : undefined,
+      user: { connect: { id: userId } },
     },
   });
   await logHistory(
@@ -180,9 +214,14 @@ export async function createCommandd({
 }
 
 export async function getProjectsNames() {
-  const { organizationId } = await getSessionAndOrganizationId();
+  const { organizationId, isSysAdmin } = await getSessionAndOrganizationId();
+
+  if (!organizationId && !isSysAdmin) {
+    throw new CustomError("Unauthorized");
+  }
+
   return await db.project.findMany({
-    where: { organizationId },
+    where: organizationId ? { organizationId } : {},
     select: { id: true, name: true },
   });
 }
@@ -204,9 +243,16 @@ export async function getProjects() {
 }
 
 export async function getClients() {
-  const { organizationId } = await getSessionAndOrganizationId();
+  const { organizationId, isSysAdmin } = await getSessionAndOrganizationId();
+
+  if (!organizationId && !isSysAdmin) {
+    throw new CustomError("Unauthorized");
+  }
+
   return await db.user.findMany({
-    where: { organizationId, role: "CLIENT" },
+    where: organizationId
+      ? { organizationId, role: "CLIENT" }
+      : { role: "CLIENT" },
     select: { name: true, id: true, image: true },
   });
 }
@@ -219,10 +265,19 @@ export interface TEditInput {
 
 const createCommandHandler = async (data: TEditInput) => {
   const { organizationId } = await getSessionAndOrganizationId();
+
+  // Verify that the client belongs to the same organization
+  const client = await db.user.findFirst({
+    where: { id: data.clientId, organizationId, role: "CLIENT" },
+  });
+  if (!client) {
+    throw new CustomError("Invalid client for this organization");
+  }
+
   const user = await db.command.create({
     data: {
       reference: data.reference,
-      client: data.clientId ? { connect: { id: data.clientId } } : undefined,
+      client: { connect: { id: data.clientId } },
       organization: { connect: { id: organizationId } },
     },
   });
@@ -236,11 +291,27 @@ export const createCommand = createSafeAction({
 
 const editCommandHandler = async ({ commandId, ...data }: TEditInput) => {
   const { organizationId } = await getSessionAndOrganizationId();
-  const { ...rest } = data;
-  const result = await db.command.update({
+
+  // Verify that the command belongs to the organization
+  const existingCommand = await db.command.findFirst({
     where: { id: commandId, organizationId },
+  });
+  if (!existingCommand) {
+    throw new CustomError("Command not found or not authorized");
+  }
+
+  // Verify that the client belongs to the same organization
+  const client = await db.user.findFirst({
+    where: { id: data.clientId, organizationId, role: "CLIENT" },
+  });
+  if (!client) {
+    throw new CustomError("Invalid client for this organization");
+  }
+
+  const result = await db.command.update({
+    where: { id: commandId },
     data: {
-      ...rest,
+      ...data,
     },
   });
   return result;
