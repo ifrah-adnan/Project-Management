@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/multi-select";
 import { useSession } from "@/components/session-provider";
+import { getServerSession } from "@/lib/auth";
 
 export interface AddOperatorButtonProps extends ButtonProps {}
 
@@ -68,6 +69,9 @@ export function AddPostButton(props: AddOperatorButtonProps) {
     const name = formData.get("name") as string;
     const expertises = selectedExpertise.map((op) => op.id);
     console.log("Creating post with data:", { name, expertises, user });
+    const serverSession = await getServerSession();
+
+    const organizationId = serverSession?.user.organization?.id;
 
     const { result, error, fieldErrors } = await createPost({
       name,

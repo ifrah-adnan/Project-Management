@@ -67,35 +67,37 @@ export default function List({ data, total }: { data: TData; total: number }) {
                     <div className="max-w-[20rem]">
                       {item.operations.map((op) => op.name).join(", ")}
                     </div>
-                    <Popover>
-                      <PopoverTrigger>
-                        <Ellipsis size={16} />
-                      </PopoverTrigger>
-                      <PopoverContent
-                        align="end"
-                        className="flex w-fit flex-col gap-2"
-                      >
-                        <EditExpertiseButton
-                          expertise={item}
-                          variant="ghost"
-                          className="justify-start gap-2 bg-none px-6 hover:text-sky-500 "
+                    {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
+                      <Popover>
+                        <PopoverTrigger>
+                          <Ellipsis size={16} />
+                        </PopoverTrigger>
+                        <PopoverContent
+                          align="end"
+                          className="flex w-fit flex-col gap-2"
                         >
-                          <PencilIcon size={16} />
-                          <span>Edit</span>
-                        </EditExpertiseButton>
-                        <ConfirmButton
-                          variant="ghost"
-                          size="icon"
-                          className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
-                          action={async () => {
-                            await handleDelete(item.id, session.user.id);
-                          }}
-                        >
-                          <Trash2Icon size={18} />
-                          <span>Delete</span>
-                        </ConfirmButton>
-                      </PopoverContent>
-                    </Popover>
+                          <EditExpertiseButton
+                            expertise={item}
+                            variant="ghost"
+                            className="justify-start gap-2 bg-none px-6 hover:text-sky-500 "
+                          >
+                            <PencilIcon size={16} />
+                            <span>Edit</span>
+                          </EditExpertiseButton>
+                          <ConfirmButton
+                            variant="ghost"
+                            size="icon"
+                            className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
+                            action={async () => {
+                              await handleDelete(item.id, session.user.id);
+                            }}
+                          >
+                            <Trash2Icon size={18} />
+                            <span>Delete</span>
+                          </ConfirmButton>
+                        </PopoverContent>
+                      </Popover>
+                    )}
                   </div>
                 </td>
               </tr>
