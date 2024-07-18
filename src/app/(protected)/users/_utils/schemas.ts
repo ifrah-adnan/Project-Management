@@ -21,6 +21,7 @@ export type TCreateInput = z.infer<typeof createInputSchema>;
 
 export type TData = {
   createdAt: Date;
+  organizationId: string;
   email: string;
   name: string;
   expertises: {
