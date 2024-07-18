@@ -26,12 +26,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import FormInput from "@/components/form-input";
 import {
   TEditInput,
-  createCommand,
+  createCommandd,
   getClients,
 } from "@/app/(protected)/commands/_utils/actions";
 import { FieldErrors } from "@/actions/utils";
 import { createInputSchemaforUpdate } from "@/app/(protected)/commands/_utils/schemas";
-
 interface CreateNewProjectButtonProps {
   closePopoverRef: React.RefObject<HTMLButtonElement>;
   setNewCommand: React.Dispatch<React.SetStateAction<string>>;
@@ -72,7 +71,7 @@ export default function CreateNewCommandButton({
       );
       return;
     }
-    const { result, error } = await createCommand(parsed.data);
+    const { result, error } = await createCommandd(parsed.data);
 
     if (error) toast.error(error);
 

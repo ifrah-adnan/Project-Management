@@ -237,9 +237,12 @@ export interface TEditInput {
   status: $Enums.Status;
 }
 const updateHandler = async ({ projectToUpdateId, ...data }: TEditInput) => {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
   const { ...rest } = data;
   const user = await db.commandProject.update({
-    where: { id: projectToUpdateId },
+    where: { id: projectToUpdateId, organizationId },
     data: {
       ...rest,
     },
@@ -253,11 +256,15 @@ export const edit = createSafeAction({
 });
 
 export async function getProjectsNotInCommand(commandId: string) {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
   return await db.project.findMany({
     where: {
       commandProjects: {
         every: {
           commandId: { not: commandId },
+          organizationId,
         },
       },
     },

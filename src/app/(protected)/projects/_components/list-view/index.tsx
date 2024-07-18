@@ -43,7 +43,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
     };
 
     if (user) {
-      const filtered = data.filter((item) => item.user?.id === user.id);
+      const filtered = data;
       setFilteredData(filtered);
     }
     fetchSession();

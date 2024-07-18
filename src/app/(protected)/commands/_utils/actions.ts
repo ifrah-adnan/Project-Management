@@ -115,26 +115,26 @@ export async function deleteById(id: string, userId: string) {
     userId,
   );
 }
-const handler = async (data: TCreateInput) => {
-  const user = await db.command.create({
-    data: {
-      reference: data.reference,
-      client: data.clientId ? { connect: { id: data.clientId } } : undefined,
-      commandProjects: {
-        createMany: {
-          data: data.commandProjects.map((cp) => ({
-            endDate: cp.endDate,
-            projectId: cp.projectId,
-            target: cp.target,
-          })),
-        },
-      },
-    },
-  });
-  return user;
-};
+// const handler = async (data: TCreateInput) => {
+//   const user = await db.command.create({
+//     data: {
+//       reference: data.reference,
+//       client: data.clientId ? { connect: { id: data.clientId } } : undefined,
+//       commandProjects: {
+//         createMany: {
+//           data: data.commandProjects.map((cp) => ({
+//             endDate: cp.endDate,
+//             projectId: cp.projectId,
+//             target: cp.target,
+//           })),
+//         },
+//       },
+//     },
+//   });
+//   return user;
+// };
 
-export const create = createSafeAction({ scheme: createInputSchema, handler });
+// export const create = createSafeAction({ scheme: createInputSchema, handler });
 
 interface CreateCommandInput {
   reference: string;
@@ -169,17 +169,20 @@ export async function createCommandd({
     const command = await db.command.create({
       data: {
         reference,
-        client: clientId ? { connect: { id: clientId } } : undefined,
+        clientId,
+        userId,
+        organizationId,
         commandProjects: {
           createMany: {
             data: commandProjects.map((cp) => ({
-              ...cp,
+              projectId: cp.projectId,
+              target: cp.target,
+              endDate: cp.endDate,
+              userId,
               organizationId,
             })),
           },
         },
-        user: { connect: { id: userId } },
-        organization: { connect: { id: organizationId } },
       },
     });
 
@@ -261,39 +264,56 @@ export interface TEditInput {
   clientId: string;
 }
 
-const createCommandHandler = async (data: TEditInput) => {
-  const user = await db.command.create({
-    data: {
-      reference: data.reference,
-      client: data.clientId ? { connect: { id: data.clientId } } : undefined,
-    },
-  });
-  return user;
-};
+// const createCommandHandler = async (data: TEditInput) => {
+//   const user = await db.command.create({
+//     data: {
+//       reference: data.reference,
+//       client: data.clientId ? { connect: { id: data.clientId } } : undefined,
+//     },
+//   });
+//   return user;
+// };
 
-export const createCommand = createSafeAction({
-  scheme: createInputSchemaforUpdate,
-  handler: createCommandHandler,
-});
+// export const createCommand = createSafeAction({
+//   scheme: createInputSchemaforUpdate,
+//   handler: createCommandHandler,
+// });
 
 const editCommandHandler = async ({ commandId, ...data }: TEditInput) => {
   const session = await getServerSession();
-  const organizationId =
-    session?.user?.organizationId || session?.user?.organization?.id;
-  const { ...rest } = data;
+  const organizationId = session?.user?.organizationId;
+  const userId = session?.user?.id;
+
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+
+  if (!commandId) {
+    throw new Error("Command ID is required");
+  }
+
+  if (!userId) {
+    throw new Error("User ID not found");
+  }
+
+  const { reference, clientId } = data;
+
   const result = await db.command.update({
     where: { id: commandId, organizationId },
     data: {
-      ...rest,
+      reference,
+      clientId,
     },
   });
+
   await logHistory(
     ActionType.UPDATE,
     `Command updated`,
     EntityType.COMMAND,
     commandId,
-    session?.user?.id,
+    userId,
   );
+
   return result;
 };
 
