@@ -12,6 +12,9 @@ model Organization {
   name        String
   description String?
   imagePath String?
+  address     String?  
+  latitude    Float?   
+  longitude   Float?  
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

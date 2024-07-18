@@ -1,5 +1,6 @@
 import { AppProps } from "next/app";
 import { appWithTranslation } from "next-i18next";
+import "leaflet/dist/leaflet.css";
 
 import { ThemeProvider } from "next-themes";
 import "../styles/globals.css";

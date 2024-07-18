@@ -12,6 +12,7 @@ import {
   PencilIcon,
   Search,
   PlusCircle,
+  Map,
 } from "lucide-react";
 import { ConfirmButton } from "@/components/confirm-button";
 import { EditOrganizationButton } from "@/app/(protected)/organizations/_component/edit-organization-button";
@@ -45,6 +46,7 @@ import { ViewAllAdminsDialog } from "@/app/(protected)/organizations/_component/
 import ParamsPagination from "@/components/params-pagination";
 import { setOrganizationId } from "@/lib/auth";
 import Image from "next/image";
+import MapDialog from "../map-dialog/MapDialog";
 
 type TDataO = {
   id: string;
@@ -52,6 +54,7 @@ type TDataO = {
   description: string;
   createdAt: string;
   imagePath: string;
+  address?: string;
   users: { id: string; name: string; email: string }[];
 };
 
@@ -114,7 +117,9 @@ export function AdminComponent({
   useEffect(() => {
     setIsClient(true);
   }, []);
-
+  useEffect(() => {
+    console.log(data);
+  });
   const filteredData = data.filter((org) =>
     org.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
@@ -164,10 +169,12 @@ export function AdminComponent({
                       {org.name}
                     </h3>
                   </div>
-                  <span className="rounded-full bg-gray-100 px-2 py-1 text-sm font-medium text-gray-500">
-                    <Users size={14} className="mr-1 inline" />
-                    {org.users.length}
-                  </span>
+                  {org.address && (
+                    <MapDialog
+                      address={org.address}
+                      organizationName={org.name}
+                    />
+                  )}{" "}
                   {org.users.length >= 1 && (
                     <ViewAllAdminsDialog
                       admins={org.users}

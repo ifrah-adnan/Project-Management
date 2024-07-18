@@ -89,7 +89,7 @@ export default function List({ data, total }: { data: TData; total: number }) {
                             size="icon"
                             className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
                             action={async () => {
-                              await handleDelete(item.id, session.user.id);
+                              await handleDelete(item.id);
                             }}
                           >
                             <Trash2Icon size={18} />
