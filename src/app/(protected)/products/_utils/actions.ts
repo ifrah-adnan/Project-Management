@@ -4,6 +4,7 @@ import { createSafeAction } from "@/actions/utils";
 import { db } from "@/lib/db";
 import { TData, TCreateInput, createInputSchema } from "./schemas";
 import { Prisma } from "@prisma/client";
+import { getServerSession } from "@/lib/auth";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -21,12 +22,17 @@ export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
+
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
   const where: Prisma.ProjectWhereInput = {
+    organizationId,
     OR: params.search
       ? [{ name: { contains: params.search, mode: "insensitive" } }]
       : undefined,
@@ -56,12 +62,34 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string) {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
+  const project = await db.project.findFirst({
+    where: {
+      id,
+      organizationId: organizationId,
+    },
+  });
+
+  if (!project) {
+    throw new Error(
+      "Project not found or you don't have permission to delete it",
+    );
+  }
+
   return await db.project.delete({ where: { id } });
 }
 
 const handler = async (data: TCreateInput) => {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
   const result = await db.project.create({
-    data,
+    data: {
+      ...data,
+      organizationId: organizationId,
+    },
   });
   return result;
 };
