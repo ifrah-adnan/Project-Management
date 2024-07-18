@@ -85,6 +85,7 @@ export async function findMany(params = defaultParams): Promise<{
       select: {
         id: true,
         role: true,
+        organizationId: true,
         name: true,
         email: true,
         image: true,
