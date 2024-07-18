@@ -154,22 +154,13 @@ export async function setOrganizationId(organizationId: string) {
     throw new Error("Unauthorized");
   }
 
-  // For SYS_ADMIN, we don't update the session, just store the organizationId in a cookie
-  if (session.user.role === "SYS_ADMIN") {
-    cookies().set("selected-organization-id", organizationId, {
-      httpOnly: true,
-      maxAge: 3600, // 1 hour, adjust as needed
-    });
-  } else {
-    // For other roles, update the session as before
-    session.user.organization = { id: organizationId, name: "" }; // You might want to fetch the org name here
+  session.user.organizationId = organizationId;
 
-    const expiryTimeInSeconds = process.env.EXPIRY_TIME
-      ? parseInt(process.env.EXPIRY_TIME, 10)
-      : 3600;
-    const expires = new Date(Date.now() + expiryTimeInSeconds * 1000);
-    const updatedSession = await encrypt({ user: session.user, expires });
+  const expiryTimeInSeconds = process.env.EXPIRY_TIME
+    ? parseInt(process.env.EXPIRY_TIME, 10)
+    : 3600;
+  const expires = new Date(Date.now() + expiryTimeInSeconds * 1000);
+  const updatedSession = await encrypt({ user: session.user, expires });
 
-    cookies().set("session", updatedSession, { expires, httpOnly: true });
-  }
+  cookies().set("session", updatedSession, { expires, httpOnly: true });
 }

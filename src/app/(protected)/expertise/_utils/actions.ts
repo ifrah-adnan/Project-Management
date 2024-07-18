@@ -10,7 +10,11 @@ import {
 } from "./schemas";
 import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { Session } from "@/lib/auth";
+import {
+  Session,
+  getServerSession,
+  getSessionAndOrganizationId,
+} from "@/lib/auth";
 import { logHistory } from "../../History/_utils/action";
 import { connect } from "http2";
 const defaultParams: Record<string, string> = {
@@ -59,6 +63,7 @@ export async function findMany(params = defaultParams): Promise<{
         id: true,
         name: true,
         code: true,
+        organizationId: true,
         operations: { select: { id: true, name: true } },
         users: { select: { id: true, name: true } },
       },
@@ -130,12 +135,14 @@ export async function createExpertise({
   fieldErrors?: Record<string, string>;
 }> {
   try {
-    console.log(userId);
+    console.log(userId, "tttttttt");
+    const sessionUser = await getServerSession();
     const expertise = await db.expertise.create({
       data: {
-        userId,
+        users: { connect: { id: userId } },
         name,
         code,
+        organization: { connect: { id: sessionUser?.user.organizationId } },
 
         operations: {
           connect: operations.map((id) => ({ id })),
@@ -168,8 +175,21 @@ export async function createExpertise({
   }
 }
 export async function getOperations() {
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
+
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+  let where: Prisma.OperationWhereInput = { organizationId: organizationId };
   return await db.operation.findMany({
-    select: { id: true, name: true },
+    where,
+
+    select: {
+      id: true,
+      name: true,
+    },
   });
 }
 export interface TEditInput extends TCreateInput {
