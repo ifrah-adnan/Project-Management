@@ -111,10 +111,7 @@ export async function deleteById(id: string) {
   });
 }
 
-const handler = async (
-  data: TCreateInput,
-  formData?: FormData | null,
-) => {
+const handler = async (data: TCreateInput, formData?: FormData | null) => {
   const session = await getServerSession();
   const organizationId = await checkUserPermissions(session);
 
@@ -191,6 +188,22 @@ export const update = createSafeAction({
   scheme: updateInputSchema,
   handler: editHandler,
 });
+export async function findUserById(id: string): Promise<any> {
+  const user = await db.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      role: true,
+      name: true,
+      email: true,
+      image: true,
+      expertises: { select: { name: true, id: true } },
+      createdAt: true,
+    },
+  });
+
+  return user;
+}
 
 export async function handleDelete(id: string) {
   await deleteById(id);

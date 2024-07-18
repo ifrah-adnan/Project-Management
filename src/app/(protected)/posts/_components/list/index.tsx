@@ -20,18 +20,34 @@ import { EditPostButton } from "../edit-post-button";
 import UpdatePojectCount from "../update-project-count";
 import { useSession } from "@/components/session-provider";
 import { useEffect, useState } from "react";
+import { getServerSession } from "@/lib/auth";
 export default function List({ data, total }: { data: TData; total: number }) {
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
   console.log(data);
+  const [organizationId, setOrganizationId] = useState<any>("");
 
   useEffect(() => {
-    if (user) {
-      const filtered = data.filter((item) => item.users.id === user.id);
+    const fetchOrganizationImage = async () => {
+      const serverSession = await getServerSession();
+      const orgId =
+        serverSession?.user.organizationId ||
+        serverSession?.user.organization?.id;
+      setOrganizationId(orgId);
+    };
+
+    fetchOrganizationImage();
+  }, []);
+
+  useEffect(() => {
+    if (organizationId && data.length > 0) {
+      const filtered = data.filter(
+        (item) => item.organizationId === organizationId,
+      );
       setFilteredData(filtered);
     }
-  }, [data, user]);
+  }, [organizationId, data]);
 
   return (
     <main className="p-6">
@@ -75,15 +91,18 @@ export default function List({ data, total }: { data: TData; total: number }) {
                   </td>
                   <td>
                     <div className="flex items-center gap-2">
-                      <AddEditPlanningButton
-                        postId={item.id}
-                        className="size-8 rounded-md"
-                        variant={"outline"}
-                        size={"icon"}
-                        expertises={item.expertises}
-                      >
-                        <CalendarIcon size={16} />
-                      </AddEditPlanningButton>
+                      {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
+                        <AddEditPlanningButton
+                          postId={item.id}
+                          className="size-8 rounded-md"
+                          variant={"outline"}
+                          size={"icon"}
+                          expertises={item.expertises}
+                          onClose={() => console.log("Dialog closed")}
+                        >
+                          <CalendarIcon size={16} />
+                        </AddEditPlanningButton>
+                      )}
 
                       {currentPlanning ? (
                         <div className="flex items-center gap-4">
@@ -136,38 +155,40 @@ export default function List({ data, total }: { data: TData; total: number }) {
                     </div>
                   </td>
                   <td>
-                    <div className="  flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-4">
                       <span>{format(new Date(item.createdAt), "PP")}</span>
-                      <Popover>
-                        <PopoverTrigger>
-                          <Ellipsis size={16} />
-                        </PopoverTrigger>
-                        <PopoverContent
-                          align="end"
-                          className=" flex w-fit flex-col gap-2"
-                        >
-                          <EditPostButton
-                            post={post}
-                            variant="ghost"
-                            className=" justify-start gap-2   px-6  hover:text-sky-500 "
+                      {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
+                        <Popover>
+                          <PopoverTrigger>
+                            <Ellipsis size={16} />
+                          </PopoverTrigger>
+                          <PopoverContent
+                            align="end"
+                            className="flex w-fit flex-col gap-2"
                           >
-                            <PencilIcon size={16} />
-                            <span>Edit</span>
-                          </EditPostButton>
+                            <EditPostButton
+                              post={post}
+                              variant="ghost"
+                              className="justify-start gap-2 px-6 hover:text-sky-500"
+                            >
+                              <PencilIcon size={16} />
+                              <span>Edit</span>
+                            </EditPostButton>
 
-                          <ConfirmButton
-                            variant="ghost"
-                            size="icon"
-                            className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
-                            action={async () => {
-                              await handleDelete(item.id, session.user.id);
-                            }}
-                          >
-                            <Trash2Icon size={16} />
-                            <span>Delete</span>
-                          </ConfirmButton>
-                        </PopoverContent>
-                      </Popover>
+                            <ConfirmButton
+                              variant="ghost"
+                              size="icon"
+                              className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
+                              action={async () => {
+                                await handleDelete(item.id, session.user.id);
+                              }}
+                            >
+                              <Trash2Icon size={16} />
+                              <span>Delete</span>
+                            </ConfirmButton>
+                          </PopoverContent>
+                        </Popover>
+                      )}
                     </div>
                   </td>
                 </tr>

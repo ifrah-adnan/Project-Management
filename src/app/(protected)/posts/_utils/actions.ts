@@ -14,9 +14,10 @@ import {
   editInputSchema,
 } from "./schemas";
 import { ActionType, EntityType, Planning, Prisma } from "@prisma/client";
-import { Session } from "@/lib/auth";
+import { Session, getServerSession } from "@/lib/auth";
 import { logHistory } from "../../History/_utils/action";
 import { revalidatePath } from "next/cache";
+import { findUserById } from "../../users/_utils/actions";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -58,6 +59,7 @@ export async function findMany(params = defaultParams): Promise<{
       select: {
         id: true,
         name: true,
+        organizationId: true,
         createdAt: true,
         expertises: {
           select: {
@@ -136,20 +138,24 @@ export async function createPost({
   fieldErrors?: Record<string, string>;
 }> {
   try {
+    const sessionUser = await getServerSession();
+
     console.log("Creating post with data:", { name, expertises, userId });
 
     const post = await db.post.create({
       data: {
-        userId,
+        users: { connect: { id: userId } },
         name,
         expertises: {
           connect: expertises.map((id) => ({ id })),
         },
+        organization: { connect: { id: sessionUser?.user.organizationId } },
       },
     });
+    const user = await findUserById(userId);
     await logHistory(
       ActionType.CREATE,
-      "Post created",
+      `Post created by ${user.name} and his role ${user.role}`,
       EntityType.POSTS,
       post.id,
       userId,
@@ -326,7 +332,18 @@ export async function deletePlanning(id: string) {
 }
 
 export async function getExpertises() {
-  return await db.expertise.findMany({ select: { name: true, id: true } });
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+  let where: Prisma.ExpertiseWhereInput = { organizationId: organizationId };
+
+  return await db.expertise.findMany({
+    where,
+    select: { name: true, id: true },
+  });
 }
 export async function createOperationHistory(
   planing_id: string,
