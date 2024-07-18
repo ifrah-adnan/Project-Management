@@ -25,7 +25,7 @@ export default function List({ data, total }: { data: TData; total: number }) {
 
   useEffect(() => {
     if (user) {
-      const filtered = data.filter((item) => item.user.id === user.id);
+      const filtered = data;
       setFilteredData(filtered);
     }
   }, [data, user]);

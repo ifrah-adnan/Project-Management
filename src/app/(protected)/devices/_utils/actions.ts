@@ -14,6 +14,7 @@ import { ActionType, EntityType, Planning, Prisma } from "@prisma/client";
 import { Session } from "@/lib/auth";
 import { logHistory } from "../../History/_utils/action";
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "@/lib/auth";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -31,12 +32,20 @@ export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
   const where: Prisma.DeviceWhereInput = {
+    organizationId,
     OR: params.search
       ? [
           {
@@ -111,12 +120,23 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string, userId: string) {
-  const deletedDevice = await db.device.delete({ where: { id } });
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+  await db.device.deleteMany({
+    where: {
+      id,
+      organizationId,
+    },
+  });
   await logHistory(
     ActionType.DELETE,
     "device deleted",
     EntityType.DEVICE,
-    deletedDevice.id,
+    id,
     userId,
   );
 }
@@ -159,28 +179,50 @@ export async function createDevice({
   error?: string;
   fieldErrors?: Record<string, string>;
 }> {
-  const device = await db.device.create({
-    data: {
-      userId,
-      deviceId,
-      postId,
-      planningId,
-      count,
-    },
-  });
-  await logHistory(
-    ActionType.CREATE,
-    "device created",
-    EntityType.DEVICE,
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
+  if (!organizationId) {
+    return { error: "Organization ID not found" };
+  }
 
-    device.id,
-    userId,
-  );
-  return { result: device };
+  try {
+    const device = await db.device.create({
+      data: {
+        userId,
+        deviceId,
+        postId,
+        planningId,
+        count,
+        organizationId,
+      },
+    });
+
+    await logHistory(
+      ActionType.CREATE,
+      "device created",
+      EntityType.DEVICE,
+      device.id,
+      userId,
+    );
+
+    return { result: device };
+  } catch (error) {
+    console.error("Error creating device:", error);
+    return { error: "Failed to create device" };
+  }
 }
 
 export async function getPosts() {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+
   return await db.post.findMany({
+    where: { organizationId },
     select: {
       id: true,
       name: true,
