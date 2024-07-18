@@ -41,6 +41,7 @@ export const addPlanningSchema = z.object({
 export type TAddPlanningInput = z.infer<typeof addPlanningSchema>;
 
 export type TData = {
+  organizationId: string;
   expertises: {
     operations: {
       name: string;

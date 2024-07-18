@@ -80,11 +80,11 @@ export function LinkItem({
     </Link>
   );
 }
-
 export default function SideBar({ className }: { className?: string }) {
   const { session } = useSession();
   const user = session?.user;
   const isAdmin = user?.role === "ADMIN" || user?.role === "SYS_ADMIN";
+  const isSysAdmin = user?.role === "SYS_ADMIN";
   const pathname = usePathname();
   const router = useRouter();
   const [organizationImage, setOrganizationImage] = React.useState<
@@ -94,13 +94,14 @@ export default function SideBar({ className }: { className?: string }) {
     null,
   );
   const [isOrganizationPage, setIsOrganizationPage] = React.useState(false);
+  const [showOrganizationName, setShowOrganizationName] = React.useState(true);
 
   const [firstName] = (user?.name || "").split(" ");
 
   React.useEffect(() => {
     const fetchOrganizationImage = async () => {
       if (pathname === "/organizations") {
-        setOrganizationImage("/logo.svg");
+        setOrganizationImage("/sys-admin.svg");
         setIsOrganizationPage(true);
       } else {
         setIsOrganizationPage(false);
@@ -114,7 +115,7 @@ export default function SideBar({ className }: { className?: string }) {
           if (organizationData && organizationData.imagePath) {
             setOrganizationImage(organizationData.imagePath);
           } else {
-            setOrganizationImage("/logo.svg");
+            setOrganizationImage("/sys-admin.svg");
           }
         }
       }
@@ -133,6 +134,13 @@ export default function SideBar({ className }: { className?: string }) {
     }
   };
 
+  const handleMyOrganizationsClick = () => {
+    setShowOrganizationName(false);
+    navigateWithOrganization("/organizations");
+  };
+
+  const hasOrganizationIdInPath = pathname.includes("organizationId");
+
   return (
     <div
       className={cn(
@@ -146,7 +154,7 @@ export default function SideBar({ className }: { className?: string }) {
       >
         <div className="relative h-12 w-12">
           <Image
-            src={organizationImage || "/logo.svg"}
+            src={organizationImage || "/sys-admin.svg"}
             alt="Logo"
             fill
             sizes="48px"
@@ -155,9 +163,11 @@ export default function SideBar({ className }: { className?: string }) {
             priority
           />
         </div>
-        <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-          {organizationName}
-        </span>
+        {showOrganizationName && (
+          <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+            {organizationName}
+          </span>
+        )}
       </Link>
       {isOrganizationPage ? (
         <div className="flex items-center gap-4">
@@ -206,14 +216,25 @@ export default function SideBar({ className }: { className?: string }) {
               Devices
             </LinkItem>
             {isAdmin && (
-              <LinkItem
-                href="/users"
-                icon={<UsersIcon size={18} />}
-                className="hidden lg:flex"
-                onClick={() => navigateWithOrganization("/users")}
-              >
-                Users
-              </LinkItem>
+              <>
+                <LinkItem
+                  href="/users"
+                  icon={<UsersIcon size={18} />}
+                  className="hidden lg:flex"
+                  onClick={() => navigateWithOrganization("/users")}
+                >
+                  Users
+                </LinkItem>
+                {isSysAdmin && (
+                  <LinkItem
+                    href="/organizations"
+                    icon={<BuildingIcon size={18} />}
+                    onClick={handleMyOrganizationsClick}
+                  >
+                    My Organizations
+                  </LinkItem>
+                )}
+              </>
             )}
           </div>
           <div className="flex items-center gap-4">

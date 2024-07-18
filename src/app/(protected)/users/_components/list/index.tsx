@@ -17,6 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useSession } from "@/components/session-provider";
+import { getServerSession } from "@/lib/auth";
 
 export default function List({
   data,
@@ -31,12 +32,28 @@ export default function List({
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
 
-  // useEffect(() => {
-  //   if (user) {
-  //     const filtered = data.filter((item) => item.id === user.id);
-  //     setFilteredData(filtered);
-  //   }
-  // }, [data, user]);
+  const [organizationId, setOrganizationId] = useState<any>("");
+
+  useEffect(() => {
+    const fetchOrganizationImage = async () => {
+      const serverSession = await getServerSession();
+      const orgId =
+        serverSession?.user.organizationId ||
+        serverSession?.user.organization?.id;
+      setOrganizationId(orgId);
+    };
+
+    fetchOrganizationImage();
+  }, []);
+
+  useEffect(() => {
+    if (organizationId && data.length > 0) {
+      const filtered = data.filter(
+        (item) => item.organizationId === organizationId,
+      );
+      setFilteredData(filtered);
+    }
+  }, [organizationId, data]);
   return (
     <div className="h-1 flex-1 p-4">
       <Card className="flex h-full flex-1 flex-col overflow-auto p-4">
@@ -51,7 +68,7 @@ export default function List({
             </tr>
           </thead>
           <tbody>
-            {data.map((item) => (
+            {filteredData.map((item) => (
               <tr key={item.id}>
                 <td>
                   <div className="flex items-center gap-2">
@@ -78,7 +95,7 @@ export default function List({
                 <td>
                   <div className="flex items-center justify-between gap-4">
                     <span>{format(new Date(item.createdAt), "PP p")}</span>
-                    {userId === item.id || item.role === "SYS_ADMIN" ? null : (
+                    {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
                       <Popover>
                         <PopoverTrigger>
                           <Ellipsis size={16} />
