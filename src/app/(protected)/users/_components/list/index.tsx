@@ -17,7 +17,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useSession } from "@/components/session-provider";
-import { getServerSession } from "@/lib/auth";
 
 export default function List({
   data,
@@ -31,20 +30,15 @@ export default function List({
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
-
-  const [organizationId, setOrganizationId] = useState<any>("");
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchOrganizationImage = async () => {
-      const serverSession = await getServerSession();
+    if (session && session.user) {
       const orgId =
-        serverSession?.user.organizationId ||
-        serverSession?.user.organization?.id;
+        session.user.organizationId || session.user.organization?.id;
       setOrganizationId(orgId);
-    };
-
-    fetchOrganizationImage();
-  }, []);
+    }
+  }, [session]);
 
   useEffect(() => {
     if (organizationId && data.length > 0) {
@@ -54,17 +48,18 @@ export default function List({
       setFilteredData(filtered);
     }
   }, [organizationId, data]);
+
   return (
     <div className="h-1 flex-1 p-4">
       <Card className="flex h-full flex-1 flex-col overflow-auto p-4">
         <Table>
           <thead>
             <tr>
-              <th>name</th>
-              <th>role</th>
-              <th>email</th>
-              <th>expertises</th>
-              <th>date added</th>
+              <th>Nom</th>
+              <th>Rôle</th>
+              <th>Email</th>
+              <th>Expertises</th>
+              <th>Date d'ajout</th>
             </tr>
           </thead>
           <tbody>
@@ -119,7 +114,6 @@ export default function List({
                             className=" flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
                             action={async () => {
                               await handleDelete(item.id);
-                              revalidatePath("/operators");
                             }}
                           >
                             <Trash2Icon size={16} />
@@ -134,7 +128,7 @@ export default function List({
             ))}
           </tbody>
         </Table>
-        {data.length === 0 && (
+        {filteredData.length === 0 && (
           <div className="grid flex-1 place-content-center">
             <span className=" text-center text-3xl font-semibold opacity-50">
               No Data
@@ -142,7 +136,7 @@ export default function List({
           </div>
         )}
         <div className="mt-auto flex justify-end px-4 pb-4 pt-1">
-          <ParamsPagination total={total} />
+          <ParamsPagination total={filteredData.length} />
         </div>
       </Card>
     </div>

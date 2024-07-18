@@ -7,6 +7,10 @@ export const createInputSchema = z.object({
   description: z.string().min(3, {
     message: "code must be at least 3 characters long",
   }),
+  adress: z.string().min(4, {
+    message: "address must be at least 4 characters long",
+  }),
+
   adminName: z.string().min(2, {
     message: "name must be at least 2 characters long",
   }),

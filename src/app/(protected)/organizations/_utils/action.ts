@@ -26,6 +26,7 @@ export async function createOrganizationWithAdmin(
       const organization = await prisma.organization.create({
         data: {
           name: validatedData.name,
+          address: validatedData.adress,
           description: validatedData.description,
           imagePath: imagePath,
         },
@@ -114,6 +115,7 @@ export async function OrganizationfindMany(params = defaultParams): Promise<{
         description: true,
         createdAt: true,
         imagePath: true,
+        address: true,
         users: {
           where: {
             role: "ADMIN",

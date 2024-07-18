@@ -31,6 +31,7 @@ import {
 import { TCreateInput, createInputSchema } from "../../_utils/schema";
 import { createOrganizationWithAdmin } from "../../_utils/action";
 import FormTextarea from "@/components/form-textarea";
+import Image from "next/image";
 
 export interface AddOperatorButtonProps extends ButtonProps {}
 
@@ -68,6 +69,7 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
       adminName: formData.get("adminName") as string,
       adminEmail: formData.get("adminEmail") as string,
       adminPassword: formData.get("adminPassword") as string,
+      adress: formData.get("adress") as string,
     };
 
     const parsed = createInputSchema.safeParse(data);
@@ -105,7 +107,7 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
 
         if (response.ok) {
           const result = await response.json();
-          setImageUrl(result.url); // Update state with the URL of the uploaded image
+          setImageUrl(result.url);
           toast.success("File uploaded successfully");
         } else {
           toast.error("File upload failed");
@@ -155,12 +157,20 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
             required
             errors={fieldErrors.name}
           />
+
           <FormTextarea
             name="description"
             label="Description *"
             className="mt-4"
             required
             errors={fieldErrors.description}
+          />
+          <FormInput
+            name="adress"
+            label="Adress  "
+            type="text"
+            className="mt-4"
+            errors={fieldErrors.name}
           />
           <FormInput
             name="adminName"
@@ -197,10 +207,12 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
             <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5">
               <div className="space-y-1 text-center">
                 {imageUrl ? (
-                  <img
+                  <Image
                     src={imageUrl}
                     alt="Preview"
                     className="mx-auto h-32 w-32 rounded-md object-cover"
+                    width={128}
+                    height={128}
                   />
                 ) : (
                   <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />

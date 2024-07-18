@@ -42,7 +42,6 @@ export async function findMany(params = defaultParams): Promise<{
   total: number;
 }> {
   const session = await getServerSession();
-  const organizationId = await checkUserPermissions(session || null);
 
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
@@ -52,8 +51,6 @@ export async function findMany(params = defaultParams): Promise<{
   const parsedRole = roleSchema.safeParse(params.role);
 
   const where: Prisma.UserWhereInput = {
-    organizationId,
-    role: parsedRole.success ? parsedRole.data : undefined,
     OR: params.search
       ? [
           {
@@ -101,20 +98,15 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string) {
-  const session = await getServerSession();
-  const organizationId = await checkUserPermissions(session);
-
-  return await db.user.deleteMany({
+  return await db.user.delete({
     where: {
       id,
-      organizationId,
     },
   });
 }
 
 const handler = async (data: TCreateInput, formData?: FormData | null) => {
-  const session = await getServerSession();
-  const organizationId = await checkUserPermissions(session);
+  const sessionUser = await getServerSession();
 
   const { password, expertise, ...rest } = data;
   const hashed = await bcrypt.hash(data.password, 12);
@@ -123,7 +115,8 @@ const handler = async (data: TCreateInput, formData?: FormData | null) => {
     data: {
       ...rest,
       password: hashed,
-      organizationId,
+      organization: { connect: { id: sessionUser?.user.organizationId } },
+
       expertises: expertise?.length
         ? { connect: expertise.map((id) => ({ id })) }
         : undefined,

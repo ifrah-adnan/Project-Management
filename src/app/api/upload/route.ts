@@ -18,7 +18,7 @@ async function POST(request: Request, context: any) {
     await writeFile(join(staticDir, filename), buffer);
     return NextResponse.json({
       message: "File uploaded successfully",
-      url: `http://localhost:3000/static/${filename}`,
+      url: `/static/${filename}`,
     });
   } catch (e) {
     return NextResponse.json(
