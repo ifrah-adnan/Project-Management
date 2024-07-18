@@ -277,13 +277,23 @@ export const createCommand = createSafeAction({
 });
 
 const editCommandHandler = async ({ commandId, ...data }: TEditInput) => {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user?.organizationId || session?.user?.organization?.id;
   const { ...rest } = data;
   const result = await db.command.update({
-    where: { id: commandId },
+    where: { id: commandId, organizationId },
     data: {
       ...rest,
     },
   });
+  await logHistory(
+    ActionType.UPDATE,
+    `Command updated`,
+    EntityType.COMMAND,
+    commandId,
+    session?.user?.id,
+  );
   return result;
 };
 
