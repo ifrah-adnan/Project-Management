@@ -13,6 +13,7 @@ import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { logHistory } from "../../History/_utils/action";
 import { comma } from "postcss/lib/list";
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "@/lib/auth";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -33,12 +34,19 @@ export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
   const where: Prisma.CommandWhereInput = {
+    organizationId,
     OR: params.search
       ? [
           {
@@ -85,9 +93,19 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string, userId: string) {
-  await db.commandProject.deleteMany({ where: { commandId: id } });
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+  await db.commandProject.deleteMany({
+    where: { commandId: id, organizationId },
+  });
 
-  const deletedCommand = await db.command.delete({ where: { id } });
+  const deletedCommand = await db.command.delete({
+    where: { id, organizationId },
+  });
 
   await logHistory(
     ActionType.DELETE,
@@ -139,31 +157,53 @@ export async function createCommandd({
   error?: string;
   fieldErrors?: Record<string, string>;
 }> {
-  const command = await db.command.create({
-    data: {
-      reference,
-      client: clientId ? { connect: { id: clientId } } : undefined,
-      commandProjects: {
-        createMany: {
-          data: commandProjects.map((cp) => ({
-            endDate: cp.endDate,
-            projectId: cp.projectId,
-            target: cp.target,
-          })),
-        },
-      },
-      user: userId ? { connect: { id: userId } } : undefined,
-    },
-  });
-  await logHistory(
-    ActionType.CREATE,
-    "command created",
-    EntityType.COMMAND,
+  try {
+    const session = await getServerSession();
+    const organizationId =
+      session?.user.organizationId || session?.user.organization?.id;
 
-    command.id,
-    userId,
-  );
-  return { result: command };
+    if (!organizationId) {
+      throw new Error("Organization ID not found");
+    }
+
+    const command = await db.command.create({
+      data: {
+        reference,
+        client: clientId ? { connect: { id: clientId } } : undefined,
+        commandProjects: {
+          createMany: {
+            data: commandProjects.map((cp) => ({
+              ...cp,
+              organizationId,
+            })),
+          },
+        },
+        user: { connect: { id: userId } },
+        organization: { connect: { id: organizationId } },
+      },
+    });
+
+    await logHistory(
+      ActionType.CREATE,
+      "command created",
+      EntityType.COMMAND,
+      command.id,
+      userId,
+    );
+
+    return { result: command };
+  } catch (error: any) {
+    const fieldErrors: Record<string, string> = {};
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        fieldErrors[error.meta?.target as string] =
+          "This value is already taken.";
+      }
+    }
+
+    return { error: error.message, fieldErrors };
+  }
 }
 
 export async function getProjectsNames() {
@@ -173,20 +213,45 @@ export async function getProjectsNames() {
 }
 
 export async function getCommands() {
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
+
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+
   return await db.command.findMany({
+    where: { organizationId },
     select: { reference: true, id: true },
   });
 }
+
 export async function getProjects() {
+  const session = await getServerSession();
+  const organizationId = session?.user.organizationId;
+
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+
   return await db.project.findMany({
+    where: { organizationId },
     select: { name: true, id: true },
   });
 }
 
 export async function getClients() {
+  const session = await getServerSession();
+  const organizationId = session?.user.organizationId;
+
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+
   return await db.user.findMany({
+    where: { organizationId, role: "CLIENT" },
     select: { name: true, id: true, image: true },
-    where: { role: "CLIENT" },
   });
 }
 
