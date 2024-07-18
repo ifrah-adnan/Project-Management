@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import { ViewAllAdminsDialog } from "@/app/(protected)/organizations/_component/View-all-Admin";
 import ParamsPagination from "@/components/params-pagination";
 import { setOrganizationId } from "@/lib/auth";
+import Image from "next/image";
 
 type TDataO = {
   id: string;
@@ -149,15 +150,17 @@ export function AdminComponent({
                 <div className="mb-4 flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     {org.imagePath ? (
-                      <img
+                      <Image
                         src={org.imagePath}
                         alt={`${org.name} logo`}
                         className="h-12 w-12 rounded-full object-cover"
+                        height={48}
+                        width={48}
                       />
                     ) : (
                       <Building size={24} className="text-blue-600" />
                     )}
-                    <h3 className="text-xl font-bold text-gray-800">
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                       {org.name}
                     </h3>
                   </div>
@@ -248,7 +251,7 @@ export function AdminComponent({
                   </span>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between border-t border-gray-200 bg-gray-50 p-4">
+              <CardFooter className="flex justify-between border-t border-gray-200 bg-gray-50 p-4 dark:bg-slate-600">
                 <button
                   onClick={handleViewDetails(org.id)}
                   className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"

@@ -24,6 +24,7 @@ import useSWR from "swr";
 import { MultiSelect } from "@/components/multi-select";
 import FormErrors from "@/components/form-errors";
 import { useSession } from "@/components/session-provider";
+import { getServerSession } from "@/lib/auth";
 
 export interface AddOperatorButtonProps extends ButtonProps {}
 
@@ -38,6 +39,12 @@ export function AddExpertiseButton(props: AddOperatorButtonProps) {
   const router = useRouter();
 
   const { data, isLoading, error } = useSWR("addUserData", async () => {
+    const serverSession = await getServerSession();
+    const organizationId =
+      serverSession?.user.organizationId ||
+      serverSession?.user.organization?.id;
+    console.log(organizationId, "this is organizationId v22222");
+
     const [expertise] = await Promise.all([getOperations()]);
     return { expertise };
   });
@@ -51,6 +58,13 @@ export function AddExpertiseButton(props: AddOperatorButtonProps) {
   const handleSubmit = async (formData: FormData) => {
     const name = formData.get("name") as string;
     const code = formData.get("code") as string;
+    const serverSession = await getServerSession();
+    const organizationId = serverSession?.user.organization?.id;
+    console.log(organizationId, "aaaaaaaaaa");
+    console.log("ttttttttttt");
+
+    console.log("ddddddddddw", user.id);
+    console.log("zzzzzzzzzzzzzzzz");
 
     const { result, error, fieldErrors } = await createExpertise({
       name,

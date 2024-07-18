@@ -24,6 +24,7 @@ export type TData = {
     id: string;
     name: string;
   }[];
+  organizationId: string;
 }[];
 export const editInputSchema = z.object({
   expertiseId: z.string().uuid(),
