@@ -15,20 +15,37 @@ import {
 } from "@/components/ui/popover";
 import { EditExpertiseButton } from "../edit-expertise-button";
 import { handleDelete } from "../../_utils/actions";
+import { getServerSession } from "@/lib/auth";
 export default function List({ data, total }: { data: TData; total: number }) {
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
-
+  const [organizationId, setOrganizationId] = useState<any>("");
   console.log(user);
   console.log(data);
+
   useEffect(() => {
-    if (user) {
-      const filtered = data.filter((item) => item.users.id === user.id);
+    const fetchOrganizationImage = async () => {
+      const serverSession = await getServerSession();
+      const orgId =
+        serverSession?.user.organizationId ||
+        serverSession?.user.organization?.id;
+      setOrganizationId(orgId);
+    };
+
+    fetchOrganizationImage();
+  }, []);
+
+  useEffect(() => {
+    if (organizationId && data.length > 0) {
+      const filtered = data.filter(
+        (item) => item.organizationId === organizationId,
+      );
       setFilteredData(filtered);
     }
-  }, [data, user]);
-  console.log(filteredData);
+  }, [organizationId, data]);
+
+  console.log("filteredData", filteredData);
   return (
     <main className="p-6">
       <Card className="mx-auto flex h-full w-full max-w-screen-2xl flex-1 flex-col overflow-auto p-4">

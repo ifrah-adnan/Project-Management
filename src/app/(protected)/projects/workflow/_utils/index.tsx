@@ -1,4 +1,5 @@
 "use server";
+import { getServerSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { numberToStringReverse } from "@/utils/functions";
 import { toast } from "sonner";
@@ -119,15 +120,24 @@ export const createWorkflow = async (
 };
 
 export const createOperation = async (data: any) => {
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
+
   const res = await db.operation.create({
     data: {
       id: uuidv4(),
+
       code: data.code,
+
       name: data.name,
       icon: data.icon,
       description: data?.description || undefined,
       isFinal: data.isFinal,
       estimatedTime: numberToStringReverse(data.estimatedTime) as number,
+      organization: {
+        connect: { id: organizationId },
+      },
     },
   });
   return res;

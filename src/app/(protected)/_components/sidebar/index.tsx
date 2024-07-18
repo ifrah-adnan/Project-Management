@@ -105,6 +105,7 @@ export default function SideBar({ className }: { className?: string }) {
       } else {
         setIsOrganizationPage(false);
         const serverSession = await getServerSession();
+        console.log("tst2", serverSession?.user.organizationId);
         if (serverSession && serverSession.user.organizationId) {
           const organizationData = await getOrganizationId(
             serverSession.user.organizationId,
