@@ -10,11 +10,7 @@ import {
 } from "./schemas";
 import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import {
-  Session,
-  getServerSession,
-  getSessionAndOrganizationId,
-} from "@/lib/auth";
+import { Session, getServerSession } from "@/lib/auth";
 import { logHistory } from "../../History/_utils/action";
 import { connect } from "http2";
 const defaultParams: Record<string, string> = {
@@ -35,12 +31,17 @@ export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
+
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
   const where: Prisma.ExpertiseWhereInput = {
+    organizationId: organizationId,
     OR: params.search
       ? [
           {

@@ -26,7 +26,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import FormInput from "@/components/form-input";
 import {
   TEditInput,
-  createCommandd,
+  createCommand,
+  createOnlyCommand,
   getClients,
 } from "@/app/(protected)/commands/_utils/actions";
 import { FieldErrors } from "@/actions/utils";
@@ -71,7 +72,7 @@ export default function CreateNewCommandButton({
       );
       return;
     }
-    const { result, error } = await createCommandd(parsed.data);
+    const { result, error } = await createOnlyCommand(parsed.data);
 
     if (error) toast.error(error);
 

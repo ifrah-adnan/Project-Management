@@ -11,9 +11,8 @@ import {
 } from "./schemas";
 import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { logHistory } from "../../History/_utils/action";
-import { comma } from "postcss/lib/list";
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "@/lib/auth";
+import { getServerSession, getSessionAndOrganizationId } from "@/lib/auth";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -34,30 +33,31 @@ export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
 }> {
-  const session = await getServerSession();
-  const organizationId =
-    session?.user.organizationId || session?.user.organization?.id;
-  if (!organizationId) {
-    throw new Error("Organization ID not found");
-  }
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
-  const where: Prisma.CommandWhereInput = {
-    organizationId,
-    OR: params.search
-      ? [
-          {
-            reference: { contains: params.search, mode: "insensitive" },
-          },
-          {
-            client: { name: { contains: params.search, mode: "insensitive" } },
-          },
-        ]
-      : undefined,
-  };
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
+
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+  let where: Prisma.CommandWhereInput = { organizationId: organizationId };
+
+  if (params.search) {
+    where.OR = [
+      {
+        reference: { contains: params.search, mode: "insensitive" },
+      },
+      {
+        client: { name: { contains: params.search, mode: "insensitive" } },
+      },
+    ];
+  }
+
   const [result, total] = await Promise.all([
     db.command.findMany({
       where,
@@ -72,7 +72,6 @@ export async function findMany(params = defaultParams): Promise<{
             name: true,
           },
         },
-
         reference: true,
         client: { select: { id: true, name: true, image: true } },
         commandProjects: {
@@ -93,18 +92,23 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string, userId: string) {
-  const session = await getServerSession();
-  const organizationId =
-    session?.user.organizationId || session?.user.organization?.id;
-  if (!organizationId) {
-    throw new Error("Organization ID not found");
+  const { organizationId, isSysAdmin } = await getSessionAndOrganizationId();
+
+  if (!organizationId && !isSysAdmin) {
+    throw new Error("Unauthorized");
   }
+
+  const deleteWhere: Prisma.CommandWhereUniqueInput = { id };
+  if (organizationId) {
+    deleteWhere.organizationId = organizationId;
+  }
+
   await db.commandProject.deleteMany({
-    where: { commandId: id, organizationId },
+    where: { commandId: id, ...(organizationId ? { organizationId } : {}) },
   });
 
   const deletedCommand = await db.command.delete({
-    where: { id, organizationId },
+    where: deleteWhere,
   });
 
   await logHistory(
@@ -115,24 +119,30 @@ export async function deleteById(id: string, userId: string) {
     userId,
   );
 }
-// const handler = async (data: TCreateInput) => {
-//   const user = await db.command.create({
-//     data: {
-//       reference: data.reference,
-//       client: data.clientId ? { connect: { id: data.clientId } } : undefined,
-//       commandProjects: {
-//         createMany: {
-//           data: data.commandProjects.map((cp) => ({
-//             endDate: cp.endDate,
-//             projectId: cp.projectId,
-//             target: cp.target,
-//           })),
-//         },
-//       },
-//     },
-//   });
-//   return user;
-// };
+
+const handler = async (data: TCreateInput) => {
+  const { organizationId } = await getSessionAndOrganizationId();
+  const user = await db.command.create({
+    data: {
+      reference: data.reference,
+
+      client: data.clientId ? { connect: { id: data.clientId } } : undefined,
+      organization: { connect: { id: organizationId } },
+
+      commandProjects: {
+        createMany: {
+          data: data.commandProjects.map((cp) => ({
+            endDate: cp.endDate,
+            projectId: cp.projectId,
+            target: cp.target,
+            organizationId,
+          })),
+        },
+      },
+    },
+  });
+  return user;
+};
 
 // export const create = createSafeAction({ scheme: createInputSchema, handler });
 
@@ -146,7 +156,48 @@ interface CreateCommandInput {
   }[];
   userId: string;
 }
+interface CreateOnlyCommandInput {
+  reference: string;
+  clientId: string;
+}
+export async function createOnlyCommand({
+  reference,
+  clientId,
+}: CreateOnlyCommandInput): Promise<{
+  result?: any;
+  error?: string;
+  fieldErrors?: Record<string, string>;
+}> {
+  const sessionUser = await getServerSession();
+  const organizationId = sessionUser?.user.organizationId;
 
+  if (!organizationId) {
+    return { error: "User is not associated with an organization" };
+  }
+
+  const client = await db.user.findFirst({
+    where: { id: clientId, organizationId, role: "CLIENT" },
+  });
+
+  if (!client) {
+    return { error: "Invalid client for this organization" };
+  }
+
+  try {
+    const command = await db.command.create({
+      data: {
+        reference,
+        client: { connect: { id: clientId } },
+        organization: { connect: { id: organizationId } }, // Ajout de la connexion à l'organisation
+      },
+    });
+
+    return { result: command };
+  } catch (error) {
+    console.error("Error creating command:", error);
+    return { error: "Failed to create command" };
+  }
+}
 export async function createCommandd({
   reference,
   clientId,
@@ -157,103 +208,114 @@ export async function createCommandd({
   error?: string;
   fieldErrors?: Record<string, string>;
 }> {
-  try {
-    const session = await getServerSession();
-    const organizationId =
-      session?.user.organizationId || session?.user.organization?.id;
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
-    if (!organizationId) {
-      throw new Error("Organization ID not found");
-    }
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
 
-    const command = await db.command.create({
-      data: {
-        reference,
-        clientId,
-        userId,
-        organizationId,
-        commandProjects: {
-          createMany: {
-            data: commandProjects.map((cp) => ({
-              projectId: cp.projectId,
-              target: cp.target,
-              endDate: cp.endDate,
-              userId,
-              organizationId,
-            })),
-          },
+  // Verify that the client belongs to the same organization
+  const client = await db.user.findFirst({
+    where: { id: clientId, organizationId, role: "CLIENT" },
+  });
+  if (!client) {
+    return { error: "Invalid client for this organization" };
+  }
+
+  // Verify that all projects belong to the same organization
+  const projectIds = commandProjects.map((cp) => cp.projectId);
+  const projects = await db.project.findMany({
+    where: { id: { in: projectIds }, organizationId },
+  });
+  if (projects.length !== projectIds.length) {
+    return { error: "One or more projects are invalid for this organization" };
+  }
+
+  const command = await db.command.create({
+    data: {
+      reference,
+      client: { connect: { id: clientId } },
+      organization: { connect: { id: organizationId } },
+      commandProjects: {
+        createMany: {
+          data: commandProjects.map((cp) => ({
+            endDate: cp.endDate,
+            projectId: cp.projectId,
+            target: cp.target,
+            organizationId,
+          })),
         },
       },
-    });
-
-    await logHistory(
-      ActionType.CREATE,
-      "command created",
-      EntityType.COMMAND,
-      command.id,
-      userId,
-    );
-
-    return { result: command };
-  } catch (error: any) {
-    const fieldErrors: Record<string, string> = {};
-
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        fieldErrors[error.meta?.target as string] =
-          "This value is already taken.";
-      }
-    }
-
-    return { error: error.message, fieldErrors };
-  }
+      user: { connect: { id: userId } },
+    },
+  });
+  await logHistory(
+    ActionType.CREATE,
+    "command created",
+    EntityType.COMMAND,
+    command.id,
+    userId,
+  );
+  return { result: command };
 }
 
 export async function getProjectsNames() {
+  const { organizationId, isSysAdmin } = await getSessionAndOrganizationId();
+
+  if (!organizationId && !isSysAdmin) {
+    throw new CustomError("Unauthorized");
+  }
+
   return await db.project.findMany({
+    where: organizationId ? { organizationId } : {},
     select: { id: true, name: true },
   });
 }
 
 export async function getCommands() {
-  const session = await getServerSession();
+  const serverSession = await getServerSession();
   const organizationId =
-    session?.user.organizationId || session?.user.organization?.id;
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
   if (!organizationId) {
     throw new Error("Organization ID not found");
   }
-
+  let where: Prisma.CommandWhereInput = { organizationId: organizationId };
   return await db.command.findMany({
-    where: { organizationId },
+    where,
     select: { reference: true, id: true },
   });
 }
 
 export async function getProjects() {
-  const session = await getServerSession();
-  const organizationId = session?.user.organizationId;
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
   if (!organizationId) {
     throw new Error("Organization ID not found");
   }
-
+  let where: Prisma.ProjectWhereInput = { organizationId: organizationId };
   return await db.project.findMany({
-    where: { organizationId },
+    where,
     select: { name: true, id: true },
   });
 }
 
 export async function getClients() {
-  const session = await getServerSession();
-  const organizationId = session?.user.organizationId;
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
   if (!organizationId) {
     throw new Error("Organization ID not found");
   }
+  let where: Prisma.UserWhereInput = { organizationId: organizationId };
 
   return await db.user.findMany({
-    where: { organizationId, role: "CLIENT" },
+    where,
     select: { name: true, id: true, image: true },
   });
 }
@@ -264,15 +326,26 @@ export interface TEditInput {
   clientId: string;
 }
 
-// const createCommandHandler = async (data: TEditInput) => {
-//   const user = await db.command.create({
-//     data: {
-//       reference: data.reference,
-//       client: data.clientId ? { connect: { id: data.clientId } } : undefined,
-//     },
-//   });
-//   return user;
-// };
+const createCommandHandler = async (data: TEditInput) => {
+  const { organizationId } = await getSessionAndOrganizationId();
+
+  // Verify that the client belongs to the same organization
+  const client = await db.user.findFirst({
+    where: { id: data.clientId, organizationId, role: "CLIENT" },
+  });
+  if (!client) {
+    throw new CustomError("Invalid client for this organization");
+  }
+
+  const user = await db.command.create({
+    data: {
+      reference: data.reference,
+      client: { connect: { id: data.clientId } },
+      organization: { connect: { id: organizationId } },
+    },
+  });
+  return user;
+};
 
 // export const createCommand = createSafeAction({
 //   scheme: createInputSchemaforUpdate,
@@ -280,40 +353,30 @@ export interface TEditInput {
 // });
 
 const editCommandHandler = async ({ commandId, ...data }: TEditInput) => {
-  const session = await getServerSession();
-  const organizationId = session?.user?.organizationId;
-  const userId = session?.user?.id;
+  const { organizationId } = await getSessionAndOrganizationId();
 
-  if (!organizationId) {
-    throw new Error("Organization ID not found");
+  // Verify that the command belongs to the organization
+  const existingCommand = await db.command.findFirst({
+    where: { id: commandId, organizationId },
+  });
+  if (!existingCommand) {
+    throw new CustomError("Command not found or not authorized");
   }
 
-  if (!commandId) {
-    throw new Error("Command ID is required");
+  // Verify that the client belongs to the same organization
+  const client = await db.user.findFirst({
+    where: { id: data.clientId, organizationId, role: "CLIENT" },
+  });
+  if (!client) {
+    throw new CustomError("Invalid client for this organization");
   }
-
-  if (!userId) {
-    throw new Error("User ID not found");
-  }
-
-  const { reference, clientId } = data;
 
   const result = await db.command.update({
-    where: { id: commandId, organizationId },
+    where: { id: commandId },
     data: {
-      reference,
-      clientId,
+      ...data,
     },
   });
-
-  await logHistory(
-    ActionType.UPDATE,
-    `Command updated`,
-    EntityType.COMMAND,
-    commandId,
-    userId,
-  );
-
   return result;
 };
 
@@ -321,6 +384,7 @@ export const edit = createSafeAction({
   scheme: createInputSchemaforUpdate,
   handler: editCommandHandler,
 });
+
 export async function handleDelete(id: string, userId: string) {
   await deleteById(id, userId);
   revalidatePath("/commands");

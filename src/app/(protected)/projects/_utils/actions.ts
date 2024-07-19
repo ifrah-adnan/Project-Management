@@ -63,7 +63,6 @@ export async function findMany(params = defaultParams): Promise<{
   const take = perPage;
 
   const where: Prisma.CommandProjectWhereInput = {
-    organizationId,
     OR: params.search
       ? [
           {
@@ -100,6 +99,7 @@ export async function findMany(params = defaultParams): Promise<{
   const result = await db.commandProject.findMany({
     select: {
       id: true,
+      organizationId: true,
       project: { select: { name: true, status: true, id: true } },
       command: {
         select: {
@@ -206,10 +206,10 @@ export async function createCommandProject(
   }
 
   const command = await db.command.findFirst({
-    where: { id: data.command_id, organizationId },
+    where: { id: data.command_id },
   });
   const project = await db.project.findFirst({
-    where: { id: data.project_id, organizationId },
+    where: { id: data.project_id },
   });
 
   if (!command || !project) {
@@ -256,11 +256,13 @@ export const edit = createSafeAction({
 });
 
 export async function getProjectsNotInCommand(commandId: string) {
-  const session = await getServerSession();
+  const serverSession = await getServerSession();
   const organizationId =
-    session?.user.organizationId || session?.user.organization?.id;
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
+
   return await db.project.findMany({
     where: {
+      organizationId: organizationId,
       commandProjects: {
         every: {
           commandId: { not: commandId },
