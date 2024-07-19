@@ -12,6 +12,13 @@ import {
 } from "recharts";
 import "./style.css";
 import { Button } from "@/components/ui/button";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import { UserOptions } from "jspdf-autotable";
+
+interface jsPDFWithAutoTable extends jsPDF {
+  autoTable: (options: UserOptions) => jsPDF;
+}
 
 interface ChartProps {
   title: string;
@@ -21,7 +28,13 @@ interface ChartProps {
   totalOperations: number;
 }
 
-const Chart: React.FC<ChartProps> = ({ title, data, width, height, totalOperations }) => {
+const Chart: React.FC<ChartProps> = ({
+  title,
+  data,
+  width,
+  height,
+  totalOperations,
+}) => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const handleMouseEnter = (_: any, index: number) => {
@@ -36,29 +49,64 @@ const Chart: React.FC<ChartProps> = ({ title, data, width, height, totalOperatio
     return activeIndex === index ? "#FF6B00" : "#2B2D42";
   };
 
+  const generatePDF = () => {
+    const pdf = new jsPDF() as jsPDFWithAutoTable;
+
+    const primaryColor = "#2B2D42";
+    const secondaryColor = "#8D99AE";
+    const accentColor = "#FF6B00";
+
+    pdf.setFontSize(24);
+    pdf.setTextColor(primaryColor);
+    pdf.text(title, 20, 20);
+
+    pdf.setFontSize(14);
+    pdf.setTextColor(secondaryColor);
+    pdf.text(`Total Operations: ${totalOperations}`, 20, 30);
+
+    pdf.setDrawColor(accentColor);
+    pdf.setLineWidth(0.5);
+    pdf.line(20, 35, 190, 35);
+
+    const tableData = data.map((item) => [item.name, item.Total.toString()]);
+
+    pdf.autoTable({
+      startY: 45,
+      head: [["Name", "Total"]],
+      body: tableData,
+      theme: "striped",
+      headStyles: { fillColor: primaryColor, textColor: "#FFFFFF" },
+      bodyStyles: { textColor: primaryColor },
+      alternateRowStyles: { fillColor: "#EDF2F4" },
+      margin: { top: 40 },
+    });
+
+    const pageCount = pdf.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(10);
+      pdf.setTextColor(secondaryColor);
+      pdf.text(
+        `Page ${i} of ${pageCount}`,
+        pdf.internal.pageSize.width - 30,
+        pdf.internal.pageSize.height - 10,
+      );
+    }
+
+    return pdf;
+  };
+
   const handleDownload = () => {
-    const projectInfo = {
-      title: title,
-      weeklyData: data,
-      totalOperations: totalOperations,
-    };
-
-    const jsonString = JSON.stringify(projectInfo, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const href = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = href;
-    link.download = "project_info.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const pdf = generatePDF();
+    pdf.save("project_info.pdf");
   };
 
   return (
     <div className="chart industrial-chart" style={{ width, height }}>
       <div className="title industrial-title">{title}</div>
-      <div className="total-operations">Total Operations: {totalOperations}</div>
+      <div className="total-operations">
+        Total Operations: {totalOperations}
+      </div>
       <div
         className="chart-container"
         style={{ width: "100%", height: "calc(100% - 80px)" }}

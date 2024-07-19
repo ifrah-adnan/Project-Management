@@ -52,15 +52,6 @@ const ResponsiveGridLayout = dynamic(
   { ssr: false },
 );
 
-// Define the type for a single layout item
-type LayoutItem = {
-  i: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-};
-
 const StyledCard = styled(Card)({
   height: "100%",
   display: "flex",
