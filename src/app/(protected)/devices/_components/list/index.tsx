@@ -102,36 +102,29 @@ export default function List({ data, total }: { data: TData; total: number }) {
                   <td>
                     <div className="  flex items-center justify-between gap-4">
                       <span>{format(new Date(item.createdAt), "PP")}</span>
-                      <Popover>
-                        <PopoverTrigger>
-                          <Ellipsis size={16} />
-                        </PopoverTrigger>
-                        <PopoverContent
-                          align="end"
-                          className=" flex w-fit flex-col gap-2"
-                        >
-                          {/* <EditPostButton
-                            post={post}
-                            variant="ghost"
-                            className=" justify-start gap-2   px-6  hover:text-sky-500 "
+                      {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
+                        <Popover>
+                          <PopoverTrigger>
+                            <Ellipsis size={16} />
+                          </PopoverTrigger>
+                          <PopoverContent
+                            align="end"
+                            className=" flex w-fit flex-col gap-2"
                           >
-                            <PencilIcon size={16} />
-                            <span>Edit</span>
-                          </EditPostButton> */}
-
-                          <ConfirmButton
-                            variant="ghost"
-                            size="icon"
-                            className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
-                            action={async () => {
-                              await handleDelete(item.id, session.user.id);
-                            }}
-                          >
-                            <Trash2Icon size={16} />
-                            <span>Delete</span>
-                          </ConfirmButton>
-                        </PopoverContent>
-                      </Popover>
+                            <ConfirmButton
+                              variant="ghost"
+                              size="icon"
+                              className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
+                              action={async () => {
+                                await handleDelete(item.id, session.user.id);
+                              }}
+                            >
+                              <Trash2Icon size={16} />
+                              <span>Delete</span>
+                            </ConfirmButton>
+                          </PopoverContent>
+                        </Popover>
+                      )}
                     </div>
                   </td>
                 </tr>
