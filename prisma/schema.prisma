@@ -8,16 +8,16 @@ datasource db {
 }
 
 model Organization {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
-  imagePath String?
-  address     String?  
-  latitude    Float?   
-  longitude   Float?  
+  imagePath   String?
+  address     String?
+  latitude    Float?
+  longitude   Float?
 
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   users          User[]
   projects       Project[]
@@ -169,13 +169,12 @@ model Sprint {
 }
 
 model Operation {
-  id            String         @id
-  name          String
-  code          String         @unique
-  icon          String
+  id             String       @id
+  name           String
+  code           String       @unique
+  icon           String
   organizationId String
-  organization   Organization    @relation(fields: [organizationId], references: [id])
-
+  organization   Organization @relation(fields: [organizationId], references: [id])
 
   description   String?
   isFinal       Boolean        @default(false) @map("is_final")
@@ -328,4 +327,5 @@ enum EntityType {
   PROJECT
   POSTS
   DEVICE
+  USER
 }

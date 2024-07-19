@@ -12,52 +12,37 @@ export const createInputSchema = z.object({
 export type TCreateInput = z.infer<typeof createInputSchema>;
 
 export type TData = {
+  id: string;
+  deviceId: string;
+  count: number | null;
+  createdAt: Date;
+  post: {
+    id: string;
+    name: string;
+    plannings: {
+      id: string;
+      startDate: Date;
+      endDate: Date;
+      operation: { id: string; name: string };
+    }[];
+    expertises: {
+      id: string;
+      name: string;
+      operations: { id: string; name: string }[];
+    }[];
+  } | null;
   planning: {
     commandProject: { id: string; project: { name: string } };
     startDate: Date;
     endDate: Date;
-    operation: {
-      id: string;
-      name: string;
-    };
-    operator: {
-      id: string;
-      name: string;
-      image: string | null;
-    };
+    operation: { id: string; name: string };
+    operator: { id: string; name: string; image: string | null };
   } | null;
-  deviceId: string;
-  post: TPost | null;
-  count: number;
-  id: string;
-  createdAt: Date;
   user: {
     id: string;
     name: string;
-  }[];
+  };
 }[];
-
-export type TPost = {
-  expertises: {
-    operations: {
-      name: string;
-      id: string;
-    }[];
-    name: string;
-    id: string;
-  }[];
-  plannings: {
-    startDate: Date;
-    endDate: Date;
-    operation: {
-      id: string;
-      name: string;
-    };
-    id: string;
-  }[];
-  name: string;
-  id: string;
-};
 
 export const deviceConfigInputSchema = z.object({
   id: z.string().uuid(),
