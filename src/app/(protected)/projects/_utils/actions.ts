@@ -155,19 +155,105 @@ export async function getSprint(commandProjectId: string) {
   });
 }
 
-const configureSpringHandler = async (data: TConfigureSprint) => {
-  const { commandProjectId } = data;
-  return db.sprint.upsert({
-    where: { commandProjectId },
-    update: { ...data },
-    create: { ...data, commandProjectId },
-  });
-};
+// const configureSpringHandler = async (data: TConfigureSprint) => {
+//   const serverSession = await getServerSession();
+//   const organizationId =
+//     serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
-export const configureSprint = createSafeAction({
-  scheme: configureSpringSchema,
-  handler: configureSpringHandler,
-});
+//   const { commandProjectId } = data;
+//   return db.sprint.upsert({
+//     where: {
+//       commandProjectId: "0a772f59-f98c-4ed3-9426-22dee6005dec",
+//     },
+//     update: {
+//       target: 222,
+//       days: 2,
+//     },
+//     create: {
+//       target: 10022,
+//       days: 1,
+//       organization: {
+//         connect: {
+//           id: "736dd56d-498a-4ab5-b22d-07169760d0e7",
+//         },
+//       },
+//       commandProject: {
+//         connectOrCreate: {
+//           where: {
+//             id: "0a772f59-f98c-4ed3-9426-22dee6005dec",
+//           },
+//           create: {
+//             id: "0a772f59-f98c-4ed3-9426-22dee6005dec",
+//             target: 65,
+//             endDate: "2024-07-18T22:45:25.386Z",
+//             command: {
+//               connect: { id: "00b2f1a7-7ac1-4a84-9e8b-aa841438cf84" },
+//             },
+//             project: {
+//               connect: { id: "3efc40f4-2f91-4a16-9f29-c49ceaff935b" },
+//             },
+//             user: { connect: { id: serverSession?.user.id } },
+//             organization: {
+//               connect: { id: organizationId },
+//             },
+//           },
+//         },
+//       },
+//     },
+//   });
+// };
+
+// export const configureSprint = createSafeAction({
+//   scheme: configureSpringSchema,
+//   handler: configureSpringHandler,
+// });
+export async function configureSprint(data: TConfigureSprint) {
+  try {
+    const session = await getServerSession();
+    if (!session || !session.user) {
+      return { error: "Unauthorized" };
+    }
+
+    const organizationId =
+      session.user.organization?.id || session.user.organizationId;
+    if (!organizationId) {
+      return { error: "Organization not found" };
+    }
+
+    const parsed = configureSpringSchema.safeParse(data);
+    if (!parsed.success) {
+      return { fieldErrors: parsed.error.flatten().fieldErrors };
+    }
+
+    const { commandProjectId, target, days } = parsed.data;
+
+    // Vérifier si le CommandProject existe et appartient à l'organisation
+    const commandProject = await db.commandProject.findUnique({
+      where: { id: commandProjectId, organizationId },
+    });
+
+    if (!commandProject) {
+      return { error: "Command project not found" };
+    }
+
+    // Créer ou mettre à jour le sprint
+    const sprint = await db.sprint.upsert({
+      where: { commandProjectId },
+      update: { target, days },
+      create: {
+        target,
+        days,
+        commandProjectId,
+        organizationId,
+      },
+    });
+
+    return { result: sprint };
+  } catch (error) {
+    console.error("Error configuring sprint:", error);
+    return { error: "An unexpected error occurred" };
+  }
+}
 
 const handler = async (data: TCreateInput) => {
   const user = await db.commandProject.create({
