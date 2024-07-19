@@ -5,6 +5,7 @@ import { useStore } from "../../_utils/store";
 import { cn } from "@/lib/utils";
 import { LayoutGridIcon, ListIcon, PlusIcon } from "lucide-react";
 import { AddProjectButton } from "@/app/(protected)/projects/_components/add-project-button";
+import { useSession } from "@/components/session-provider";
 
 const views = [
   {
@@ -21,6 +22,8 @@ const views = [
 
 export default function Header() {
   const { view, toggleView } = useStore();
+  const { session } = useSession();
+  const user = session?.user;
 
   const toggle = (v: string) => {
     if (v === view) return;
@@ -49,10 +52,12 @@ export default function Header() {
           </button>
         ))}
       </div>
-      <AddProjectButton className="gap-2 uppercase">
-        <PlusIcon size={16} />
-        <span>add new project</span>
-      </AddProjectButton>
+      {(user?.role === "ADMIN" || user?.role === "SYS_ADMIN") && (
+        <AddProjectButton className="gap-2 uppercase">
+          <PlusIcon size={16} />
+          <span>add new project</span>
+        </AddProjectButton>
+      )}
     </div>
   );
 }
