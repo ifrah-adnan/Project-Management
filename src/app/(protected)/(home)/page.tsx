@@ -5,6 +5,7 @@ import CustomCard from "./_components/card/customCard";
 import { findMany } from "@/app/(protected)/projects/_utils/actions";
 import { useStore } from "./_components/store";
 import { useSession } from "@/components/session-provider";
+import { getServerSession } from "@/lib/auth";
 
 export interface CommandProject {
   id: string;
@@ -35,6 +36,7 @@ export interface CommandProject {
   target: number;
   done: number;
   endDate: Date;
+  organizationId: string;
 }
 
 enum Status {
@@ -43,6 +45,7 @@ enum Status {
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
 }
+
 export default function Home() {
   const [commandProjects, setCommandProjects] = useState<CommandProject[]>([]);
   const { filters } = useStore();
@@ -50,16 +53,27 @@ export default function Home() {
   const user = session?.user;
 
   useEffect(() => {
-    async function fetchCommandProjects() {
-      const { data } = await findMany();
-      if (user) {
-        const filtered = data.filter((item: any) => item.user?.id === user.id);
-        setCommandProjects(filtered as CommandProject[]);
+    async function fetchData() {
+      const serverSession = await getServerSession();
+      const orgId =
+        serverSession?.user.organizationId ||
+        serverSession?.user.organization?.id;
+
+      console.log("Organization ID:", orgId);
+
+      if (orgId) {
+        const { data } = await findMany();
+        console.log("All projects:", data);
+
+        const filtered = data.filter((item) => item.organizationId === orgId);
+        console.log("Filtered projects:", filtered);
+
+        setCommandProjects(filtered);
       }
     }
 
-    fetchCommandProjects();
-  }, [user]);
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
