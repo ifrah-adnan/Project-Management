@@ -27,6 +27,7 @@ import FormInput from "@/components/form-input";
 import {
   TEditInput,
   createCommand,
+  createOnlyCommand,
   getClients,
 } from "@/app/(protected)/commands/_utils/actions";
 import { FieldErrors } from "@/actions/utils";
@@ -72,7 +73,7 @@ export default function CreateNewCommandButton({
       );
       return;
     }
-    const { result, error } = await createCommand(parsed.data);
+    const { result, error } = await createOnlyCommand(parsed.data);
 
     if (error) toast.error(error);
 

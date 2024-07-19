@@ -174,7 +174,7 @@ export function AddCommandButton(props: AddOperatorButtonProps) {
               ))}
             </SelectContent>
           </Select>
-          <FormErrors errors={fieldErrors.clientId} />
+          {/* <FormErrors errors={fieldErrors.clientId} />
           <Label className="mt-4 inline-block space-x-2">
             <span>Projects</span>
             <span className="text-xs opacity-60">{"(Min 1 project) "}</span>
@@ -262,7 +262,7 @@ export function AddCommandButton(props: AddOperatorButtonProps) {
           </Popover>
           <CreateNewProjectButton closePopoverRef={closePopoverRef} />
 
-          <FormErrors errors={fieldErrors.commandProjects} />
+          <FormErrors errors={fieldErrors.commandProjects} /> */}
 
           <div className="mt-auto flex items-center justify-end gap-4">
             <SheetClose ref={closeRef}></SheetClose>
