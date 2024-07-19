@@ -329,8 +329,9 @@ function ProjectOverview({ params }: any) {
         );
       case "chart":
         return (
-          <Box sx={{ height: "100%" }} className="drag-handle">
+          <Box sx={{ height: "100%" }}>
             <Box
+              className="drag-handle"
               sx={{
                 display: "flex",
                 justifyContent: "flex-end",
