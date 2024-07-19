@@ -4,7 +4,7 @@ import { createSafeAction } from "@/actions/utils";
 import { db } from "@/lib/db";
 import {
   TData,
-  TPost,
+  // TPost,
   TCreateInput,
   createInputSchema,
   TdeviceConfigInput,
@@ -141,26 +141,26 @@ export async function deleteById(id: string, userId: string) {
   );
 }
 
-const handler = async (data: TCreateInput, session?: Session | null) => {
-  console.log("dddddddddd", session?.user.id);
-  const result = await db.device.create({
-    data: {
-      ...data,
-      userId: session?.user.id,
-    },
-  });
-  await logHistory(
-    ActionType.CREATE,
-    "device created",
-    EntityType.DEVICE,
+// const handler = async (data: TCreateInput, session?: Session | null) => {
+//   console.log("dddddddddd", session?.user.id);
+//   const result = await db.device.create({
+//     data: {
+//       ...data,
+//       userId: session?.user.id,
+//     },
+//   });
+//   await logHistory(
+//     ActionType.CREATE,
+//     "device created",
+//     EntityType.DEVICE,
 
-    result.id,
-    session?.user.id || "5dfd06ee-3555-4e72-9f1c-0647cf9428b5",
-  );
-  return result;
-};
+//     result.id,
+//     session?.user.id || "5dfd06ee-3555-4e72-9f1c-0647cf9428b5",
+//   );
+//   return result;
+// };
 
-export const create = createSafeAction({ scheme: createInputSchema, handler });
+// export const create = createSafeAction({ scheme: createInputSchema, handler });
 interface CreateDeviceInput {
   deviceId: string;
   postId: string;
