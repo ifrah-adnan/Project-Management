@@ -312,7 +312,10 @@ export async function getClients() {
   if (!organizationId) {
     throw new Error("Organization ID not found");
   }
-  let where: Prisma.UserWhereInput = { organizationId: organizationId };
+  let where: Prisma.UserWhereInput = {
+    organizationId: organizationId,
+    role: "CLIENT",
+  };
 
   return await db.user.findMany({
     where,
