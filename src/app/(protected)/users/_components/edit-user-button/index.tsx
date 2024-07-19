@@ -84,7 +84,7 @@ export function EditUserButton({ userData, ...props }: EditUserButtonProps) {
     setFieldErrors({});
     closeRef.current?.click();
   };
-
+  const availableRoles = roles.filter((role) => role !== "SYS_ADMIN");
   const handleSubmit = async (formData: FormData) => {
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
@@ -192,7 +192,7 @@ export function EditUserButton({ userData, ...props }: EditUserButtonProps) {
               <SelectValue placeholder="Select Role" />
             </SelectTrigger>
             <SelectContent>
-              {roles.map((role) => (
+              {availableRoles.map((role) => (
                 <SelectItem key={role} value={role}>
                   {role}
                 </SelectItem>

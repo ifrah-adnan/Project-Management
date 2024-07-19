@@ -60,7 +60,7 @@ export function AddUserButton(props: AddUserButtonProps) {
     setRole("USER");
     closeRef.current?.click();
   };
-
+  const availableRoles = roles.filter((role) => role !== "SYS_ADMIN");
   const handleSubmit = async (formData: FormData) => {
     const session = await getServerSession();
     if (!session || !["SYS_ADMIN", "ADMIN"].includes(session.user.role)) {
@@ -152,7 +152,7 @@ export function AddUserButton(props: AddUserButtonProps) {
               <SelectValue placeholder="Select Role" />
             </SelectTrigger>
             <SelectContent>
-              {roles.map((role) => (
+              {availableRoles.map((role) => (
                 <SelectItem key={role} value={role}>
                   {role}
                 </SelectItem>

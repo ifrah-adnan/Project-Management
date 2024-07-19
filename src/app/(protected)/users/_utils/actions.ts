@@ -9,13 +9,14 @@ import {
   updateInputSchema,
   TUpdateInput,
 } from "./schemas";
-import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { Session, getServerSession } from "@/lib/auth";
 import { uploadFile } from "@/actions/upload";
 import { roleSchema } from "@/utils";
+import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
+import { logHistory } from "../../History/_utils/action";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -98,15 +99,36 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string) {
-  return await db.user.delete({
+  const session = await getServerSession();
+  if (!session) throw new Error("Unauthorized");
+
+  const user = await db.user.delete({
     where: {
       id,
     },
   });
+
+  await logHistory(
+    ActionType.DELETE,
+    `User deleted: ${user.name}`,
+    EntityType.USER,
+    user.id,
+    session.user.id,
+  );
+
+  return user;
 }
 
 const handler = async (data: TCreateInput, formData?: FormData | null) => {
   const sessionUser = await getServerSession();
+
+  if (!sessionUser || !["SYS_ADMIN", "ADMIN"].includes(sessionUser.user.role)) {
+    throw new Error("Insufficient permissions");
+  }
+
+  if (data.role === "SYS_ADMIN") {
+    throw new Error("Cannot create SYS_ADMIN users");
+  }
 
   const { password, expertise, ...rest } = data;
   const hashed = await bcrypt.hash(data.password, 12);
@@ -115,8 +137,7 @@ const handler = async (data: TCreateInput, formData?: FormData | null) => {
     data: {
       ...rest,
       password: hashed,
-      organization: { connect: { id: sessionUser?.user.organizationId } },
-
+      organization: { connect: { id: sessionUser.user.organizationId } },
       expertises: expertise?.length
         ? { connect: expertise.map((id) => ({ id })) }
         : undefined,
@@ -131,6 +152,15 @@ const handler = async (data: TCreateInput, formData?: FormData | null) => {
       data: { image: url },
     });
   }
+
+  await logHistory(
+    ActionType.CREATE,
+    `User created: ${user.name}`,
+    EntityType.USER,
+    user.id,
+    sessionUser.user.id,
+  );
+
   return user;
 };
 
@@ -163,6 +193,10 @@ const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
   const session = await getServerSession();
   const organizationId = await checkUserPermissions(session);
 
+  if (data.role === "SYS_ADMIN") {
+    throw new Error("Cannot create SYS_ADMIN users");
+  }
+
   const { password, ...rest } = data;
   const hashed = password ? await bcrypt.hash(password, 12) : undefined;
   const user = await db.user.update({
@@ -175,6 +209,13 @@ const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
         : undefined,
     },
   });
+  await logHistory(
+    ActionType.UPDATE,
+    `User updated: ${user.name}`,
+    EntityType.USER,
+    user.id,
+    session!.user.id,
+  );
   return user;
 };
 
