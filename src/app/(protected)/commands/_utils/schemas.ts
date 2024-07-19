@@ -32,7 +32,6 @@ export type TData = {
   id: string;
   client: {
     id: string;
-
     image: string | null;
     name: string;
   } | null;
@@ -49,7 +48,7 @@ export type TData = {
   user: {
     id: string;
     name: string;
-  }[];
+  } | null;
 }[];
 
 export type TData2 = {

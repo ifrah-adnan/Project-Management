@@ -144,7 +144,7 @@ const handler = async (data: TCreateInput) => {
   return user;
 };
 
-export const create = createSafeAction({ scheme: createInputSchema, handler });
+// export const create = createSafeAction({ scheme: createInputSchema, handler });
 
 interface CreateCommandInput {
   reference: string;
@@ -347,10 +347,10 @@ const createCommandHandler = async (data: TEditInput) => {
   return user;
 };
 
-export const createCommand = createSafeAction({
-  scheme: createInputSchemaforUpdate,
-  handler: createCommandHandler,
-});
+// export const createCommand = createSafeAction({
+//   scheme: createInputSchemaforUpdate,
+//   handler: createCommandHandler,
+// });
 
 const editCommandHandler = async ({ commandId, ...data }: TEditInput) => {
   const { organizationId } = await getSessionAndOrganizationId();
