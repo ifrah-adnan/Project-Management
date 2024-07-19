@@ -145,36 +145,38 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                 </td>
 
                 <td>
-                  <Popover>
-                    <PopoverTrigger>
-                      <Ellipsis size={16} />
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="end"
-                      className=" flex w-fit flex-col gap-2"
-                    >
-                      <EditProjectButton
-                        project={item}
-                        variant="ghost"
-                        className=" justify-start gap-2   px-6  hover:text-sky-500 "
+                  {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
+                    <Popover>
+                      <PopoverTrigger>
+                        <Ellipsis size={16} />
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="end"
+                        className=" flex w-fit flex-col gap-2"
                       >
-                        <PencilIcon size={16} />
-                        <span>Edit</span>
-                      </EditProjectButton>
+                        <EditProjectButton
+                          project={item}
+                          variant="ghost"
+                          className=" justify-start gap-2   px-6  hover:text-sky-500 "
+                        >
+                          <PencilIcon size={16} />
+                          <span>Edit</span>
+                        </EditProjectButton>
 
-                      <ConfirmButton
-                        variant="ghost"
-                        size="icon"
-                        className=" flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
-                        action={async () => {
-                          await handleDeleteCommandProject(item.id);
-                        }}
-                      >
-                        <Trash2Icon size={16} />
-                        <span>Delete</span>
-                      </ConfirmButton>
-                    </PopoverContent>
-                  </Popover>
+                        <ConfirmButton
+                          variant="ghost"
+                          size="icon"
+                          className=" flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
+                          action={async () => {
+                            await handleDeleteCommandProject(item.id);
+                          }}
+                        >
+                          <Trash2Icon size={16} />
+                          <span>Delete</span>
+                        </ConfirmButton>
+                      </PopoverContent>
+                    </Popover>
+                  )}
                 </td>
               </tr>
             );
