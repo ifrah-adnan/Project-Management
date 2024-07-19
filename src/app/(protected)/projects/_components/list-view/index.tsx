@@ -30,24 +30,32 @@ import { useSession } from "@/components/session-provider";
 import { getServerSession } from "@/lib/auth";
 
 export const ListView: React.FC<{ data: TData }> = ({ data }) => {
-  console.log(data, "dddde");
   const { session } = useSession();
-
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
+  const [organizationId, setOrganizationId] = useState<any>(null);
 
   useEffect(() => {
     const fetchSession = async () => {
       const serverSession = await getServerSession();
-      console.log(serverSession?.user.organizationId, "this is organizationId");
+      setOrganizationId(
+        serverSession?.user.organization?.id ||
+          serverSession?.user.organizationId,
+      );
     };
 
-    if (user) {
-      const filtered = data.filter((item) => item.user?.id === user.id);
+    fetchSession();
+  }, []);
+
+  useEffect(() => {
+    if (organizationId) {
+      const filtered = data.filter(
+        (item) => item.organizationId === organizationId,
+      );
       setFilteredData(filtered);
     }
-    fetchSession();
-  }, [data, user]);
+  }, [data, organizationId]);
+
   return (
     <Card className="mx-auto h-full w-full max-w-screen-2xl overflow-auto p-4">
       <Table className="w-full">
