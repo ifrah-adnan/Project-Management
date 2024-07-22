@@ -1,30 +1,34 @@
+// components/SettingsPage.tsx
 "use client";
 import * as React from "react";
-
-import { useLang } from "@/context/LangContext";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
+import { useFontSize } from "@/context/TableFontSize";
 
-const SettingsPage = () => {
+const SettingsPage: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  const [fontSize, setFontSize] = useState(16);
+  const { fontSize, setFontSize } = useFontSize();
   const [isMounted, setIsMounted] = React.useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const handleLanguageChange = (e) => {
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     console.log(e.target.value);
   };
+
   const handleThemeChange = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
+    setTheme(theme === "dark" ? "light" : "dark");
   };
 
-  const handleFontSizeChange = (e) => {
+  const handleFontSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFontSize(parseInt(e.target.value));
   };
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">

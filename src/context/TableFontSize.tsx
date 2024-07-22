@@ -1,32 +1,42 @@
-// context/TableFontSizeContext.tsx
+// context/FontSizeContext.tsx
+"use client";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
-import React, { createContext, useContext, useState } from "react";
-
-interface TableFontSizeContextType {
-  tableFontSize: string;
-  setTableFontSize: React.Dispatch<React.SetStateAction<string>>;
+interface FontSizeContextType {
+  fontSize: number;
+  setFontSize: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const TableFontSizeContext = createContext<
-  TableFontSizeContextType | undefined
->(undefined);
+const FontSizeContext = createContext<FontSizeContextType | undefined>(
+  undefined
+);
 
-export const TableFontSizeProvider: React.FC = ({ children }) => {
-  const [tableFontSize, setTableFontSize] = useState("16px");
+export const FontSizeProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [fontSize, setFontSize] = useState(16);
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${fontSize}px`;
+  }, [fontSize]);
 
   return (
-    <TableFontSizeContext.Provider value={{ tableFontSize, setTableFontSize }}>
+    <FontSizeContext.Provider value={{ fontSize, setFontSize }}>
       {children}
-    </TableFontSizeContext.Provider>
+    </FontSizeContext.Provider>
   );
 };
 
-export const useTableFontSize = (): TableFontSizeContextType => {
-  const context = useContext(TableFontSizeContext);
-  if (!context) {
-    throw new Error(
-      "useTableFontSize must be used within a TableFontSizeProvider"
-    );
+export const useFontSize = (): FontSizeContextType => {
+  const context = useContext(FontSizeContext);
+  if (context === undefined) {
+    throw new Error("useFontSize must be used within a FontSizeProvider");
   }
   return context;
 };

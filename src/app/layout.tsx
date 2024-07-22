@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { FontSizeProvider } from "@/context/TableFontSize";
 
 const font = Poppins({
   subsets: ["latin"],
@@ -29,7 +30,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <FontSizeProvider>{children}</FontSizeProvider>
           <Toaster />
         </ThemeProvider>
       </body>
