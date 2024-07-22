@@ -80,7 +80,6 @@ export function LinkItem({
     </Link>
   );
 }
-
 export default function SideBar({ className }: { className?: string }) {
   const { session } = useSession();
   const user = session?.user;
@@ -95,33 +94,35 @@ export default function SideBar({ className }: { className?: string }) {
     null,
   );
   const [isOrganizationPage, setIsOrganizationPage] = React.useState(false);
-  const [showOrganizationName, setShowOrganizationName] = React.useState(true);
-
-  const [firstName] = (user?.name || "").split(" ");
 
   React.useEffect(() => {
-    const fetchOrganizationImage = async () => {
+    const fetchOrganizationData = async () => {
       if (pathname === "/organizations") {
         setOrganizationImage("/sys-admin.svg");
+        setOrganizationName("Organizations");
         setIsOrganizationPage(true);
       } else {
         setIsOrganizationPage(false);
         const serverSession = await getServerSession();
         if (serverSession && serverSession.user.organizationId) {
-          const organizationData = await getOrganizationId(
-            serverSession.user.organizationId,
-          );
-          setOrganizationName(organizationData.name);
-          if (organizationData && organizationData.imagePath) {
-            setOrganizationImage(organizationData.imagePath);
-          } else {
+          try {
+            const organizationData = await getOrganizationId(
+              serverSession.user.organizationId,
+            );
+            setOrganizationName(organizationData.name);
+            setOrganizationImage(
+              organizationData.imagePath || "/sys-admin.svg",
+            );
+          } catch (error) {
+            console.error("Error fetching organization data:", error);
             setOrganizationImage("/sys-admin.svg");
+            setOrganizationName("Unknown Organization");
           }
         }
       }
     };
 
-    fetchOrganizationImage();
+    fetchOrganizationData();
   }, [pathname]);
 
   const navigateWithOrganization = (path: string) => {
@@ -135,17 +136,8 @@ export default function SideBar({ className }: { className?: string }) {
   };
 
   const handleMyOrganizationsClick = () => {
-    setShowOrganizationName(false);
     navigateWithOrganization("/organizations");
   };
-
-  const handleLogoClick = (e: React.MouseEvent) => {
-    if (!isAdmin) {
-      e.preventDefault(); // Empêche la navigation pour les non-admins
-    }
-  };
-
-  // ... (le reste du code reste inchangé)
 
   const isAdminOrSysAdmin =
     user?.role === "ADMIN" || user?.role === "SYS_ADMIN";
@@ -157,48 +149,25 @@ export default function SideBar({ className }: { className?: string }) {
         className,
       )}
     >
-      {isAdminOrSysAdmin ? (
-        <Link
-          href="/"
-          className="relative flex h-12 w-40 items-center justify-center"
-        >
-          <div className="relative h-12 w-12">
-            <Image
-              src={organizationImage || "/sys-admin.svg"}
-              alt="Logo"
-              fill
-              sizes="48px"
-              className="object-contain transition-opacity duration-300 ease-in-out"
-              quality={100}
-              priority
-            />
-          </div>
-          {showOrganizationName && (
-            <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-              {organizationName}
-            </span>
-          )}
-        </Link>
-      ) : (
-        <div className="relative flex h-12 w-40 items-center justify-center">
-          <div className="relative h-12 w-12">
-            <Image
-              src={organizationImage || "/sys-admin.svg"}
-              alt="Logo"
-              fill
-              sizes="48px"
-              className="object-contain transition-opacity duration-300 ease-in-out"
-              quality={100}
-              priority
-            />
-          </div>
-          {showOrganizationName && (
-            <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-              {organizationName}
-            </span>
-          )}
+      <div className="relative flex h-12 w-auto items-center justify-center">
+        <div className="relative mr-2 h-12 w-12">
+          <Image
+            src={organizationImage || "/sys-admin.svg"}
+            alt="Logo"
+            fill
+            sizes="48px"
+            className="object-contain transition-opacity duration-300 ease-in-out"
+            quality={100}
+            priority
+          />
         </div>
-      )}
+        {organizationName && (
+          <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+            {organizationName}
+          </span>
+        )}
+      </div>
+
       {isOrganizationPage ? (
         <div className="flex items-center gap-4">
           <Link href="/settings">
