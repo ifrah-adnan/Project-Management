@@ -104,34 +104,34 @@ export default function List({ data, total }: { data: TData; total: number }) {
                         </AddEditPlanningButton>
                       )}
 
-                      {currentPlanning ? (
+                      {item.plannings && item.plannings.length > 0 ? (
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-2">
                             <Avatar className="size-7 border-2 border-[#E6B3BA]">
                               <AvatarImage
-                                src={currentPlanning.operator.name || ""}
-                                alt={currentPlanning.operator.name}
+                                src={item.plannings[0].operator.name || ""}
+                                alt={item.plannings[0].operator.name}
                               />
                               <AvatarFallback className="font-bold">
-                                {`${currentPlanning.operator.name.charAt(0).toUpperCase()}`}
+                                {`${item.plannings[0].operator.name.charAt(0).toUpperCase()}`}
                               </AvatarFallback>
                             </Avatar>
                             <span className="capitalize">
-                              {currentPlanning.operator.name}
+                              {item.plannings[0].operator.name}
                             </span>
                             <span className="capitalize">
-                              {currentPlanning?.commandProject.project.name}
+                              {item.plannings[0]?.commandProject.project.name}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span>{currentPlanning?.operation.name}</span>
+                            <span>{item.plannings[0]?.operation.name}</span>
                           </div>
                           <div className="flex gap-2">
                             <div className="flex gap-1">
                               <span className="text-gray-500">from</span>
                               <span>
                                 {format(
-                                  new Date(currentPlanning.startDate),
+                                  new Date(item.plannings[0].startDate),
                                   "PP",
                                 )}
                               </span>
@@ -140,7 +140,7 @@ export default function List({ data, total }: { data: TData; total: number }) {
                               <span className="text-gray-500">to</span>
                               <span>
                                 {format(
-                                  new Date(currentPlanning.endDate),
+                                  new Date(item.plannings[0].endDate),
                                   "PP",
                                 )}
                               </span>
@@ -148,7 +148,7 @@ export default function List({ data, total }: { data: TData; total: number }) {
                           </div>
                         </div>
                       ) : (
-                        <span className=" text-gray-500">
+                        <span className="text-gray-500">
                           No planning for now
                         </span>
                       )}

@@ -80,10 +80,11 @@ export function LinkItem({
     </Link>
   );
 }
+
 export default function SideBar({ className }: { className?: string }) {
   const { session } = useSession();
   const user = session?.user;
-  const isAdmin = user?.role === "ADMIN" || user?.role === "SYS_ADMIN";
+  const isAdmin = user?.role === "ADMIN";
   const isSysAdmin = user?.role === "SYS_ADMIN";
   const pathname = usePathname();
   const router = useRouter();
@@ -93,35 +94,26 @@ export default function SideBar({ className }: { className?: string }) {
   const [organizationName, setOrganizationName] = React.useState<string | null>(
     null,
   );
-  const [isOrganizationPage, setIsOrganizationPage] = React.useState(false);
-  const [firstName] = (user?.name || "").split(" ");
 
   React.useEffect(() => {
     const fetchOrganizationImage = async () => {
-      if (pathname === "/organizations") {
+      if (isSysAdmin) {
         setOrganizationImage("/sys-admin.svg");
-        setOrganizationName("Organizations");
-        setIsOrganizationPage(true);
+        setOrganizationName("System Admin");
       } else {
-        setIsOrganizationPage(false);
         const serverSession = await getServerSession();
         if (serverSession && serverSession.user.organizationId) {
           const organizationData = await getOrganizationId(
             serverSession.user.organizationId,
           );
-          console.log(organizationData); // Pour déboguer
           setOrganizationName(organizationData.name);
-          if (organizationData && organizationData.imagePath) {
-            setOrganizationImage(organizationData.imagePath);
-          } else {
-            setOrganizationImage("/sys-admin.svg");
-          }
+          setOrganizationImage(organizationData.imagePath || "/sys-admin.svg");
         }
       }
     };
 
     fetchOrganizationImage();
-  }, [pathname]);
+  }, [isSysAdmin]);
 
   const navigateWithOrganization = (path: string) => {
     const url = new URL(window.location.href);
@@ -133,19 +125,6 @@ export default function SideBar({ className }: { className?: string }) {
     }
   };
 
-  const handleMyOrganizationsClick = () => {
-    navigateWithOrganization("/organizations");
-  };
-
-  const handleLogoClick = (e: React.MouseEvent) => {
-    if (!isAdmin) {
-      e.preventDefault();
-    }
-  };
-
-  const isAdminOrSysAdmin =
-    user?.role === "ADMIN" || user?.role === "SYS_ADMIN";
-
   return (
     <div
       className={cn(
@@ -153,46 +132,31 @@ export default function SideBar({ className }: { className?: string }) {
         className,
       )}
     >
-      {isAdminOrSysAdmin ? (
-        <Link
-          href="/"
-          className="relative flex h-12 w-auto items-center justify-center"
-        >
-          <div className="relative mr-2 h-12 w-12">
-            <Image
-              src={organizationImage || "/sys-admin.svg"}
-              alt="Logo"
-              fill
-              sizes="48px"
-              className="object-contain transition-opacity duration-300 ease-in-out"
-              quality={100}
-              priority
-            />
-          </div>
-          <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-            {organizationName}
-          </span>
-        </Link>
-      ) : (
-        <div className="relative flex h-12 w-auto items-center justify-center">
-          <div className="relative mr-2 h-12 w-12">
-            <Image
-              src={organizationImage || "/sys-admin.svg"}
-              alt="Logo"
-              fill
-              sizes="48px"
-              className="object-contain transition-opacity duration-300 ease-in-out"
-              quality={100}
-              priority
-            />
-          </div>
-          <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-            {organizationName}
-          </span>
+      <Link
+        href="/"
+        className="relative flex h-12 w-auto items-center justify-center"
+      >
+        <div className="relative mr-2 h-12 w-12">
+          <Image
+            src={organizationImage || "/sys-admin.svg"}
+            alt="Logo"
+            fill
+            sizes="48px"
+            className="object-contain transition-opacity duration-300 ease-in-out"
+            quality={100}
+            priority
+          />
         </div>
-      )}
-      {isOrganizationPage ? (
+        <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+          {organizationName}
+        </span>
+      </Link>
+
+      {isSysAdmin ? (
         <div className="flex items-center gap-4">
+          <Link href="/organizations">
+            <BuildingIcon size={18} />
+          </Link>
           <Link href="/settings">
             <SettingsIcon size={18} />
           </Link>
@@ -201,72 +165,58 @@ export default function SideBar({ className }: { className?: string }) {
         </div>
       ) : (
         <>
-          {!isSysAdmin && (
-            <div className="flex gap-4 lg:gap-6 [&>*]:capitalize">
+          <div className="flex gap-4 lg:gap-6 [&>*]:capitalize">
+            <LinkItem
+              href="/projects"
+              icon={<FolderKanban size={18} />}
+              onClick={() => navigateWithOrganization("/projects")}
+            >
+              Projects
+            </LinkItem>
+            <LinkItem
+              href="/commands"
+              icon={<ShoppingBasketIcon size={18} />}
+              onClick={() => navigateWithOrganization("/commands")}
+            >
+              Commands
+            </LinkItem>
+            <LinkItem
+              href="/posts"
+              icon={<DockIcon size={18} />}
+              onClick={() => navigateWithOrganization("/posts")}
+            >
+              Posts
+            </LinkItem>
+            <LinkItem
+              href="/expertise"
+              icon={<DockIcon size={18} />}
+              onClick={() => navigateWithOrganization("/expertise")}
+            >
+              Expertises
+            </LinkItem>
+            <LinkItem
+              href="/devices"
+              icon={<RadioReceiver size={18} />}
+              onClick={() => navigateWithOrganization("/devices")}
+            >
+              Devices
+            </LinkItem>
+            {isAdmin && (
               <LinkItem
-                href="/projects"
-                icon={<FolderKanban size={18} />}
-                onClick={() => navigateWithOrganization("/projects")}
+                href="/users"
+                icon={<UsersIcon size={18} />}
+                className="hidden lg:flex"
+                onClick={() => navigateWithOrganization("/users")}
               >
-                Projects
+                Users
               </LinkItem>
-              <LinkItem
-                href="/commands"
-                icon={<ShoppingBasketIcon size={18} />}
-                onClick={() => navigateWithOrganization("/commands")}
-              >
-                Commands
-              </LinkItem>
-              <LinkItem
-                href="/posts"
-                icon={<DockIcon size={18} />}
-                onClick={() => navigateWithOrganization("/posts")}
-              >
-                Posts
-              </LinkItem>
-              <LinkItem
-                href="/expertise"
-                icon={<DockIcon size={18} />}
-                onClick={() => navigateWithOrganization("/expertise")}
-              >
-                Expertises
-              </LinkItem>
-              <LinkItem
-                href="/devices"
-                icon={<RadioReceiver size={18} />}
-                onClick={() => navigateWithOrganization("/devices")}
-              >
-                Devices
-              </LinkItem>
-              {isAdmin && (
-                <>
-                  <LinkItem
-                    href="/users"
-                    icon={<UsersIcon size={18} />}
-                    className="hidden lg:flex"
-                    onClick={() => navigateWithOrganization("/users")}
-                  >
-                    Users
-                  </LinkItem>
-                  <LinkItem
-                    href="/organizations"
-                    icon={<BuildingIcon size={18} />}
-                    onClick={handleMyOrganizationsClick}
-                  >
-                    My Organizations
-                  </LinkItem>
-                </>
-              )}
-            </div>
-          )}
+            )}
+          </div>
           <div className="flex items-center gap-4">
             <Link href="/settings">
               <SettingsIcon size={18} />
             </Link>
             <ModeToggle />
-            <Link href="/settings">
-              <CircleHelpIcon size={18} />
-            </Link>
             <UserButton />
           </div>
         </>

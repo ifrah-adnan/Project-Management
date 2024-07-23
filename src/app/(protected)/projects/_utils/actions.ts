@@ -360,12 +360,23 @@ export async function getProjectsNotInCommand(commandId: string) {
 }
 
 export async function deleteCommandProjectById(id: string) {
-  return await db.commandProject.delete({ where: { id } });
+  return await db.$transaction(async (tx) => {
+    await tx.sprint.deleteMany({
+      where: { commandProjectId: id },
+    });
+
+    return tx.commandProject.delete({ where: { id } });
+  });
 }
 
 export async function handleDeleteCommandProject(itemId: string) {
-  await deleteCommandProjectById(itemId);
-  revalidatePath("/projects");
+  try {
+    await deleteCommandProjectById(itemId);
+    revalidatePath("/projects");
+  } catch (error) {
+    console.error("Erreur lors de la suppression du CommandProject:", error);
+    throw error;
+  }
 }
 
 export interface TUpdateValueInput {

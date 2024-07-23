@@ -92,32 +92,37 @@ export async function findMany(params = defaultParams): Promise<{
 }
 
 export async function deleteById(id: string, userId: string) {
-  const { organizationId, isSysAdmin } = await getSessionAndOrganizationId();
-
-  if (!organizationId && !isSysAdmin) {
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
+  if (!organizationId) {
     throw new Error("Unauthorized");
   }
 
-  const deleteWhere: Prisma.CommandWhereUniqueInput = { id };
-  if (organizationId) {
-    deleteWhere.organizationId = organizationId;
-  }
+  const deleteWhere: Prisma.CommandWhereUniqueInput = {
+    id,
+    organizationId: organizationId,
+  };
 
-  await db.commandProject.deleteMany({
-    where: { commandId: id, ...(organizationId ? { organizationId } : {}) },
+  const deletedCommand = await db.$transaction(async (tx) => {
+    await tx.commandProject.deleteMany({
+      where: { commandId: id },
+    });
+
+    // Ensuite, supprimez la commande elle-même
+    return tx.command.delete({
+      where: deleteWhere,
+    });
   });
-
-  const deletedCommand = await db.command.delete({
-    where: deleteWhere,
-  });
-
   await logHistory(
     ActionType.DELETE,
-    `Command ${deletedCommand.reference} deleted`,
+    "command deleted",
     EntityType.COMMAND,
-    id,
+    deletedCommand.id,
     userId,
   );
+
+  return deletedCommand;
 }
 
 const handler = async (data: TCreateInput) => {
@@ -356,8 +361,9 @@ const createCommandHandler = async (data: TEditInput) => {
 // });
 
 const editCommandHandler = async ({ commandId, ...data }: TEditInput) => {
-  const { organizationId } = await getSessionAndOrganizationId();
-
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
   // Verify that the command belongs to the organization
   const existingCommand = await db.command.findFirst({
     where: { id: commandId, organizationId },
