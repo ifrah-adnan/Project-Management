@@ -11,7 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ArrowLeftIcon, EditIcon } from "lucide-react";
+import { ArrowLeftIcon, EditIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import React from "react";
 import { FieldErrors } from "@/actions/utils";
 import { toast } from "sonner";
@@ -38,6 +38,7 @@ import { MultiSelect } from "@/components/multi-select";
 import { Input } from "@/components/ui/input";
 import { Role } from "@prisma/client";
 import { roles } from "@/utils/constants";
+import { useState } from "react";
 
 export interface EditUserButtonProps extends ButtonProps {
   userData: {
@@ -65,7 +66,8 @@ export function EditUserButton({ userData, ...props }: EditUserButtonProps) {
   );
   const [password, setPassword] = React.useState("");
   const [isPasswordEditable, setPasswordEditable] = React.useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [isPasswordChanged, setIsPasswordChanged] = useState(false);
   const handleResetPassword = () => {
     setPassword("");
     setPasswordEditable(true);
@@ -115,17 +117,33 @@ export function EditUserButton({ userData, ...props }: EditUserButtonProps) {
       return;
     }
 
-    const { result, error, fieldErrors } = await update(parsed.data);
+    try {
+      const { result, error, fieldErrors } = await update(parsed.data);
 
-    if (error) toast.error(error);
-
-    if (fieldErrors) setFieldErrors(fieldErrors);
-
-    if (result) {
-      handleClose();
-      toast.success("User updated successfully");
-      router.refresh();
+      if (error) {
+        toast.error(error);
+      } else if (fieldErrors) {
+        setFieldErrors(fieldErrors);
+      } else if (result) {
+        handleClose();
+        toast.success("User updated successfully");
+        router.refresh();
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      toast.error("An unexpected error occurred. Please try again.");
     }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    setIsPasswordChanged(true);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -171,17 +189,35 @@ export function EditUserButton({ userData, ...props }: EditUserButtonProps) {
             required
             errors={fieldErrors.email}
           />
-          <FormInput
-            name="password"
-            label="Password"
-            type="password"
-            placeholder="********"
-            value={userData.password}
-            onChange={(e) => setPassword(e.target.value)}
-            required={false}
-            errors={fieldErrors.password}
-            disabled={!isPasswordEditable}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter new password to change"
+                value={password}
+                onChange={handlePasswordChange}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+              >
+                {showPassword ? (
+                  <EyeOffIcon className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <EyeIcon className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
+            </div>
+            {fieldErrors.password && (
+              <p className="text-sm text-red-500">{fieldErrors.password}</p>
+            )}
+          </div>
+
           <Button type="button" onClick={handleResetPassword}>
             Reset Password
           </Button>

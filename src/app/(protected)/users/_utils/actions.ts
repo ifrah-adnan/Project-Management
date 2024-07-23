@@ -188,10 +188,10 @@ export async function getExpertises() {
 export interface TEditInput extends TCreateInput {
   userId: string;
 }
-
 const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
   const session = await getServerSession();
   const organizationId = await checkUserPermissions(session);
+  console.log("this is oooo", organizationId);
 
   if (data.role === "SYS_ADMIN") {
     throw new Error("Cannot create SYS_ADMIN users");
@@ -199,8 +199,15 @@ const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
 
   const { password, ...rest } = data;
   const hashed = password ? await bcrypt.hash(password, 12) : undefined;
+
+  // Créer l'objet 'where' conditionnellement
+  const whereClause: any = { id: userId };
+  if (organizationId) {
+    whereClause.organizationId = organizationId;
+  }
+
   const user = await db.user.update({
-    where: { id: userId, organizationId },
+    where: whereClause,
     data: {
       ...rest,
       password: hashed,
@@ -209,6 +216,7 @@ const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
         : undefined,
     },
   });
+
   await logHistory(
     ActionType.UPDATE,
     `User updated: ${user.name}`,
@@ -216,6 +224,7 @@ const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
     user.id,
     session!.user.id,
   );
+
   return user;
 };
 
@@ -223,6 +232,7 @@ export const update = createSafeAction({
   scheme: updateInputSchema,
   handler: editHandler,
 });
+
 export async function findUserById(id: string): Promise<any> {
   const user = await db.user.findUnique({
     where: { id },

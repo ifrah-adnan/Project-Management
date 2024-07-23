@@ -416,3 +416,44 @@ export async function getCommandProject(
     },
   });
 }
+export async function getOrganizationDetails(organizationId: string) {
+  try {
+    const organization = await db.organization.findUnique({
+      where: { id: organizationId },
+      include: {
+        _count: {
+          select: {
+            users: true,
+            posts: true,
+            expertises: true,
+            projects: true,
+            commands: true,
+            devices: true,
+          },
+        },
+      },
+    });
+
+    if (!organization) {
+      throw new Error("Organization not found");
+    }
+
+    return {
+      id: organization.id,
+      name: organization.name,
+      description: organization.description,
+      imagePath: organization.imagePath,
+      address: organization.address,
+      createdAt: organization.createdAt,
+      userCount: organization._count.users,
+      postCount: organization._count.posts,
+      expertiseCount: organization._count.expertises,
+      projectCount: organization._count.projects,
+      commandCount: organization._count.commands,
+      deviceCount: organization._count.devices,
+    };
+  } catch (error) {
+    console.error("Error fetching organization details:", error);
+    throw error;
+  }
+}

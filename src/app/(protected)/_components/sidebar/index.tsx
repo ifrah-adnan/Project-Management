@@ -94,7 +94,6 @@ export default function SideBar({ className }: { className?: string }) {
     null,
   );
   const [isOrganizationPage, setIsOrganizationPage] = React.useState(false);
-
   const [firstName] = (user?.name || "").split(" ");
 
   React.useEffect(() => {
@@ -202,53 +201,53 @@ export default function SideBar({ className }: { className?: string }) {
         </div>
       ) : (
         <>
-          <div className="flex gap-4 lg:gap-6 [&>*]:capitalize">
-            <LinkItem
-              href="/projects"
-              icon={<FolderKanban size={18} />}
-              onClick={() => navigateWithOrganization("/projects")}
-            >
-              Projects
-            </LinkItem>
-            <LinkItem
-              href="/commands"
-              icon={<ShoppingBasketIcon size={18} />}
-              onClick={() => navigateWithOrganization("/commands")}
-            >
-              Commands
-            </LinkItem>
-            <LinkItem
-              href="/posts"
-              icon={<DockIcon size={18} />}
-              onClick={() => navigateWithOrganization("/posts")}
-            >
-              Posts
-            </LinkItem>
-            <LinkItem
-              href="/expertise"
-              icon={<DockIcon size={18} />}
-              onClick={() => navigateWithOrganization("/expertise")}
-            >
-              Expertises
-            </LinkItem>
-            <LinkItem
-              href="/devices"
-              icon={<RadioReceiver size={18} />}
-              onClick={() => navigateWithOrganization("/devices")}
-            >
-              Devices
-            </LinkItem>
-            {isAdmin && (
-              <>
-                <LinkItem
-                  href="/users"
-                  icon={<UsersIcon size={18} />}
-                  className="hidden lg:flex"
-                  onClick={() => navigateWithOrganization("/users")}
-                >
-                  Users
-                </LinkItem>
-                {isSysAdmin && (
+          {!isSysAdmin && (
+            <div className="flex gap-4 lg:gap-6 [&>*]:capitalize">
+              <LinkItem
+                href="/projects"
+                icon={<FolderKanban size={18} />}
+                onClick={() => navigateWithOrganization("/projects")}
+              >
+                Projects
+              </LinkItem>
+              <LinkItem
+                href="/commands"
+                icon={<ShoppingBasketIcon size={18} />}
+                onClick={() => navigateWithOrganization("/commands")}
+              >
+                Commands
+              </LinkItem>
+              <LinkItem
+                href="/posts"
+                icon={<DockIcon size={18} />}
+                onClick={() => navigateWithOrganization("/posts")}
+              >
+                Posts
+              </LinkItem>
+              <LinkItem
+                href="/expertise"
+                icon={<DockIcon size={18} />}
+                onClick={() => navigateWithOrganization("/expertise")}
+              >
+                Expertises
+              </LinkItem>
+              <LinkItem
+                href="/devices"
+                icon={<RadioReceiver size={18} />}
+                onClick={() => navigateWithOrganization("/devices")}
+              >
+                Devices
+              </LinkItem>
+              {isAdmin && (
+                <>
+                  <LinkItem
+                    href="/users"
+                    icon={<UsersIcon size={18} />}
+                    className="hidden lg:flex"
+                    onClick={() => navigateWithOrganization("/users")}
+                  >
+                    Users
+                  </LinkItem>
                   <LinkItem
                     href="/organizations"
                     icon={<BuildingIcon size={18} />}
@@ -256,10 +255,10 @@ export default function SideBar({ className }: { className?: string }) {
                   >
                     My Organizations
                   </LinkItem>
-                )}
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-4">
             <Link href="/settings">
               <SettingsIcon size={18} />

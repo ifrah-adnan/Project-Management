@@ -41,7 +41,7 @@ export function ViewAllAdminsDialog({
     setAdmins((prevAdmins) =>
       prevAdmins.filter((admin) => admin.id !== adminId),
     );
-    setSelectedAdmin(null); // Ferme le Popover
+    setSelectedAdmin(null);
   };
 
   return (

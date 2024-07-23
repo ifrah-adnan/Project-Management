@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Moon, Sun } from "lucide-react";
+import { Moon, MoonStarIcon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 
@@ -16,7 +16,6 @@ export function ModeToggle() {
     setTheme(newTheme);
   };
 
-  // Determine the icon based on the theme, only after the component has mounted
   const icon = isMounted ? theme === "dark" ? <Moon /> : <Sun /> : null;
 
   return (
