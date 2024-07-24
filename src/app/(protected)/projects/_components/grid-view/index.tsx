@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { TData } from "../../_utils/schemas";
 import Card from "@/components/card";
 import { format } from "date-fns";
@@ -23,16 +23,40 @@ import { EditProjectButton } from "../edit-project-button";
 import { ConfirmButton } from "@/components/confirm-button";
 import { handleDeleteCommandProject } from "../../_utils/actions";
 import ConfigureSprintButton from "../configure-sprint-button";
+import { getServerSession } from "@/lib/auth";
 
 export function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 export const GridView: React.FC<{ data: TData }> = ({ data }) => {
+  const [filteredData, setFilteredData] = useState<TData>([]);
+  const [organizationId, setOrganizationId] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const serverSession = await getServerSession();
+      setOrganizationId(
+        serverSession?.user.organization?.id ||
+          serverSession?.user.organizationId,
+      );
+    };
+
+    fetchSession();
+  }, []);
+
+  useEffect(() => {
+    if (organizationId) {
+      const filtered = data.filter(
+        (item) => item.organizationId === organizationId,
+      );
+      setFilteredData(filtered);
+    }
+  }, [data, organizationId]);
   return (
     <main>
       <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-4 text-sm">
-        {data.map((item) => {
+        {filteredData.map((item) => {
           const client = item.command.client;
           const value = (item.done / item.target) * 100;
           let totalSprints: number | undefined = undefined;
