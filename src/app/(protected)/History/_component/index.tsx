@@ -25,7 +25,7 @@ export type History = {
   entity: EntityType;
 }[];
 
-const actionTypes = ["All", "Post", "Command", "EXPERTISE"];
+const actionTypes = ["All", "POST", "COMMAND", "EXPERTISE", "ORGANIZATION"];
 
 function ListH({ data }: { data: History }) {
   const { session } = useSession();
@@ -36,6 +36,18 @@ function ListH({ data }: { data: History }) {
   useEffect(() => {
     let filteredData = data.filter((history) => history.userId === user?.id);
 
+    if (user?.role === "SYS_ADMIN") {
+      // Filtrer uniquement les actions liées à l'organisation pour les sys admins
+      filteredData = filteredData.filter(
+        (history) => history.entity === EntityType.ORGANIZATION,
+      );
+    } else {
+      // Exclure les actions liées à l'organisation pour les autres utilisateurs
+      filteredData = filteredData.filter(
+        (history) => history.entity !== EntityType.ORGANIZATION,
+      );
+    }
+
     if (selectedAction !== "All") {
       filteredData = filteredData.filter(
         (history) => history.entity === selectedAction,
@@ -44,6 +56,11 @@ function ListH({ data }: { data: History }) {
 
     setDisplayData(filteredData);
   }, [selectedAction, data, user]);
+
+  const availableActions =
+    user?.role === "SYS_ADMIN"
+      ? ["ORGANIZATION"]
+      : actionTypes.filter((action) => action !== "ORGANIZATION");
 
   return (
     <main className="p-6">
@@ -56,7 +73,7 @@ function ListH({ data }: { data: History }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {actionTypes.map((action) => (
+              {availableActions.map((action) => (
                 <DropdownMenuItem
                   key={action}
                   onClick={() => setSelectedAction(action)}

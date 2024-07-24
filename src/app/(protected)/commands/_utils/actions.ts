@@ -337,7 +337,6 @@ export interface TEditInput {
 const createCommandHandler = async (data: TEditInput) => {
   const { organizationId } = await getSessionAndOrganizationId();
 
-  // Verify that the client belongs to the same organization
   const client = await db.user.findFirst({
     where: { id: data.clientId, organizationId, role: "CLIENT" },
   });

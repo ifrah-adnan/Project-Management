@@ -227,7 +227,6 @@ export async function configureSprint(data: TConfigureSprint) {
 
     const { commandProjectId, target, days } = parsed.data;
 
-    // Vérifier si le CommandProject existe et appartient à l'organisation
     const commandProject = await db.commandProject.findUnique({
       where: { id: commandProjectId, organizationId },
     });
@@ -236,7 +235,6 @@ export async function configureSprint(data: TConfigureSprint) {
       return { error: "Command project not found" };
     }
 
-    // Créer ou mettre à jour le sprint
     const sprint = await db.sprint.upsert({
       where: { commandProjectId },
       update: { target, days },

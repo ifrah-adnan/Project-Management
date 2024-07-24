@@ -10,14 +10,19 @@ import {
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
-import { Prisma } from "@prisma/client";
+import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { writeFile } from "fs/promises";
 import path from "path";
+import { logHistory } from "../../History/_utils/action";
+import { getServerSession } from "@/lib/auth";
 export async function createOrganizationWithAdmin(
   data: TCreateInput,
   imagePath: string | null,
 ) {
   try {
+    const sessionUser = await getServerSession();
+    console.log("user id ", sessionUser?.user);
+
     const validatedData = createInputSchema.parse(data);
 
     const hashedPassword = await bcrypt.hash(validatedData.adminPassword, 10);
@@ -42,6 +47,19 @@ export async function createOrganizationWithAdmin(
         },
       });
 
+      try {
+        await logHistory(
+          ActionType.CREATE,
+          "CREATE ORGANIZATION",
+          EntityType.ORGANIZATION,
+          organization.id,
+          sessionUser?.user.id,
+        );
+      } catch (historyError) {
+        console.error("Error logging history:", historyError);
+        // Optionally handle the error, like sending a notification or logging it to a different system
+      }
+
       return { organization, admin };
     });
 
@@ -49,7 +67,9 @@ export async function createOrganizationWithAdmin(
     return result;
   } catch (error) {
     console.error("Error creating organization and admin:", error);
-    throw error;
+    throw new Error(
+      "An unexpected error occurred while creating the organization and admin.",
+    );
   }
 }
 const defaultParams: Record<string, string> = {
