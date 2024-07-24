@@ -9,7 +9,7 @@ export async function logHistory(
   details: string,
   entity: EntityType,
   entityId: string,
-  userId: string,
+  userId: any,
 ): Promise<void> {
   await db.history.create({
     data: {

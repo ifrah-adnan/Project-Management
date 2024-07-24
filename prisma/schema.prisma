@@ -328,4 +328,5 @@ enum EntityType {
   POSTS
   DEVICE
   USER
+  ORGANIZATION
 }
