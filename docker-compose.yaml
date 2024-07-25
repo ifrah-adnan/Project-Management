@@ -14,13 +14,18 @@ services:
       - postgres_data:/var/lib/postgresql/data/
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - 3000:3000
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/project-management
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
+      JWT_SECRET: "secret"
+      MQTT_HOST: "192.168.1.173"
+      EXPIRY_TIME: "3600"
 
 volumes:
   postgres_data:
