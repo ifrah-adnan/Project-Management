@@ -20,7 +20,7 @@ import FormInput from "@/components/form-input";
 import { TCreateInput, createInputSchema } from "../../_utils/schemas";
 import useSWR from "swr";
 import { Label } from "@/components/ui/label";
-import { create, createDevice, getPosts } from "../../_utils/actions";
+import { createDevice, getPosts } from "../../_utils/actions";
 import {
   Select,
   SelectContent,

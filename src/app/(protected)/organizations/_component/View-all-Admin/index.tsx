@@ -35,13 +35,22 @@ export function ViewAllAdminsDialog({
 }: ViewAllAdminsDialogProps) {
   const [admins, setAdmins] = useState<Admin[]>(initialAdmins);
   const [selectedAdmin, setSelectedAdmin] = useState<string | null>(null);
+  const [openPopovers, setOpenPopovers] = useState<{ [key: string]: boolean }>(
+    {},
+  );
+  const togglePopover = (adminId: string) => {
+    setOpenPopovers((prev) => ({
+      ...prev,
+      [adminId]: !prev[adminId],
+    }));
+  };
 
   const handleDelete = async (adminId: string) => {
     await deleteById(adminId);
     setAdmins((prevAdmins) =>
       prevAdmins.filter((admin) => admin.id !== adminId),
     );
-    setSelectedAdmin(null);
+    setOpenPopovers((prev) => ({ ...prev, [adminId]: false }));
   };
 
   return (
@@ -65,15 +74,16 @@ export function ViewAllAdminsDialog({
                 <p className="font-medium">{admin.name}</p>
                 <p className="text-sm text-gray-500">{admin.email}</p>
               </div>
-              <Popover>
-                <PopoverTrigger onClick={() => setSelectedAdmin(admin.id)}>
+              <Popover
+                open={openPopovers[admin.id]}
+                onOpenChange={() => togglePopover(admin.id)}
+              >
+                <PopoverTrigger>
                   <Ellipsis size={16} />
                 </PopoverTrigger>
                 <PopoverContent
                   align="end"
                   className="flex w-fit flex-col gap-2"
-                  open={selectedAdmin === admin.id}
-                  onInteractOutside={() => setSelectedAdmin(null)}
                 >
                   <EditUserButton
                     userData={admin}

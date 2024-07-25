@@ -20,14 +20,13 @@ import FormInput from "@/components/form-input";
 import {
   TCreateInput,
   TData,
-  TPost,
   TdeviceConfigInput,
   createInputSchema,
   deviceConfigInputSchema,
 } from "../../_utils/schemas";
 import useSWR from "swr";
 import { Label } from "@/components/ui/label";
-import { configure, create, getPosts } from "../../_utils/actions";
+import { configure, getPosts } from "../../_utils/actions";
 import {
   Select,
   SelectContent,
@@ -55,7 +54,7 @@ type TDevice = {
     };
   } | null;
   deviceId: string;
-  post: TPost | null;
+  post: any | null;
   count: number;
   id: string;
   createdAt: Date;
@@ -75,15 +74,17 @@ export function ConfigureDeviceButton({
   const [fieldErrors, setFieldErrors] = React.useState<
     FieldErrors<TCreateInput>
   >({});
-  const [deviceToConfigure, setDeviceToConfigure] = React.useState<TDevice>();
-  const [post, setPost] = React.useState<TPost | undefined>();
+  const [deviceToConfigure, setDeviceToConfigure] = React.useState<
+    any | TDevice
+  >();
+  const [post, setPost] = React.useState<any | undefined>();
 
   useEffect(() => {
     if (deviceToConfigure) setPost(deviceToConfigure?.post || undefined);
   }, [deviceToConfigure]);
 
   function handleNewPlanning() {
-    setPost((post) => {
+    setPost((post: any) => {
       if (post)
         return {
           ...post,
@@ -205,7 +206,7 @@ export function ConfigureDeviceButton({
                 className="mt-4"
                 // errors={fieldErrors.operationId}
               >
-                {post.plannings.map((op) => (
+                {post.plannings.map((op: any) => (
                   <SelectItem key={op.id} value={op.id} className="text-xs">
                     {op.operation.name} from{" "}
                     {format(new Date(op.startDate), "PP")} to{" "}

@@ -60,9 +60,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Expertise } from "@prisma/client";
 import { Label } from "@/components/ui/label";
-import { TPost } from "@/app/(protected)/devices/_utils/schemas";
 
 export interface AddEditPlanningButtonProps extends ButtonProps {
   postId: string;

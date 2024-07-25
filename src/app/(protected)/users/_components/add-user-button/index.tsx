@@ -91,7 +91,7 @@ export function AddUserButton(props: AddUserButtonProps) {
       return;
     }
 
-    const { result, error, fieldErrors } = await create(parsed.data, formData);
+    const { result, error, fieldErrors } = await create(parsed.data);
 
     if (error) toast.error(error);
 

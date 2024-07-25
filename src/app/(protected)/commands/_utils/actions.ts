@@ -12,7 +12,7 @@ import {
 import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { logHistory } from "../../History/_utils/action";
 import { revalidatePath } from "next/cache";
-import { getServerSession, getSessionAndOrganizationId } from "@/lib/auth";
+import { getServerSession } from "@/lib/auth";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -125,29 +125,29 @@ export async function deleteById(id: string, userId: string) {
   return deletedCommand;
 }
 
-const handler = async (data: TCreateInput) => {
-  const { organizationId } = await getSessionAndOrganizationId();
-  const user = await db.command.create({
-    data: {
-      reference: data.reference,
+// const handler = async (data: TCreateInput) => {
+//   const { organizationId } = await getSessionAndOrganizationId();
+//   const user = await db.command.create({
+//     data: {
+//       reference: data.reference,
 
-      client: data.clientId ? { connect: { id: data.clientId } } : undefined,
-      organization: { connect: { id: organizationId } },
+//       client: data.clientId ? { connect: { id: data.clientId } } : undefined,
+//       organization: { connect: { id: organizationId } },
 
-      commandProjects: {
-        createMany: {
-          data: data.commandProjects.map((cp) => ({
-            endDate: cp.endDate,
-            projectId: cp.projectId,
-            target: cp.target,
-            organizationId,
-          })),
-        },
-      },
-    },
-  });
-  return user;
-};
+//       commandProjects: {
+//         createMany: {
+//           data: data.commandProjects.map((cp) => ({
+//             endDate: cp.endDate,
+//             projectId: cp.projectId,
+//             target: cp.target,
+//             organizationId,
+//           })),
+//         },
+//       },
+//     },
+//   });
+//   return user;
+// };
 
 // export const create = createSafeAction({ scheme: createInputSchema, handler });
 
@@ -250,6 +250,7 @@ export async function createCommandd({
             projectId: cp.projectId,
             target: cp.target,
             organizationId,
+            userId,
           })),
         },
       },
@@ -267,9 +268,11 @@ export async function createCommandd({
 }
 
 export async function getProjectsNames() {
-  const { organizationId, isSysAdmin } = await getSessionAndOrganizationId();
+  const serverSession = await getServerSession();
+  const organizationId =
+    serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
-  if (!organizationId && !isSysAdmin) {
+  if (!organizationId) {
     throw new CustomError("Unauthorized");
   }
 
@@ -334,25 +337,25 @@ export interface TEditInput {
   clientId: string;
 }
 
-const createCommandHandler = async (data: TEditInput) => {
-  const { organizationId } = await getSessionAndOrganizationId();
+// const createCommandHandler = async (data: TEditInput) => {
+//   const { organizationId } = await getSessionAndOrganizationId();
 
-  const client = await db.user.findFirst({
-    where: { id: data.clientId, organizationId, role: "CLIENT" },
-  });
-  if (!client) {
-    throw new CustomError("Invalid client for this organization");
-  }
+//   const client = await db.user.findFirst({
+//     where: { id: data.clientId, organizationId, role: "CLIENT" },
+//   });
+//   if (!client) {
+//     throw new CustomError("Invalid client for this organization");
+//   }
 
-  const user = await db.command.create({
-    data: {
-      reference: data.reference,
-      client: { connect: { id: data.clientId } },
-      organization: { connect: { id: organizationId } },
-    },
-  });
-  return user;
-};
+//   const user = await db.command.create({
+//     data: {
+//       reference: data.reference,
+//       client: { connect: { id: data.clientId } },
+//       organization: { connect: { id: organizationId } },
+//     },
+//   });
+//   return user;
+// };
 
 // export const createCommand = createSafeAction({
 //   scheme: createInputSchemaforUpdate,

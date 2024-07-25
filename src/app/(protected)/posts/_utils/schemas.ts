@@ -67,7 +67,7 @@ export type TData = {
   name: string;
   id: string;
   createdAt: Date;
-  user: {
+  users: {
     id: string;
     name: string;
   }[];

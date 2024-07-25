@@ -253,19 +253,19 @@ export async function configureSprint(data: TConfigureSprint) {
   }
 }
 
-const handler = async (data: TCreateInput) => {
-  const user = await db.commandProject.create({
-    data: {
-      commandId: data.command_id,
-      projectId: data.project_id,
-      target: data.target,
-      endDate: data.endDate,
-    },
-  });
-  return user;
-};
+// const handler = async (data: TCreateInput) => {
+//   const user = await db.commandProject.create({
+//     data: {
+//       commandId: data.command_id,
+//       projectId: data.project_id,
+//       target: data.target,
+//       endDate: data.endDate,
+//     },
+//   });
+//   return user;
+// };
 
-export const create = createSafeAction({ scheme: createInputSchema, handler });
+// export const create = createSafeAction({ scheme: createInputSchema, handler });
 
 interface CommandProjectInput {
   command_id: string;

@@ -13,7 +13,7 @@ import bcrypt from "bcrypt";
 import { Session, getServerSession } from "@/lib/auth";
 import { uploadFile } from "@/actions/upload";
 import { roleSchema } from "@/utils";
-import { ActionType, EntityType, Prisma } from "@prisma/client";
+import { ActionType, EntityType, Prisma, Role } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 import { logHistory } from "../../History/_utils/action";
@@ -87,7 +87,6 @@ export async function findMany(params = defaultParams): Promise<{
         name: true,
         email: true,
         image: true,
-        password: true,
         expertises: { select: { name: true, id: true } },
         createdAt: true,
       },
@@ -95,7 +94,24 @@ export async function findMany(params = defaultParams): Promise<{
     db.user.count({ where }),
   ]);
 
-  return { data: result, total };
+  // Transformer et filtrer les résultats pour correspondre à TData
+  const transformedData: TData = result
+    .filter(
+      (user): user is typeof user & { organizationId: string } =>
+        user.organizationId !== null,
+    )
+    .map((user) => ({
+      id: user.id,
+      role: user.role,
+      organizationId: user.organizationId,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      expertises: user.expertises,
+      createdAt: user.createdAt,
+    }));
+
+  return { data: transformedData, total };
 }
 
 export async function deleteById(id: string) {
@@ -120,10 +136,12 @@ export async function deleteById(id: string) {
 }
 
 const handler = async (data: TCreateInput, formData?: FormData | null) => {
-  const sessionUser = await getServerSession();
+  const session = await getServerSession();
+  const organizationId =
+    session?.user.organizationId || session?.user.organization?.id;
 
-  if (!sessionUser || !["SYS_ADMIN", "ADMIN"].includes(sessionUser.user.role)) {
-    throw new Error("Insufficient permissions");
+  if (!organizationId) {
+    return { error: "Organization ID is not available" };
   }
 
   if (data.role === "SYS_ADMIN") {
@@ -137,7 +155,7 @@ const handler = async (data: TCreateInput, formData?: FormData | null) => {
     data: {
       ...rest,
       password: hashed,
-      organization: { connect: { id: sessionUser.user.organizationId } },
+      organization: { connect: { id: organizationId } },
       expertises: expertise?.length
         ? { connect: expertise.map((id) => ({ id })) }
         : undefined,
@@ -158,13 +176,82 @@ const handler = async (data: TCreateInput, formData?: FormData | null) => {
     `User created: ${user.name}`,
     EntityType.USER,
     user.id,
-    sessionUser.user.id,
+    session?.user.id,
   );
 
   return user;
 };
 
-export const create = createSafeAction({ scheme: createInputSchema, handler });
+// export const create = createSafeAction({ scheme: createInputSchema, handler });
+interface CreateUser {
+  name: string;
+  email: string;
+  password: string;
+  role: Role;
+  expertise?: string[];
+}
+export async function create({
+  name,
+  email,
+  password,
+  role,
+  expertise,
+}: CreateUser): Promise<{
+  result?: any;
+  error?: string;
+  fieldErrors?: Record<string, string>;
+}> {
+  try {
+    const session = await getServerSession();
+    const organizationId =
+      session?.user.organizationId || session?.user.organization?.id;
+
+    if (!organizationId) {
+      return { error: "Organization ID is not available" };
+    }
+
+    if (role === "SYS_ADMIN") {
+      return { error: "Cannot create SYS_ADMIN users" };
+    }
+
+    const hashed = await bcrypt.hash(password, 12);
+
+    const user = await db.user.create({
+      data: {
+        name,
+        email,
+        password: hashed,
+        role,
+        organization: { connect: { id: organizationId } },
+        expertises: expertise?.length
+          ? { connect: expertise.map((id) => ({ id })) }
+          : undefined,
+      },
+    });
+
+    // Optionally log the creation
+    // await logHistory(
+    //   ActionType.CREATE,
+    //   `User created: ${user.name}`,
+    //   EntityType.USER,
+    //   user.id,
+    //   session?.user.id
+    // );
+
+    // Revalidate the users list page
+    revalidatePath("/users");
+
+    return { result: user };
+  } catch (error: any) {
+    console.error("Error creating user:", error);
+
+    if (error.code === "P2002") {
+      return { fieldErrors: { email: "This email is already in use." } };
+    }
+
+    return { error: error.message || "Failed to create user" };
+  }
+}
 
 export async function getPosts() {
   const session = await getServerSession();

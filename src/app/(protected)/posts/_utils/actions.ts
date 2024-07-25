@@ -30,7 +30,6 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   if (orderBy === "name") return { name: order };
   return { createdAt: "desc" as "desc" };
 };
-
 export async function findMany(params = defaultParams): Promise<{
   data: TData;
   total: number;
@@ -90,17 +89,19 @@ export async function findMany(params = defaultParams): Promise<{
             endDate: true,
           },
         },
-        users: { select: { id: true, name: true } },
+        users: { select: { id: true, name: true } }, // Ensure users is always an array
       },
     }),
     db.post.count({ where }),
   ]);
 
-  const data = result;
+  const data = result.map((post) => ({
+    ...post,
+    users: Array.isArray(post.users) ? post.users : [post.users], // Ensure users is an array
+  }));
 
   return { data, total };
 }
-
 export async function deleteById(id: string, userId: string) {
   await db.planning.deleteMany({ where: { postId: id } });
   const deletedPost = await db.post.delete({ where: { id } });
@@ -113,19 +114,19 @@ export async function deleteById(id: string, userId: string) {
   );
 }
 
-const handler = async (
-  { expertises, ...data }: TCreateInput,
-  session?: Session | null,
-) => {
-  const { ...rest } = data;
-  const result = await db.post.create({
-    data: {
-      ...rest,
-      expertises: { connect: expertises.map((id) => ({ id })) },
-    },
-  });
-  return result;
-};
+// const handler = async (
+//   { expertises, ...data }: TCreateInput,
+//   session?: Session | null,
+// ) => {
+//   const { ...rest } = data;
+//   const result = await db.post.create({
+//     data: {
+//       ...rest,
+//       expertises: { connect: expertises.map((id) => ({ id })) },
+//     },
+//   });
+//   return result;
+// };
 
 // export const create = createSafeAction({ scheme: createInputSchema, handler });
 interface CreatePostInput {
@@ -144,6 +145,11 @@ export async function createPost({
 }> {
   try {
     const sessionUser = await getServerSession();
+    const organizationId = sessionUser?.user.organizationId;
+
+    if (!organizationId) {
+      return { error: "Organization ID is not available" };
+    }
 
     console.log("Creating post with data:", { name, expertises, userId });
 
@@ -154,9 +160,10 @@ export async function createPost({
         expertises: {
           connect: expertises.map((id) => ({ id })),
         },
-        organization: { connect: { id: sessionUser?.user.organizationId } },
+        organization: { connect: { id: organizationId } },
       },
     });
+
     const user = await findUserById(userId);
     await logHistory(
       ActionType.CREATE,
@@ -165,6 +172,7 @@ export async function createPost({
       post.id,
       userId,
     );
+
     return { result: post };
   } catch (error: any) {
     console.error("Error creating post:", error);

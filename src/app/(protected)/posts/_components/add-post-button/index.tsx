@@ -24,7 +24,6 @@ import {
   createInputSchema,
 } from "../../_utils/schemas";
 import {
-  create,
   createPost,
   getExpertises,
   getOperations,
