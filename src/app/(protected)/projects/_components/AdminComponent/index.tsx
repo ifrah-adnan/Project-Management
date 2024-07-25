@@ -51,21 +51,25 @@ import MapDialog from "../map-dialog/MapDialog";
 import DetailsDialog from "../DetailsOrganization";
 import { motion } from "framer-motion";
 
-type TDataO = {
-  id: string;
+type TData = {
+  id: any;
   name: string;
-  description: string;
-  createdAt: string;
-  imagePath: string;
-  address?: string;
-  users: { id: string; name: string; email: string }[];
+  description: any;
+  createdAt: Date;
+  imagePath: string | null;
+  address: string | null;
+  users: {
+    id: string;
+    name: string;
+    email: string;
+  }[];
 };
 
 export function AdminComponent({
   data,
   total,
 }: {
-  data: TDataO[];
+  data: TData[];
   total: number;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -314,8 +318,7 @@ export function AdminComponent({
       <DetailsDialog
         isOpen={detailsDialog.isOpen}
         onClose={() => setDetailsDialog({ isOpen: false, orgId: null })}
-        orgId={detailsDialog.orgId}
-        organizations={data}
+        orgId={detailsDialog.orgId ?? ""}
       />
     </div>
   );

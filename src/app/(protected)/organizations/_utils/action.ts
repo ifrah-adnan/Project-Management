@@ -82,13 +82,19 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   if (orderBy === "name") return { name: order };
   return { createdAt: "desc" as "desc" };
 };
+
 export type TData = {
   id: string;
   name: string;
-  description: string;
-  createdAt: string;
-  imagePath: string;
-  users: { id: string; name: string; email: string }[];
+  description: string | null;
+  createdAt: Date;
+  imagePath: string | null;
+  address: string | null;
+  users: {
+    id: string;
+    name: string;
+    email: string;
+  }[];
 }[];
 export async function getOrganizationId(id: any) {
   const organization = await db.organization.findUnique({

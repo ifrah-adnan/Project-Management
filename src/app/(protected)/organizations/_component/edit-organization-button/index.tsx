@@ -1,5 +1,5 @@
 import { FieldErrors } from "@/actions/utils";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonProps } from "@/components/ui/button";
 import {
   Sheet,
   SheetClose,
@@ -9,7 +9,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ButtonProps } from "@mui/material";
 import React from "react";
 import { TCreateInput } from "../../_utils/schema";
 import { useSession } from "@/components/session-provider";
@@ -25,9 +24,11 @@ export interface AddOperatorButtonProps extends ButtonProps {
     id: string;
     name: string;
     description: string;
+
     users: { id: string; name: string; email: string }[];
   };
 }
+
 export function EditOrganizationButton({
   organization,
   ...props

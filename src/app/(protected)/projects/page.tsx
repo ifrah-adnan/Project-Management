@@ -15,9 +15,15 @@ type ResultState = null | {
 type TDataO = {
   id: string;
   name: string;
-  description: string;
-  createdAt: string;
-  users: { id: string; name: string; email: string }[];
+  description: string | null;
+  createdAt: Date;
+  imagePath: string | null;
+  address: string | null;
+  users: {
+    id: string;
+    name: string;
+    email: string;
+  }[];
 }[];
 type OrganizationType = {
   data: TDataO;

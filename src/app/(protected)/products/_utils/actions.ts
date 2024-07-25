@@ -85,10 +85,15 @@ const handler = async (data: TCreateInput) => {
   const session = await getServerSession();
   const organizationId =
     session?.user.organizationId || session?.user.organization?.id;
+
+  if (!organizationId) {
+    throw new Error("Organization ID is not available");
+  }
+
   const result = await db.project.create({
     data: {
       ...data,
-      organizationId: organizationId,
+      organizationId,
     },
   });
   return result;

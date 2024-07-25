@@ -72,7 +72,13 @@ export async function findMany(params = defaultParams): Promise<{
     db.expertise.count({ where }),
   ]);
 
-  return { data: result, total };
+  return {
+    data: result.map((item) => ({
+      ...item,
+      users: Array.isArray(item.users) ? item.users : [item.users],
+    })),
+    total,
+  };
 }
 
 export async function deleteById(id: string, userId: string) {
@@ -124,7 +130,6 @@ interface CreateExpertiseInput {
   operations: string[];
   userId: string;
 }
-
 export async function createExpertise({
   name,
   code,
@@ -138,13 +143,18 @@ export async function createExpertise({
   try {
     console.log(userId, "tttttttt");
     const sessionUser = await getServerSession();
+    const organizationId = sessionUser?.user.organizationId;
+
+    if (!organizationId) {
+      throw new Error("Organization ID is required");
+    }
+
     const expertise = await db.expertise.create({
       data: {
         users: { connect: { id: userId } },
         name,
         code,
-        organization: { connect: { id: sessionUser?.user.organizationId } },
-
+        organization: { connect: { id: organizationId } },
         operations: {
           connect: operations.map((id) => ({ id })),
         },
@@ -154,9 +164,7 @@ export async function createExpertise({
     await logHistory(
       ActionType.CREATE,
       `Expertise created: ${name} by user ${userId}`,
-
       EntityType.EXPERTISE,
-
       expertise.id,
       userId,
     );

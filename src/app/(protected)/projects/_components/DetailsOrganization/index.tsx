@@ -34,7 +34,7 @@ interface OrganizationDetails {
   description: string | null;
   imagePath: string | null;
   address: string | null;
-  createdAt: string;
+  createdAt: Date;
   userCount: number;
   postCount: number;
   expertiseCount: number;

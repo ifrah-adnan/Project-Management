@@ -6,6 +6,7 @@ import { findMany } from "@/app/(protected)/projects/_utils/actions";
 import { useStore } from "./_components/store";
 import { useSession } from "@/components/session-provider";
 import { getServerSession } from "@/lib/auth";
+import { Status } from "@prisma/client";
 
 export interface CommandProject {
   id: string;
@@ -39,13 +40,6 @@ export interface CommandProject {
   organizationId: string;
 }
 
-enum Status {
-  ACTIVE = "ACTIVE",
-  ON_HOLD = "ON_HOLD",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-}
-
 export default function Home() {
   const [commandProjects, setCommandProjects] = useState<CommandProject[]>([]);
   const { filters } = useStore();
@@ -68,7 +62,7 @@ export default function Home() {
         const filtered = data.filter((item) => item.organizationId === orgId);
         console.log("Filtered projects:", filtered);
 
-        setCommandProjects(filtered);
+        setCommandProjects(filtered as CommandProject[]);
       }
     }
 

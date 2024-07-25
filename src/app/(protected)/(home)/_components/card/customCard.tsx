@@ -2,11 +2,11 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { FiActivity, FiTarget, FiCalendar, FiLayers } from "react-icons/fi";
-import { commandProject } from "../../page";
+import { CommandProject } from "../../page";
 import { Progress } from "@/components/ui/progress";
 
 type Props = {
-  project: commandProject;
+  project: CommandProject;
 };
 
 function CustomCard({ project }: Props) {

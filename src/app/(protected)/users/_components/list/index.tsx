@@ -30,7 +30,7 @@ export default function List({
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
-  const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const [organizationId, setOrganizationId] = useState<any>(null);
 
   useEffect(() => {
     if (session && session.user) {
@@ -59,7 +59,7 @@ export default function List({
               <th>Rôle</th>
               <th>Email</th>
               <th>Expertises</th>
-              <th>Date d'ajout</th>
+              <th>Date d Ajout</th>
             </tr>
           </thead>
           <tbody>

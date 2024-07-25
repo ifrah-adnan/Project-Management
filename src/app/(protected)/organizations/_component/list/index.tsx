@@ -194,8 +194,11 @@ export default function ListO({ data, total }: { data: TData; total: number }) {
                       className="flex w-fit flex-col gap-2"
                     >
                       <EditOrganizationButton
-                        organization={item}
-                        variant="text"
+                        organization={{
+                          ...item,
+                          description: item.description ?? "",
+                        }}
+                        variant="default"
                         className="justify-start gap-2 bg-none px-6 hover:text-sky-500 "
                       >
                         <PencilIcon size={16} />

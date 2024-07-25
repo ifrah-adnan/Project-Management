@@ -26,7 +26,6 @@ import {
 } from "../../_utils/schemas";
 import {
   TEditInput,
-  create,
   edit,
   getExpertises,
   getOperations,
