@@ -35,6 +35,9 @@ COPY --from=builder --chown=node:node /build/prisma ./prisma
 
 RUN npx prisma generate
 
+CMD ["/bin/sh", "-c", "npx prisma migrate deploy && npm start"]
+
+
 USER node
 
 CMD ["npm", "start"]
