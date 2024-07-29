@@ -69,12 +69,16 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
   }, [data, organizationId]);
   const [doneValues, setDoneValues] = useState<{ [key: string]: number }>({});
   const [isPending, startTransition] = useTransition();
+  const [openDialogs, setOpenDialogs] = useState<{ [key: string]: boolean }>(
+    {},
+  );
 
   const handleUpdateDoneValue = async (id: string, newValue: number) => {
     startTransition(async () => {
       const result = await updateDoneValue(id, newValue);
       if (result.success) {
         setDoneValues((prev) => ({ ...prev, [id]: newValue }));
+        setOpenDialogs((prev) => ({ ...prev, [id]: false }));
       } else {
         console.error(result.error);
       }
@@ -132,14 +136,25 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                   )}
                 </td>
                 <td>
-                  <Dialog>
+                  <Dialog
+                    open={openDialogs[item.id]}
+                    onOpenChange={(open) =>
+                      setOpenDialogs((prev) => ({ ...prev, [item.id]: open }))
+                    }
+                  >
+                    {" "}
                     <DialogTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="flex items-center gap-1 p-0"
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                       >
-                        {doneValues[item.id] ?? item.done}
-                        <PencilIcon size={14} />
+                        <span className="text-gray-700">
+                          {doneValues[item.id] ?? item.done}
+                        </span>
+                        <PencilIcon
+                          size={14}
+                          className="text-gray-400 transition-colors duration-200 hover:text-blue-500"
+                        />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
