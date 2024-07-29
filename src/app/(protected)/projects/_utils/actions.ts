@@ -466,3 +466,19 @@ export async function getOrganizationDetails(organizationId: string) {
     throw error;
   }
 }
+
+export async function updateDoneValue(id: string, newValue: number) {
+  try {
+    const updatedProject = await db.commandProject.update({
+      where: { id },
+      data: { done: newValue },
+    });
+
+    revalidatePath("/projects");
+
+    return { success: true, data: updatedProject };
+  } catch (error) {
+    console.error("Failed to update done value:", error);
+    return { success: false, error: "Failed to update done value" };
+  }
+}

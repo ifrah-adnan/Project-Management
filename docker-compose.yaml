@@ -22,7 +22,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/tmp-project-management?schema=public"
       JWT_SECRET: "secret"
       EXPIRY_TIME: "3600"
 

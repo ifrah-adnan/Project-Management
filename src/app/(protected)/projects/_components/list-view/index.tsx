@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import { TData } from "../../_utils/schemas";
 import Card from "@/components/card";
 import { Table } from "@/components/table";
@@ -12,6 +12,7 @@ import {
   FileClockIcon,
   GitBranchPlusIcon,
   PencilIcon,
+  RefreshCw,
   Settings2Icon,
   Trash2Icon,
 } from "lucide-react";
@@ -24,10 +25,21 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { handleDeleteCommandProject } from "../../_utils/actions";
+import {
+  handleDeleteCommandProject,
+  updateDoneValue,
+} from "../../_utils/actions";
 import { EditProjectButton } from "../edit-project-button";
 import { useSession } from "@/components/session-provider";
 import { getServerSession } from "@/lib/auth";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export const ListView: React.FC<{ data: TData }> = ({ data }) => {
   const { session } = useSession();
@@ -55,6 +67,19 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
       setFilteredData(filtered);
     }
   }, [data, organizationId]);
+  const [doneValues, setDoneValues] = useState<{ [key: string]: number }>({});
+  const [isPending, startTransition] = useTransition();
+
+  const handleUpdateDoneValue = async (id: string, newValue: number) => {
+    startTransition(async () => {
+      const result = await updateDoneValue(id, newValue);
+      if (result.success) {
+        setDoneValues((prev) => ({ ...prev, [id]: newValue }));
+      } else {
+        console.error(result.error);
+      }
+    });
+  };
 
   return (
     <Card className="mx-auto h-full w-full max-w-screen-2xl overflow-auto p-4">
@@ -106,7 +131,56 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                     "N/A"
                   )}
                 </td>
-                <td>{item.done}</td>
+                <td>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="flex items-center gap-1 p-0"
+                      >
+                        {doneValues[item.id] ?? item.done}
+                        <PencilIcon size={14} />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Update Done Value</DialogTitle>
+                      </DialogHeader>
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const newValue = Number(
+                            (e.target as HTMLFormElement).doneValue.value,
+                          );
+                          handleUpdateDoneValue(item.id, newValue);
+                        }}
+                      >
+                        <Input
+                          name="doneValue"
+                          type="number"
+                          defaultValue={doneValues[item.id] ?? item.done}
+                        />
+                        <Button
+                          type="submit"
+                          disabled={isPending}
+                          className="mt-4 flex w-full items-center justify-center gap-2"
+                        >
+                          {isPending ? (
+                            <>
+                              <RefreshCw className="animate-spin" size={16} />
+                              Updating...
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw size={16} />
+                              Update
+                            </>
+                          )}
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </td>{" "}
                 <td>{item.target}</td>
                 <td>
                   <div className="flex items-center gap-2">
@@ -130,7 +204,6 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                 </td>
                 <td>{statusMap[item.status] || "N/A"}</td>
                 <td>{format(new Date(item.endDate), "PP")}</td>
-
                 <td className=" w-[12rem] shrink-0">
                   <Link href={`/projects/workflow/${item.project.id}`}>
                     <Button
@@ -143,7 +216,6 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                     </Button>
                   </Link>
                 </td>
-
                 <td>
                   {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
                     <Popover>
