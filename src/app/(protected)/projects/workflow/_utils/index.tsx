@@ -118,7 +118,6 @@ export const createWorkflow = async (
     console.log(e);
   }
 };
-
 export const createOperation = async (data: any) => {
   const serverSession = await getServerSession();
   const organizationId =
@@ -127,9 +126,7 @@ export const createOperation = async (data: any) => {
   const res = await db.operation.create({
     data: {
       id: uuidv4(),
-
       code: data.code,
-
       name: data.name,
       icon: data.icon,
       description: data?.description || undefined,
@@ -137,6 +134,9 @@ export const createOperation = async (data: any) => {
       estimatedTime: numberToStringReverse(data.estimatedTime) as number,
       organization: {
         connect: { id: organizationId },
+      },
+      posts: {
+        connect: { id: data.postId },
       },
     },
   });

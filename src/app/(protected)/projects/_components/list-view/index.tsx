@@ -26,7 +26,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  getOperationsForCommandProject,
   handleDeleteCommandProject,
+  Operation,
   updateDoneValue,
 } from "../../_utils/actions";
 import { EditProjectButton } from "../edit-project-button";
@@ -84,6 +86,20 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
       }
     });
   };
+  const [operations, setOperations] = useState<Operation[]>([]);
+  const [isLoadingOperations, setIsLoadingOperations] = useState(false);
+  const handleOpenDialog = async (commandProjectId: any) => {
+    setIsLoadingOperations(true);
+    const result = await getOperationsForCommandProject(commandProjectId);
+    console.log(result); // Ajoutez ce log pour vérifier les données
+
+    if (result.operations) {
+      setOperations(result.operations);
+    } else {
+      console.error(result.error);
+    }
+    setIsLoadingOperations(false);
+  };
 
   return (
     <Card className="mx-auto h-full w-full max-w-screen-2xl overflow-auto p-4">
@@ -114,7 +130,42 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
             const client = item.command.client;
             return (
               <tr key={item.id}>
-                <td>{item.project.name}</td>
+                <td>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        onClick={() => handleOpenDialog(item.id)}
+                        variant="link"
+                        className="p-0 font-normal"
+                      >
+                        {item.project.name}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>
+                          Operations: {item.project.name}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="mt-4">
+                        <h3 className="mb-2 text-lg font-semibold">
+                          Opérations:
+                        </h3>
+                        {isLoadingOperations ? (
+                          <p>Chargement des opérations...</p>
+                        ) : operations.length > 0 ? (
+                          <ul className="list-disc pl-5">
+                            {operations.map((op) => (
+                              <li key={op.id}>{op.name}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p>Aucune opération trouvée pour ce projet.</p>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </td>
                 <td>
                   {client ? (
                     <div className="flex items-center gap-2">
@@ -142,7 +193,6 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                       setOpenDialogs((prev) => ({ ...prev, [item.id]: open }))
                     }
                   >
-                    {" "}
                     <DialogTrigger asChild>
                       <Button
                         variant="ghost"
@@ -195,7 +245,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                       </form>
                     </DialogContent>
                   </Dialog>
-                </td>{" "}
+                </td>
                 <td>{item.target}</td>
                 <td>
                   <div className="flex items-center gap-2">

@@ -482,3 +482,53 @@ export async function updateDoneValue(id: string, newValue: number) {
     return { success: false, error: "Failed to update done value" };
   }
 }
+// types.ts
+export interface Operation {
+  id: string;
+  name: string;
+  code: string;
+  icon: string;
+  description?: string;
+  isFinal: boolean;
+  estimatedTime: number;
+}
+
+export interface OperationsResponse {
+  operations?: Operation[];
+  error?: string;
+}
+export async function getOperationsForCommandProject(
+  commandProjectId: string,
+): Promise<OperationsResponse> {
+  try {
+    const commandProject = await db.commandProject.findUnique({
+      where: { id: commandProjectId },
+      include: {
+        planings: {
+          include: {
+            operation: true,
+          },
+        },
+      },
+    });
+
+    if (!commandProject) {
+      return { error: "CommandProject not found" };
+    }
+
+    const uniqueOperations = commandProject.planings.reduce((acc, planning) => {
+      if (
+        planning.operation &&
+        !acc.some((op) => op.id === planning.operation.id)
+      ) {
+        acc.push(planning.operation as Operation);
+      }
+      return acc;
+    }, [] as Operation[]);
+
+    return { operations: uniqueOperations };
+  } catch (error) {
+    console.error("Error fetching operations:", error);
+    return { error: "Failed to fetch operations" };
+  }
+}
