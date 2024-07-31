@@ -5,18 +5,12 @@ import Link from "next/link";
 import {
   BookTextIcon,
   BuildingIcon,
-  CircleHelpIcon,
   DockIcon,
-  FolderClockIcon,
   FolderKanban,
-  Monitor,
   RadioReceiver,
-  ScrollTextIcon,
   SettingsIcon,
   ShoppingBasketIcon,
-  SquareKanbanIcon,
   UsersIcon,
-  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,24 +19,23 @@ import { useSession } from "@/components/session-provider";
 import UserButton from "../userButton";
 import { ModeToggle } from "../ModeToggle/mode-toggle";
 import { getServerSession } from "@/lib/auth";
-import {
-  OrganizationfindMany,
-  getOrganizationId,
-} from "../../organizations/_utils/action";
+import { getOrganizationId } from "../../organizations/_utils/action";
 
-export function LinkItem({
-  href,
-  icon,
-  className,
-  children,
-  onClick,
-}: {
+interface LinkItemProps {
   href: string;
   icon: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
   onClick?: () => void;
-}) {
+}
+
+export const LinkItem: React.FC<LinkItemProps> = ({
+  href,
+  icon,
+  className,
+  children,
+  onClick,
+}) => {
   const pathname = usePathname();
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
@@ -50,11 +43,11 @@ export function LinkItem({
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-4 rounded-lg px-6 py-4 text-base font-medium transition-all duration-200 ease-in-out",
+        "flex items-center gap-4 rounded-lg px-5 py-3 text-base font-medium transition-all duration-200 ease-in-out",
         className,
         {
-          "bg-primary text-primary-foreground shadow-md": isActive,
-          "text-gray-700 hover:bg-gray-100 hover:text-primary dark:text-gray-200 dark:hover:bg-gray-800":
+          "bg-primary/10 text-primary shadow-md": isActive,
+          "text-gray-700 hover:bg-gray-100/50 hover:text-primary dark:text-gray-300 dark:hover:bg-gray-800/50":
             !isActive,
         },
       )}
@@ -66,9 +59,10 @@ export function LinkItem({
       }}
     >
       <span
-        className={cn("transition-opacity [&_svg]:size-6", {
-          "opacity-100": isActive,
-          "opacity-75 group-hover:opacity-100": !isActive,
+        className={cn("transition-all [&_svg]:size-5", {
+          "text-primary": isActive,
+          "text-gray-500 group-hover:text-primary dark:text-gray-400":
+            !isActive,
         })}
       >
         {icon}
@@ -76,9 +70,13 @@ export function LinkItem({
       <span className="transition-colors">{children}</span>
     </Link>
   );
+};
+
+interface SideBarProps {
+  className?: string;
 }
 
-export default function SideBar({ className }: { className?: string }) {
+const SideBar: React.FC<SideBarProps> = ({ className }) => {
   const { session } = useSession();
   const user = session?.user;
   const isAdmin = user?.role === "ADMIN";
@@ -124,30 +122,32 @@ export default function SideBar({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "flex h-screen w-72 flex-col bg-white text-gray-800 shadow-xl transition-all duration-300 ease-in-out dark:bg-gray-900 dark:text-gray-200",
+        "flex h-screen w-80 flex-col bg-gradient-to-b from-gray-50 to-white text-gray-800 shadow-2xl transition-all duration-300 ease-in-out dark:from-gray-900 dark:to-gray-800 dark:text-gray-200",
         className,
       )}
     >
       <div className="p-8">
         <Link
           href="/"
-          className="mb-10 flex items-center gap-4 transition-opacity hover:opacity-80"
+          className="mb-12 flex items-center gap-4 transition-opacity hover:opacity-90"
         >
-          <div className="relative h-16 w-16 overflow-hidden rounded-full ring-4 ring-primary ring-offset-4 ring-offset-background">
+          <div className="relative h-20 w-20 overflow-hidden rounded-full shadow-lg ring-4 ring-primary/80 ring-offset-4 ring-offset-background">
             <Image
               src={organizationImage || "/sys-admin.svg"}
               alt="Logo"
               fill
-              sizes="64px"
-              className="object-cover transition-transform duration-200 hover:scale-105"
+              sizes="80px"
+              className="object-cover transition-transform duration-300 hover:scale-110"
               quality={100}
               priority
             />
           </div>
-          <span className="truncate text-xl font-bold">{organizationName}</span>
+          <span className="truncate text-2xl font-bold tracking-tight">
+            {organizationName}
+          </span>
         </Link>
 
-        <nav className="space-y-2">
+        <nav className="space-y-1">
           {isSysAdmin ? (
             <>
               <LinkItem href="/organizations" icon={<BuildingIcon size={24} />}>
@@ -211,12 +211,16 @@ export default function SideBar({ className }: { className?: string }) {
         </nav>
       </div>
 
-      <div className="mt-auto border-t border-gray-200 p-8 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <ModeToggle />
-          <UserButton />
+      <div className="mt-auto border-t border-gray-200/50 dark:border-gray-700/50">
+        <div className="p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <ModeToggle />
+            <UserButton />
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default SideBar;
