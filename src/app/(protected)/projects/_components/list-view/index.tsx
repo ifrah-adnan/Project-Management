@@ -8,10 +8,15 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
+  Download,
   Ellipsis,
   FileClockIcon,
+  Filter,
   GitBranchPlusIcon,
+  Info,
+  ListIcon,
   PencilIcon,
+  Plus,
   RefreshCw,
   Settings2Icon,
   Trash2Icon,
@@ -26,7 +31,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  getOperationProgress2,
+  getOperationsForCommandProject,
   handleDeleteCommandProject,
+  Operation,
   updateDoneValue,
 } from "../../_utils/actions";
 import { EditProjectButton } from "../edit-project-button";
@@ -40,12 +48,80 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { getOperationProgress } from "@/actions/operation-progress";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+const generatePDF = (data: any, projectName: string) => {
+  const pdf = new jsPDF();
+  const primaryColor = "#2B2D42";
+  const secondaryColor = "#8D99AE";
+  const accentColor = "#FF6B00";
+
+  pdf.setFontSize(24);
+  pdf.setTextColor(primaryColor);
+  pdf.text(`Project Operations :${projectName}`, 20, 20);
+
+  pdf.setFontSize(14);
+  pdf.setTextColor(secondaryColor);
+  pdf.text(`Total Operations: ${data.length}`, 20, 30);
+
+  pdf.setDrawColor(accentColor);
+  pdf.setLineWidth(0.5);
+  pdf.line(20, 35, 190, 35);
+
+  const tableData = data.map((operation: any) => [
+    operation.name,
+    operation.progress,
+    operation.target,
+    operation.completedCount,
+    operation.lastMonthCount,
+    operation.lastWeekCount,
+    operation.todayCount,
+  ]);
+
+  autoTable(pdf, {
+    startY: 45,
+    head: [
+      [
+        "Operation Name",
+        "Progress",
+        "Target",
+        "Completed",
+        "Last Month",
+        "Last Week",
+        "Today",
+      ],
+    ],
+    body: tableData,
+    theme: "striped",
+    headStyles: { fillColor: primaryColor, textColor: "#FFFFFF" },
+    bodyStyles: { textColor: primaryColor },
+    alternateRowStyles: { fillColor: "#EDF2F4" },
+    margin: { top: 40 },
+  });
+
+  const pageCount = pdf.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    pdf.setFontSize(10);
+    pdf.setTextColor(secondaryColor);
+    pdf.text(
+      `Page ${i} of ${pageCount}`,
+      pdf.internal.pageSize.width - 30,
+      pdf.internal.pageSize.height - 10,
+    );
+  }
+
+  return pdf;
+};
 
 export const ListView: React.FC<{ data: TData }> = ({ data }) => {
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
   const [organizationId, setOrganizationId] = useState<any>(null);
+  const [currentProjectName, setCurrentProjectName] = useState<string>("");
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -67,6 +143,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
       setFilteredData(filtered);
     }
   }, [data, organizationId]);
+
   const [doneValues, setDoneValues] = useState<{ [key: string]: number }>({});
   const [isPending, startTransition] = useTransition();
   const [openDialogs, setOpenDialogs] = useState<{ [key: string]: boolean }>(
@@ -83,6 +160,39 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
         console.error(result.error);
       }
     });
+  };
+
+  const [operations, setOperations] = useState<any[]>([]);
+  const [operationCount, setOperationCount] = useState<any>(0);
+  const [isLoadingOperations, setIsLoadingOperations] = useState(false);
+
+  const handleOpenDialog = async (
+    commandProjectId: string,
+    projectName: string,
+  ) => {
+    setIsLoadingOperations(true);
+    setCurrentProjectName(projectName);
+
+    try {
+      const result = await getOperationProgress2(commandProjectId);
+      console.log(result);
+
+      if (result.operationDetails) {
+        setOperations(result.operationDetails);
+        setOperationCount(result.operationCount);
+      } else {
+        console.error("Error: No operation details found");
+      }
+    } catch (error) {
+      console.error("An error occurred while fetching operations:", error);
+    } finally {
+      setIsLoadingOperations(false);
+    }
+  };
+
+  const handleDownload = () => {
+    const pdf = generatePDF(operations, currentProjectName);
+    pdf.save("project_info.pdf");
   };
 
   return (
@@ -114,7 +224,142 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
             const client = item.command.client;
             return (
               <tr key={item.id}>
-                <td>{item.project.name}</td>
+                <td>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex items-center space-x-2 p-2 font-medium text-blue-600 hover:bg-blue-100"
+                        onClick={() =>
+                          handleOpenDialog(item.id, item.project.name)
+                        }
+                      >
+                        <span>{item.project.name}</span>
+                        <ListIcon className="text-blue-600" size={20} />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-h-[90vh] w-full sm:max-w-[90vw]">
+                      <DialogHeader className="border-b pb-4">
+                        <DialogTitle className="text-2xl font-bold">
+                          Operations: {item.project.name}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="mt-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline">
+                              <Filter className="mr-2 h-4 w-4" />
+                              Filter
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <RefreshCw className="mr-2 h-4 w-4" />
+                              Refresh
+                            </Button>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleDownload}
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              Export
+                            </Button>
+                            {/* <Button size="sm">
+                              <Plus className="mr-2 h-4 w-4" />
+                              Add Operation
+                            </Button> */}
+                          </div>
+                        </div>
+                        <div className="rounded-md border">
+                          <div className="overflow-x-auto">
+                            {isLoadingOperations ? (
+                              <div className="p-8 text-center">
+                                Loading operations...
+                              </div>
+                            ) : operations.length > 0 ? (
+                              <Table className="w-full text-sm">
+                                <thead>
+                                  <tr className="bg-muted/30">
+                                    <th className="w-1/4 p-3 text-left font-semibold">
+                                      Name
+                                    </th>
+                                    <th className="w-24 p-3 text-center font-semibold">
+                                      Completed
+                                    </th>
+                                    <th className="w-24 p-3 text-center font-semibold">
+                                      Today
+                                    </th>
+                                    <th className="w-24 p-3 text-center font-semibold">
+                                      Last Week
+                                    </th>
+                                    <th className="w-24 p-3 text-center font-semibold">
+                                      Last Month
+                                    </th>
+                                    <th className="w-24 p-3 text-center font-semibold">
+                                      Target
+                                    </th>
+                                    <th className="w-40 p-3 text-left font-semibold">
+                                      Progress
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {operations.map((op, index) => (
+                                    <tr
+                                      key={op.id}
+                                      className={
+                                        index % 2 === 0 ? "bg-muted/10" : ""
+                                      }
+                                    >
+                                      <td className="w-1/4 p-3 text-left">
+                                        {op.name}
+                                      </td>
+                                      <td className="w-24 p-3 text-center">
+                                        {op.completedCount}
+                                      </td>
+                                      <td className="w-24 p-3 text-center">
+                                        {op.todayCount}
+                                      </td>
+                                      <td className="w-24 p-3 text-center">
+                                        {op.lastWeekCount}
+                                      </td>
+                                      <td className="w-24 p-3 text-center">
+                                        {op.lastMonthCount}
+                                      </td>
+                                      <td className="w-24 p-3 text-center">
+                                        {op.target}
+                                      </td>
+                                      <td className="w-40 p-3">
+                                        <div className="flex items-center">
+                                          <div className="mr-2 h-2 w-full rounded-full bg-muted">
+                                            <div
+                                              className="h-2 rounded-full bg-primary"
+                                              style={{
+                                                width: `${op.progress}%`,
+                                              }}
+                                            ></div>
+                                          </div>
+                                          <span className="ml-1 w-9 text-right text-xs font-medium">
+                                            {op.progress}%
+                                          </span>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </Table>
+                            ) : (
+                              <div className="p-8 text-center">
+                                No operations found for this project.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </td>
                 <td>
                   {client ? (
                     <div className="flex items-center gap-2">
@@ -142,7 +387,6 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                       setOpenDialogs((prev) => ({ ...prev, [item.id]: open }))
                     }
                   >
-                    {" "}
                     <DialogTrigger asChild>
                       <Button
                         variant="ghost"
@@ -195,7 +439,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                       </form>
                     </DialogContent>
                   </Dialog>
-                </td>{" "}
+                </td>
                 <td>{item.target}</td>
                 <td>
                   <div className="flex items-center gap-2">

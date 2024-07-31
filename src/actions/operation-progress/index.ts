@@ -25,6 +25,7 @@ export interface OperationProgressSummary {
   totalTarget: number;
   weeklyProgress: WeeklyProgress;
   totalEstimatedHours: number;
+  operationCount?: number;
 }
 
 export async function getOperationProgress(

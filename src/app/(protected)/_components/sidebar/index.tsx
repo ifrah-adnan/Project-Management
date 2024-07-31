@@ -5,16 +5,11 @@ import Link from "next/link";
 import {
   BookTextIcon,
   BuildingIcon,
-  CircleHelpIcon,
   DockIcon,
-  FolderClockIcon,
   FolderKanban,
-  Monitor,
   RadioReceiver,
-  ScrollTextIcon,
   SettingsIcon,
   ShoppingBasketIcon,
-  SquareKanbanIcon,
   UsersIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,24 +19,23 @@ import { useSession } from "@/components/session-provider";
 import UserButton from "../userButton";
 import { ModeToggle } from "../ModeToggle/mode-toggle";
 import { getServerSession } from "@/lib/auth";
-import {
-  OrganizationfindMany,
-  getOrganizationId,
-} from "../../organizations/_utils/action";
+import { getOrganizationId } from "../../organizations/_utils/action";
 
-export function LinkItem({
-  href,
-  icon,
-  className,
-  children,
-  onClick,
-}: {
+interface LinkItemProps {
   href: string;
   icon: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
   onClick?: () => void;
-}) {
+}
+
+export const LinkItem: React.FC<LinkItemProps> = ({
+  href,
+  icon,
+  className,
+  children,
+  onClick,
+}) => {
   const pathname = usePathname();
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
@@ -49,11 +43,12 @@ export function LinkItem({
     <Link
       href={href}
       className={cn(
-        "relative flex h-[3.5rem] items-center text-foreground transition-colors duration-300",
+        "flex items-center gap-4 rounded-lg px-5 py-3 text-base font-medium transition-all duration-200 ease-in-out",
         className,
         {
-          "text-[#FA993A]": isActive,
-          "hover:text-[#FA993A]": !isActive,
+          "bg-primary/10 text-primary shadow-md": isActive,
+          "text-gray-700 hover:bg-gray-100/50 hover:text-primary dark:text-gray-300 dark:hover:bg-gray-800/50":
+            !isActive,
         },
       )}
       onClick={(e) => {
@@ -63,30 +58,29 @@ export function LinkItem({
         }
       }}
     >
-      <div
-        className={cn("absolute bottom-0 h-1 w-full bg-[#FA993A]", {
-          "bg-[#FA993A]": isActive,
-          "bg-transparent": !isActive,
-        })}
-      ></div>
       <span
-        className={cn("w-8 opacity-75 [&_svg]:size-5", {
-          "opacity-100": isActive,
+        className={cn("transition-all [&_svg]:size-5", {
+          "text-primary": isActive,
+          "text-gray-500 group-hover:text-primary dark:text-gray-400":
+            !isActive,
         })}
       >
         {icon}
       </span>
-      {children}
+      <span className="transition-colors">{children}</span>
     </Link>
   );
+};
+
+interface SideBarProps {
+  className?: string;
 }
 
-export default function SideBar({ className }: { className?: string }) {
+const SideBar: React.FC<SideBarProps> = ({ className }) => {
   const { session } = useSession();
   const user = session?.user;
   const isAdmin = user?.role === "ADMIN";
   const isSysAdmin = user?.role === "SYS_ADMIN";
-  const pathname = usePathname();
   const router = useRouter();
   const [organizationImage, setOrganizationImage] = React.useState<
     string | null
@@ -128,99 +122,105 @@ export default function SideBar({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "dark flex h-[3.5rem] w-full items-center justify-between bg-card px-6 text-foreground",
+        "flex h-screen w-80 flex-col bg-gradient-to-b from-gray-50 to-white text-gray-800 shadow-2xl transition-all duration-300 ease-in-out dark:from-gray-900 dark:to-gray-800 dark:text-gray-200",
         className,
       )}
     >
-      <Link
-        href="/"
-        className="relative flex h-12 w-auto items-center justify-center"
-      >
-        <div className="relative mr-2 h-12 w-12">
-          <Image
-            src={organizationImage || "/sys-admin.svg"}
-            alt="Logo"
-            fill
-            sizes="48px"
-            className="object-contain transition-opacity duration-300 ease-in-out"
-            quality={100}
-            priority
-          />
-        </div>
-        <span className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-          {organizationName}
-        </span>
-      </Link>
-
-      {isSysAdmin ? (
-        <div className="flex items-center gap-4">
-          <Link href="/organizations">
-            <BuildingIcon size={18} />
-          </Link>
-          <Link href="/settings">
-            <SettingsIcon size={18} />
-          </Link>
-          <ModeToggle />
-          <UserButton />
-        </div>
-      ) : (
-        <>
-          <div className="flex gap-4 lg:gap-6 [&>*]:capitalize">
-            <LinkItem
-              href="/projects"
-              icon={<FolderKanban size={18} />}
-              onClick={() => navigateWithOrganization("/projects")}
-            >
-              Projects
-            </LinkItem>
-            <LinkItem
-              href="/commands"
-              icon={<ShoppingBasketIcon size={18} />}
-              onClick={() => navigateWithOrganization("/commands")}
-            >
-              Commands
-            </LinkItem>
-            <LinkItem
-              href="/posts"
-              icon={<DockIcon size={18} />}
-              onClick={() => navigateWithOrganization("/posts")}
-            >
-              Posts
-            </LinkItem>
-            <LinkItem
-              href="/expertise"
-              icon={<DockIcon size={18} />}
-              onClick={() => navigateWithOrganization("/expertise")}
-            >
-              Expertises
-            </LinkItem>
-            <LinkItem
-              href="/devices"
-              icon={<RadioReceiver size={18} />}
-              onClick={() => navigateWithOrganization("/devices")}
-            >
-              Devices
-            </LinkItem>
-            {isAdmin && (
-              <LinkItem
-                href="/users"
-                icon={<UsersIcon size={18} />}
-                className="hidden lg:flex"
-                onClick={() => navigateWithOrganization("/users")}
-              >
-                Users
-              </LinkItem>
-            )}
+      <div className="p-8">
+        <Link
+          href="/"
+          className="mb-12 flex items-center gap-4 transition-opacity hover:opacity-90"
+        >
+          <div className="relative h-20 w-20 overflow-hidden rounded-full shadow-lg ring-4 ring-primary/80 ring-offset-4 ring-offset-background">
+            <Image
+              src={organizationImage || "/sys-admin.svg"}
+              alt="Logo"
+              fill
+              sizes="80px"
+              className="object-cover transition-transform duration-300 hover:scale-110"
+              quality={100}
+              priority
+            />
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/settings">
-              <SettingsIcon size={18} />
-            </Link>
+          <span className="truncate text-2xl font-bold tracking-tight">
+            {organizationName}
+          </span>
+        </Link>
+
+        <nav className="space-y-1">
+          {isSysAdmin ? (
+            <>
+              <LinkItem href="/organizations" icon={<BuildingIcon size={24} />}>
+                Organizations
+              </LinkItem>
+              <LinkItem href="/settings" icon={<SettingsIcon size={24} />}>
+                Settings
+              </LinkItem>
+            </>
+          ) : (
+            <>
+              <LinkItem
+                href="/projects"
+                icon={<FolderKanban size={24} />}
+                onClick={() => navigateWithOrganization("/projects")}
+              >
+                Projects
+              </LinkItem>
+              <LinkItem
+                href="/commands"
+                icon={<ShoppingBasketIcon size={24} />}
+                onClick={() => navigateWithOrganization("/commands")}
+              >
+                Commands
+              </LinkItem>
+              <LinkItem
+                href="/posts"
+                icon={<DockIcon size={24} />}
+                onClick={() => navigateWithOrganization("/posts")}
+              >
+                Posts
+              </LinkItem>
+              <LinkItem
+                href="/expertise"
+                icon={<BookTextIcon size={24} />}
+                onClick={() => navigateWithOrganization("/expertise")}
+              >
+                Expertises
+              </LinkItem>
+              <LinkItem
+                href="/devices"
+                icon={<RadioReceiver size={24} />}
+                onClick={() => navigateWithOrganization("/devices")}
+              >
+                Devices
+              </LinkItem>
+              {isAdmin && (
+                <LinkItem
+                  href="/users"
+                  icon={<UsersIcon size={24} />}
+                  onClick={() => navigateWithOrganization("/users")}
+                >
+                  Users
+                </LinkItem>
+              )}
+              <LinkItem href="/settings" icon={<SettingsIcon size={24} />}>
+                Settings
+              </LinkItem>
+            </>
+          )}
+        </nav>
+      </div>
+
+      <div className="mt-auto border-t border-gray-200/50 dark:border-gray-700/50">
+        <div className="p-6">
+          <div className="mb-4 flex items-center justify-between">
             <ModeToggle />
             <UserButton />
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default SideBar;

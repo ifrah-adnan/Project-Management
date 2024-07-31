@@ -161,8 +161,8 @@ export function AdminComponent({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Card className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:border-blue-400 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
-                <CardContent className="p-6">
+              <Card className="flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:border-blue-400 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                <CardContent className="flex-grow p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       {org.imagePath ? (
@@ -178,17 +178,17 @@ export function AdminComponent({
                           <Building size={24} className="text-blue-600" />
                         </div>
                       )}
-                      <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                      <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">
                         {org.name}
                       </h3>
                     </div>
                     <div className="flex space-x-2">
-                      {org.address && (
+                      {/* {org.address && (
                         <MapDialog
                           address={org.address}
                           organizationName={org.name}
                         />
-                      )}
+                      )} */}
                       {org.users.length >= 1 && (
                         <ViewAllAdminsDialog
                           admins={org.users}
@@ -258,7 +258,7 @@ export function AdminComponent({
                       </Dialog>
                     </div>
                   </div>
-                  <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
+                  <p className="mb-4 line-clamp-3 text-sm text-gray-600 dark:text-gray-300">
                     {org.description}
                   </p>
                   <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
