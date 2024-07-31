@@ -165,6 +165,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
   const [operations, setOperations] = useState<any[]>([]);
   const [operationCount, setOperationCount] = useState<any>(0);
   const [isLoadingOperations, setIsLoadingOperations] = useState(false);
+  const [targets, setTargets] = useState<{ [key: string]: number }>({});
 
   const handleOpenDialog = async (
     commandProjectId: string,
@@ -176,10 +177,12 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
     try {
       const result = await getOperationProgress2(commandProjectId);
       console.log(result);
+      console.log(result.targets, "this is target ");
 
       if (result.operationDetails) {
         setOperations(result.operationDetails);
         setOperationCount(result.operationCount);
+        setTargets(result.targets);
       } else {
         console.error("Error: No operation details found");
       }
@@ -328,7 +331,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                                         {op.lastMonthCount}
                                       </td>
                                       <td className="w-24 p-3 text-center">
-                                        {op.target}
+                                        {targets[op.id] || "N/A"}
                                       </td>
                                       <td className="w-40 p-3">
                                         <div className="flex items-center">

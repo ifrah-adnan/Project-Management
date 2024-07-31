@@ -720,10 +720,12 @@ export async function getOperationProgress2(
   );
 
   const operationCount = workflow.WorkflowNode.length;
+  const targets = await calculateOperationTargets(commandProjectId);
 
   return {
     operationDetails,
     totalCompleted,
+    targets,
     totalTarget,
     weeklyProgress: {
       weeklyTarget,
@@ -734,4 +736,89 @@ export async function getOperationProgress2(
     totalEstimatedHours,
     operationCount,
   };
+}
+export async function calculateOperationTargets(commandProjectId: string) {
+  // Récupérer le workflow et le projet associé
+  const workflow = await db.workFlow.findFirst({
+    where: {
+      project: {
+        commandProjects: {
+          some: { id: commandProjectId },
+        },
+      },
+    },
+    include: {
+      WorkflowNode: {
+        include: {
+          operation: true,
+        },
+      },
+      WorkFlowEdge: true,
+    },
+  });
+
+  if (!workflow) {
+    throw new Error("Workflow not found for the given command project");
+  }
+
+  const commandProject = await db.commandProject.findUnique({
+    where: { id: commandProjectId },
+  });
+
+  if (!commandProject) {
+    throw new Error("Command project not found");
+  }
+
+  const baseTarget = commandProject.target;
+
+  // Fonction récursive pour calculer la target de chaque nœud
+  const calculateNodeTarget = (
+    nodeId: string,
+    parentTarget: number,
+  ): number => {
+    const node = workflow.WorkflowNode.find((n) => n.id === nodeId);
+    if (!node) return 0;
+
+    const incomingEdges = workflow.WorkFlowEdge.filter(
+      (e) => e.targetId === nodeId,
+    );
+
+    if (incomingEdges.length === 0) {
+      // C'est un nœud source, on utilise la target de base
+      return baseTarget;
+    }
+
+    // Calculer la target en fonction du parent et du ratio de l'arête
+    const edge = incomingEdges[0]; // On suppose une seule arête entrante par simplicité
+    return parentTarget * edge.count;
+  };
+
+  // Trouver le nœud final
+  const finalNode = workflow.WorkflowNode.find(
+    (node) => node.operation.isFinal,
+  );
+  if (!finalNode) {
+    throw new Error("Final operation not found in workflow");
+  }
+
+  // Calculer les targets en partant du nœud final
+  const targets: { [key: string]: number } = {};
+  const calculateTargets = (nodeId: string, target: number) => {
+    const node = workflow.WorkflowNode.find((n) => n.id === nodeId);
+    if (!node) return;
+
+    targets[node.operation.id] = target;
+
+    const incomingEdges = workflow.WorkFlowEdge.filter(
+      (e) => e.targetId === nodeId,
+    );
+    incomingEdges.forEach((edge) => {
+      const parentTarget = target * edge.count;
+      calculateTargets(edge.sourceId, parentTarget);
+    });
+  };
+
+  calculateTargets(finalNode.id, baseTarget);
+
+  return targets;
 }
