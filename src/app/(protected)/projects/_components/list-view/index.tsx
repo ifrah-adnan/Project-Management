@@ -341,7 +341,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                                             ></div>
                                           </div>
                                           <span className="ml-1 w-9 text-right text-xs font-medium">
-                                            {op.progress}%
+                                            {op.progress.toFixed(2)}%
                                           </span>
                                         </div>
                                       </td>
