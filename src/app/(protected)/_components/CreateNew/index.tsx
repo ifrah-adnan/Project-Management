@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -15,6 +15,16 @@ import { cn } from "@/lib/utils";
 import { LinkItem } from "../sidebar";
 
 export default function CreateNew() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <Popover>
       <PopoverTrigger className=" hidden h-full items-center gap-3 rounded-md border p-2 md:flex">
