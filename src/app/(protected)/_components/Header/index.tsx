@@ -6,7 +6,12 @@ import { Menu, Bell, Plus, Search } from "lucide-react";
 import UserButton from "../userButton";
 import { ModeToggle } from "../ModeToggle/mode-toggle";
 
-function MainHeader() {
+// Define the type for props
+interface MainHeaderProps {
+  name: string;
+}
+
+const MainHeader: React.FC<MainHeaderProps> = ({ name }) => {
   return (
     <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
       <div className="flex items-center">
@@ -15,7 +20,7 @@ function MainHeader() {
         </button>
         <Link href="/" className="flex items-center">
           <span className="ml-2 hidden text-xl font-semibold sm:inline">
-            My Projects
+            {name}
           </span>
         </Link>
       </div>
@@ -50,6 +55,6 @@ function MainHeader() {
       </div>
     </header>
   );
-}
+};
 
 export default MainHeader;

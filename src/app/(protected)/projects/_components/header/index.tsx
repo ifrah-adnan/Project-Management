@@ -40,7 +40,7 @@ export default function Header() {
 
   return (
     <>
-      <MainHeader />
+      <MainHeader name="My Projects"></MainHeader>
       <div className="font-sm flex h-page-header shrink-0 items-center justify-end gap-2 bg-card px-6 text-sm shadow">
         <h3 className="mr-auto font-medium capitalize">
           <FolderOpen />
