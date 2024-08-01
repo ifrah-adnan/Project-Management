@@ -136,18 +136,23 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
       <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <div className="relative h-8 w-8 overflow-hidden rounded-full">
-              <Image
-                src={organizationImage || "/sys-admin.svg"}
-                alt="Logo"
-                fill
-                sizes="32px"
-                className="object-cover"
-                quality={100}
-                priority
-              />
-            </div>
-            <span className="text-sm font-semibold">{organizationName}</span>
+            <Link
+              href="/"
+              className="relative flex h-12 w-auto items-center justify-center"
+            >
+              <div className="relative h-8 w-8 overflow-hidden rounded-full">
+                <Image
+                  src={organizationImage || "/sys-admin.svg"}
+                  alt="Logo"
+                  fill
+                  sizes="32px"
+                  className="object-cover"
+                  quality={100}
+                  priority
+                />
+              </div>
+              <span className="text-sm font-semibold">{organizationName}</span>
+            </Link>
           </div>
         )}
         <button

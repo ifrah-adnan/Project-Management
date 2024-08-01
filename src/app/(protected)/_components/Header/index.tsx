@@ -5,8 +5,14 @@ import Image from "next/image";
 import { Menu, Bell, Plus, Search } from "lucide-react";
 import UserButton from "../userButton";
 import { ModeToggle } from "../ModeToggle/mode-toggle";
+import CreateNew from "../CreateNew";
 
-function MainHeader() {
+// Define the type for props
+interface MainHeaderProps {
+  name: string;
+}
+
+const MainHeader: React.FC<MainHeaderProps> = ({ name }) => {
   return (
     <header className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
       <div className="flex items-center">
@@ -15,7 +21,7 @@ function MainHeader() {
         </button>
         <Link href="/" className="flex items-center">
           <span className="ml-2 hidden text-xl font-semibold sm:inline">
-            My Projects
+            {name}
           </span>
         </Link>
       </div>
@@ -36,7 +42,7 @@ function MainHeader() {
 
       <div className="flex items-center">
         <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <Plus size={20} />
+          <CreateNew />
         </button>
         <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
           <Bell size={20} />
@@ -50,6 +56,6 @@ function MainHeader() {
       </div>
     </header>
   );
-}
+};
 
 export default MainHeader;
