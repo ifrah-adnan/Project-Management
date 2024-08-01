@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Menu, Bell, Plus, Search } from "lucide-react";
 import UserButton from "../userButton";
 import { ModeToggle } from "../ModeToggle/mode-toggle";
+import CreateNew from "../CreateNew";
 
 // Define the type for props
 interface MainHeaderProps {
@@ -41,7 +42,7 @@ const MainHeader: React.FC<MainHeaderProps> = ({ name }) => {
 
       <div className="flex items-center">
         <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <Plus size={20} />
+          <CreateNew />
         </button>
         <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
           <Bell size={20} />
