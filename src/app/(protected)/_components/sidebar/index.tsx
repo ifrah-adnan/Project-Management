@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -11,9 +11,11 @@ import {
   SettingsIcon,
   ShoppingBasketIcon,
   UsersIcon,
+  ChevronDownIcon,
+  MenuIcon,
+  XIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/components/session-provider";
 import UserButton from "../userButton";
@@ -27,6 +29,7 @@ interface LinkItemProps {
   children?: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  isCollapsed?: boolean;
 }
 
 export const LinkItem: React.FC<LinkItemProps> = ({
@@ -35,6 +38,7 @@ export const LinkItem: React.FC<LinkItemProps> = ({
   className,
   children,
   onClick,
+  isCollapsed,
 }) => {
   const pathname = usePathname();
   const isActive = pathname === href || pathname.startsWith(`${href}/`);
@@ -43,11 +47,12 @@ export const LinkItem: React.FC<LinkItemProps> = ({
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-4 rounded-lg px-5 py-3 text-base font-medium transition-all duration-200 ease-in-out",
+        "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors",
         className,
         {
-          "bg-primary/10 text-primary shadow-md": isActive,
-          "text-gray-700 hover:bg-gray-100/50 hover:text-primary dark:text-gray-300 dark:hover:bg-gray-800/50":
+          "bg-gray-200 text-gray-900 dark:bg-gray-800 dark:text-white":
+            isActive,
+          "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800":
             !isActive,
         },
       )}
@@ -58,25 +63,19 @@ export const LinkItem: React.FC<LinkItemProps> = ({
         }
       }}
     >
-      <span
-        className={cn("transition-all [&_svg]:size-5", {
-          "text-primary": isActive,
-          "text-gray-500 group-hover:text-primary dark:text-gray-400":
-            !isActive,
-        })}
-      >
-        {icon}
-      </span>
-      <span className="transition-colors">{children}</span>
+      <span className="text-gray-400">{icon}</span>
+      {!isCollapsed && <span>{children}</span>}
     </Link>
   );
 };
 
 interface SideBarProps {
   className?: string;
+  onToggle?: (collapsed: boolean) => void;
 }
 
-const SideBar: React.FC<SideBarProps> = ({ className }) => {
+const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const { session } = useSession();
   const user = session?.user;
   const isAdmin = user?.role === "ADMIN";
@@ -119,104 +118,136 @@ const SideBar: React.FC<SideBarProps> = ({ className }) => {
     }
   };
 
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+    if (onToggle) {
+      onToggle(!isCollapsed);
+    }
+  };
+
   return (
     <div
       className={cn(
-        "flex h-screen w-80 flex-col bg-gradient-to-b from-gray-50 to-white text-gray-800 shadow-2xl transition-all duration-300 ease-in-out dark:from-gray-900 dark:to-gray-800 dark:text-gray-200",
+        "flex h-screen flex-col border-r border-gray-200 bg-gray-50 text-gray-800 transition-all duration-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200",
+        isCollapsed ? "w-16" : "w-64",
         className,
       )}
     >
-      <div className="p-8">
-        <Link
-          href="/"
-          className="mb-12 flex items-center gap-4 transition-opacity hover:opacity-90"
-        >
-          <div className="relative h-20 w-20 overflow-hidden rounded-full shadow-lg ring-4 ring-primary/80 ring-offset-4 ring-offset-background">
-            <Image
-              src={organizationImage || "/sys-admin.svg"}
-              alt="Logo"
-              fill
-              sizes="80px"
-              className="object-cover transition-transform duration-300 hover:scale-110"
-              quality={100}
-              priority
-            />
+      <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+        {!isCollapsed && (
+          <div className="flex items-center gap-2">
+            <div className="relative h-8 w-8 overflow-hidden rounded-full">
+              <Image
+                src={organizationImage || "/sys-admin.svg"}
+                alt="Logo"
+                fill
+                sizes="32px"
+                className="object-cover"
+                quality={100}
+                priority
+              />
+            </div>
+            <span className="text-sm font-semibold">{organizationName}</span>
           </div>
-          <span className="truncate text-2xl font-bold tracking-tight">
-            {organizationName}
-          </span>
-        </Link>
-
-        <nav className="space-y-1">
-          {isSysAdmin ? (
-            <>
-              <LinkItem href="/organizations" icon={<BuildingIcon size={24} />}>
-                Organizations
-              </LinkItem>
-              <LinkItem href="/settings" icon={<SettingsIcon size={24} />}>
-                Settings
-              </LinkItem>
-            </>
-          ) : (
-            <>
-              <LinkItem
-                href="/projects"
-                icon={<FolderKanban size={24} />}
-                onClick={() => navigateWithOrganization("/projects")}
-              >
-                Projects
-              </LinkItem>
-              <LinkItem
-                href="/commands"
-                icon={<ShoppingBasketIcon size={24} />}
-                onClick={() => navigateWithOrganization("/commands")}
-              >
-                Commands
-              </LinkItem>
-              <LinkItem
-                href="/posts"
-                icon={<DockIcon size={24} />}
-                onClick={() => navigateWithOrganization("/posts")}
-              >
-                Posts
-              </LinkItem>
-              <LinkItem
-                href="/expertise"
-                icon={<BookTextIcon size={24} />}
-                onClick={() => navigateWithOrganization("/expertise")}
-              >
-                Expertises
-              </LinkItem>
-              <LinkItem
-                href="/devices"
-                icon={<RadioReceiver size={24} />}
-                onClick={() => navigateWithOrganization("/devices")}
-              >
-                Devices
-              </LinkItem>
-              {isAdmin && (
-                <LinkItem
-                  href="/users"
-                  icon={<UsersIcon size={24} />}
-                  onClick={() => navigateWithOrganization("/users")}
-                >
-                  Users
-                </LinkItem>
-              )}
-              <LinkItem href="/settings" icon={<SettingsIcon size={24} />}>
-                Settings
-              </LinkItem>
-            </>
-          )}
-        </nav>
+        )}
+        <button
+          onClick={toggleSidebar}
+          className="rounded-md p-1 hover:bg-gray-200 dark:hover:bg-gray-800"
+        >
+          {isCollapsed ? <MenuIcon size={20} /> : <XIcon size={20} />}
+        </button>
       </div>
 
-      <div className="mt-auto border-t border-gray-200/50 dark:border-gray-700/50">
-        <div className="p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <ModeToggle />
-            <UserButton />
-          </div>
+      <nav className="flex-1 overflow-y-auto py-4">
+        {isSysAdmin ? (
+          <>
+            <LinkItem
+              href="/organizations"
+              icon={<BuildingIcon size={16} />}
+              isCollapsed={isCollapsed}
+            >
+              Organizations
+            </LinkItem>
+            <LinkItem
+              href="/settings"
+              icon={<SettingsIcon size={16} />}
+              isCollapsed={isCollapsed}
+            >
+              Settings
+            </LinkItem>
+          </>
+        ) : (
+          <>
+            <LinkItem
+              href="/projects"
+              icon={<FolderKanban size={16} />}
+              onClick={() => navigateWithOrganization("/projects")}
+              isCollapsed={isCollapsed}
+            >
+              Projects
+            </LinkItem>
+            <LinkItem
+              href="/commands"
+              icon={<ShoppingBasketIcon size={16} />}
+              onClick={() => navigateWithOrganization("/commands")}
+              isCollapsed={isCollapsed}
+            >
+              Commands
+            </LinkItem>
+            <LinkItem
+              href="/posts"
+              icon={<DockIcon size={16} />}
+              onClick={() => navigateWithOrganization("/posts")}
+              isCollapsed={isCollapsed}
+            >
+              Posts
+            </LinkItem>
+            <LinkItem
+              href="/expertise"
+              icon={<BookTextIcon size={16} />}
+              onClick={() => navigateWithOrganization("/expertise")}
+              isCollapsed={isCollapsed}
+            >
+              Expertises
+            </LinkItem>
+            <LinkItem
+              href="/devices"
+              icon={<RadioReceiver size={16} />}
+              onClick={() => navigateWithOrganization("/devices")}
+              isCollapsed={isCollapsed}
+            >
+              Devices
+            </LinkItem>
+            {isAdmin && (
+              <LinkItem
+                href="/users"
+                icon={<UsersIcon size={16} />}
+                onClick={() => navigateWithOrganization("/users")}
+                isCollapsed={isCollapsed}
+              >
+                Users
+              </LinkItem>
+            )}
+            <LinkItem
+              href="/settings"
+              icon={<SettingsIcon size={16} />}
+              isCollapsed={isCollapsed}
+            >
+              Settings
+            </LinkItem>
+          </>
+        )}
+      </nav>
+
+      <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+        <div
+          className={cn(
+            "flex items-center",
+            isCollapsed ? "justify-center" : "justify-between",
+          )}
+        >
+          {!isCollapsed && <UserButton />}
+          <ModeToggle />
         </div>
       </div>
     </div>

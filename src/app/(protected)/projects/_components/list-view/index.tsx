@@ -241,7 +241,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                         <ListIcon className="text-blue-600" size={20} />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-h-[90vh] w-full sm:max-w-[90vw]">
+                    <DialogContent className="max-h-[90vh] w-full overflow-x-auto sm:max-w-[90vw] ">
                       <DialogHeader className="border-b pb-4">
                         <DialogTitle className="text-2xl font-bold">
                           Operations: {item.project.name}
@@ -281,7 +281,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
                                 Loading operations...
                               </div>
                             ) : operations.length > 0 ? (
-                              <Table className="w-full text-sm">
+                              <Table className="  w-[200px] overflow-x-auto text-sm">
                                 <thead>
                                   <tr className="bg-muted/30">
                                     <th className="w-1/4 p-3 text-left font-semibold">

@@ -1,10 +1,6 @@
-"use client";
-
 import * as React from "react";
 import { useRef } from "react";
 import { motion, useCycle } from "framer-motion";
-// import { Navigation } from "./navigate";;
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useDimensions } from "@/hooks/use-dimensions";
 import { MenuToggle } from "./menuToggle";
@@ -19,7 +15,7 @@ export const MenuGlobal = () => {
   return (
     <motion.nav
       initial={false}
-      className="flex  h-full  w-full items-center justify-between"
+      className="flex h-full w-full items-center justify-between"
       animate={isOpen ? "open" : "closed"}
       custom={height}
       ref={containerRef}
@@ -27,7 +23,7 @@ export const MenuGlobal = () => {
       <Navigation
         setOpen={toggleOpen}
         className={cn(
-          "dark absolute left-0 top-[3.5rem]  z-40 flex  h-[calc(100vh-3.5rem)]    w-full flex-col   overflow-y-auto  bg-card  px-[2rem] py-[2rem] text-white shadow-md transition-all duration-300",
+          "absolute left-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 flex-col overflow-y-auto border-r border-gray-200 bg-white px-4 py-4 text-gray-800 shadow-lg transition-all duration-300",
           {
             "translate-x-0": isOpen,
             "-translate-x-full": !isOpen,
@@ -35,7 +31,7 @@ export const MenuGlobal = () => {
         )}
       />
       <MenuToggle toggle={() => toggleOpen()} />
-      <Logo className="h-[3rem] w-[5rem] dark:fill-white" />
+      <Logo className="h-8 w-8" />
     </motion.nav>
   );
 };

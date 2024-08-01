@@ -12,7 +12,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ArrowLeftIcon, PlusIcon } from "lucide-react";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FieldErrors } from "@/actions/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -34,6 +34,7 @@ import { FormSelect } from "@/components/form-select";
 import { format } from "date-fns";
 import { useSession } from "@/components/session-provider";
 import { db } from "@/lib/db";
+import QRCodeScanner from "../scanner/QrReaderScanner";
 
 export interface AddDeviceButtonProps extends ButtonProps {}
 type TPost = {
@@ -66,6 +67,8 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
     FieldErrors<TCreateInput>
   >({});
   const [post, setPost] = React.useState<TPost | undefined>();
+  const [isScannerMode, setIsScannerMode] = useState(false); // State to handle the input mode
+  const [scannedDeviceId, setScannedDeviceId] = useState<string | null>(null); // State to store the scanned device ID
 
   const router = useRouter();
   const { session } = useSession();
@@ -77,29 +80,10 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
   };
 
   const handleSubmit = async (formData: FormData) => {
-    const deviceId = formData.get("deviceId") as string;
+    const deviceId = scannedDeviceId || (formData.get("deviceId") as string); // Use scannedDeviceId if available
     const count = formData.get("count") as string;
     const planningId = formData.get("planningId") as string;
 
-    // const data: TCreateInput = {
-    //   deviceId,
-    //   postId: post?.id || "",
-    //   count: +count,
-    //   planningId: planningId,
-    //   // userId: user?.id,
-    // };
-
-    // const parsed = createInputSchema.safeParse(data);
-
-    // if (!parsed.success) {
-    //   toast.error("Invalid input");
-    //   setFieldErrors(
-    //     parsed.error.flatten().fieldErrors as FieldErrors<TCreateInput>,
-    //   );
-    //   return;
-    // }
-
-    // Si le post existe, créez le nouvel appareil
     const { result, error, fieldErrors } = await createDevice({
       deviceId,
       postId: post?.id || "",
@@ -119,11 +103,22 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
     }
   };
 
-  console.log(user);
+  const handleScan = (result: string | null) => {
+    if (result) {
+      setScannedDeviceId(result);
+      setIsScannerMode(false); // Switch back to manual mode after scanning
+    }
+  };
+
+  const handleError = (error: Error) => {
+    toast.error("Error scanning QR code: " + error.message);
+  };
+
   function handlePostChange(id: string) {
     const p = posts?.filter((item) => item.id === id)[0];
     setPost(p);
   }
+
   function handleNewPlanning() {
     setPost((post) => {
       if (post)
@@ -133,6 +128,7 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
         };
     });
   }
+
   return (
     <Sheet onOpenChange={handleClose}>
       <SheetTrigger asChild>
@@ -143,6 +139,7 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
           <SheetTitle>
             <span>Add Device</span>
           </SheetTitle>
+
           <SheetDescription>
             Fill in the form below to add a new device
           </SheetDescription>
@@ -151,13 +148,27 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
           action={handleSubmit}
           className="flex flex-1 flex-col gap-2 py-4 "
         >
-          <FormInput
-            name="deviceId"
-            label="Device ID *"
-            className="mt-4"
-            required
-            errors={fieldErrors.deviceId}
-          />
+          <div className="flex items-center gap-4">
+            <Button
+              variant={isScannerMode ? "default" : "outline"}
+              onClick={() => setIsScannerMode(!isScannerMode)}
+            >
+              {isScannerMode ? "Switch to Manual Input" : "Scan QR Code"}
+            </Button>
+          </div>
+          {isScannerMode ? (
+            <QRCodeScanner onScan={handleScan} onError={handleError} />
+          ) : (
+            <FormInput
+              name="deviceId"
+              label="Device ID *"
+              className="mt-4"
+              required
+              value={scannedDeviceId || ""}
+              onChange={(e) => setScannedDeviceId(e.target.value)}
+              errors={fieldErrors.deviceId}
+            />
+          )}
           <Label className="mt-4 inline-block">Post</Label>
           <Select onValueChange={(id) => handlePostChange(id)} value={post?.id}>
             <SelectTrigger>
@@ -180,8 +191,6 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
                 placeholder="Select planning"
                 label="Planning"
                 className="mt-4"
-                // defaultValue={planing?.operation.id}
-                // errors={fieldErrors.operationId}
               >
                 {post.plannings.map((op) => (
                   <SelectItem key={op.id} value={op.id} className="text-xs">
