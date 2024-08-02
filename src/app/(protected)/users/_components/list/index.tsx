@@ -50,8 +50,8 @@ export default function List({
   }, [organizationId, data]);
 
   return (
-    <div className="h-1 flex-1 p-4">
-      <Card className="flex h-full flex-1 flex-col overflow-auto p-4">
+    <div className="h-1 flex-1 p-3">
+      <Card className="flex h-full flex-1 flex-col overflow-auto p-1">
         <Table>
           <thead>
             <tr>

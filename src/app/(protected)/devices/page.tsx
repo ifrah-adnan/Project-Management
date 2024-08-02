@@ -1,7 +1,8 @@
 import React from "react";
 import Header from "./_components/header";
-import { configure, findMany } from "./_utils/actions";
+import { findMany } from "./_utils/actions";
 import List from "./_components/list";
+
 export default async function Page({
   searchParams,
 }: {
@@ -10,7 +11,7 @@ export default async function Page({
   const result = await findMany(searchParams);
 
   return (
-    <main className="flex flex-col">
+    <main className="  flex h-full flex-col p-1 sm:p-4">
       <Header {...result} />
       <List {...result} />
     </main>

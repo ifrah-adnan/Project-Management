@@ -4,10 +4,8 @@ import { TCreateInput, TData } from "../../_utils/schemas";
 import { Table } from "@/components/table";
 import { Card } from "@/components/ui/card";
 import { ConfirmButton } from "@/components/confirm-button";
-import { deleteById, handleDelete } from "../../_utils/actions";
-import { CalendarIcon, Ellipsis, PencilIcon, Trash2Icon } from "lucide-react";
-import { revalidatePath } from "next/cache";
-import ParamsPagination from "@/components/params-pagination";
+import { handleDelete } from "../../_utils/actions";
+import { Ellipsis, Trash2Icon } from "lucide-react";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -15,9 +13,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-
+import ParamsPagination from "@/components/params-pagination";
 import { useSession } from "@/components/session-provider";
+
 export default function List({ data, total }: { data: TData; total: number }) {
   const { session } = useSession();
   const user = session?.user;
@@ -25,40 +23,51 @@ export default function List({ data, total }: { data: TData; total: number }) {
 
   useEffect(() => {
     if (user) {
-      const filtered = data;
-      setFilteredData(filtered);
+      setFilteredData(data);
     }
   }, [data, user]);
 
   return (
-    <main className="p-6">
-      <Card className="mx-auto flex h-full w-full max-w-screen-2xl flex-1  flex-col overflow-auto p-4 ">
-        <Table>
-          <thead>
-            <tr>
-              <th>Device id</th>
-              <th>Post</th>
-              <th>
-                <div className="flex gap-2">
-                  <span>Planning</span>
-                  <span className="font-medium text-gray-500">
-                    {"(Operator / Project / Operation / Date)"}
-                  </span>
-                </div>
-              </th>
-              <th>value</th>
-              <th>date added</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((item) => {
-              return (
+    <main className="  p-2 sm:p-6">
+      <Card className="  mx-auto flex h-full w-full max-w-screen-2xl flex-1 flex-col overflow-auto p-2 sm:p-4">
+        <div className=" debug ">
+          <Table className=" divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Device id
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Post
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <div className="flex flex-col sm:flex-row sm:gap-2">
+                    <span>Planning</span>
+                    <span className="font-medium text-gray-500">
+                      {"(Operator / Project / Operation / Date)"}
+                    </span>
+                  </div>
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Value
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Date Added
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 bg-white">
+              {filteredData.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.deviceId}</td>
-                  <td>{item.post?.name}</td>
-                  {item.planning && item.planning.endDate > new Date() ? (
-                    <td>
-                      <div className="flex items-center gap-4">
+                  <td className="whitespace-nowrap px-2 py-2">
+                    {item.deviceId}
+                  </td>
+                  <td className="whitespace-nowrap px-2 py-2">
+                    {item.post?.name}
+                  </td>
+                  <td className="whitespace-nowrap px-2 py-2">
+                    {item.planning && item.planning.endDate > new Date() ? (
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                         <div className="flex items-center gap-2">
                           <Avatar className="size-7 border-2 border-[#E6B3BA]">
                             <AvatarImage
@@ -79,7 +88,7 @@ export default function List({ data, total }: { data: TData; total: number }) {
                         <div className="flex items-center gap-2">
                           <span>{item.planning?.operation.name}</span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row sm:gap-2">
                           <div className="flex gap-1">
                             <span className="text-gray-500">from</span>
                             <span>
@@ -94,13 +103,13 @@ export default function List({ data, total }: { data: TData; total: number }) {
                           </div>
                         </div>
                       </div>
-                    </td>
-                  ) : (
-                    <td>Add planning to this device in device configuration</td>
-                  )}
-                  <td>{item.count}</td>
-                  <td>
-                    <div className="  flex items-center justify-between gap-4">
+                    ) : (
+                      "Add planning to this device in device configuration"
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-2 py-2">{item.count}</td>
+                  <td className="whitespace-nowrap px-2 py-2">
+                    <div className="flex items-center justify-between gap-4">
                       <span>{format(new Date(item.createdAt), "PP")}</span>
                       {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
                         <Popover>
@@ -109,7 +118,7 @@ export default function List({ data, total }: { data: TData; total: number }) {
                           </PopoverTrigger>
                           <PopoverContent
                             align="end"
-                            className=" flex w-fit flex-col gap-2"
+                            className="flex w-fit flex-col gap-2"
                           >
                             <ConfirmButton
                               variant="ghost"
@@ -128,18 +137,18 @@ export default function List({ data, total }: { data: TData; total: number }) {
                     </div>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+              ))}
+            </tbody>
+          </Table>
+        </div>
         {data.length === 0 && (
           <div className="grid flex-1 place-content-center">
-            <span className=" text-center text-3xl font-semibold opacity-50">
+            <span className="text-center text-3xl font-semibold opacity-50">
               No Data
             </span>
           </div>
         )}
-        <div className="mt-auto flex justify-end px-4 pb-4 pt-1">
+        <div className="mt-auto flex justify-end px-4 pb-4 pt-1 ">
           <ParamsPagination total={filteredData.length} />
         </div>
       </Card>

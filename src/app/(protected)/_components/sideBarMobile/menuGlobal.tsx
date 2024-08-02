@@ -20,6 +20,8 @@ export const MenuGlobal = () => {
       custom={height}
       ref={containerRef}
     >
+      <MenuToggle toggle={() => toggleOpen()} />
+      <Logo className="h-8 w-8" />
       <Navigation
         setOpen={toggleOpen}
         className={cn(
@@ -30,8 +32,6 @@ export const MenuGlobal = () => {
           },
         )}
       />
-      <MenuToggle toggle={() => toggleOpen()} />
-      <Logo className="h-8 w-8" />
     </motion.nav>
   );
 };

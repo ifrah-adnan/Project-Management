@@ -11,23 +11,25 @@ import MainHeader from "@/app/(protected)/_components/Header";
 export default function Header({ data }: { data: TData }) {
   const { session } = useSession();
   const user = session?.user;
+
   return (
     <>
-      <MainHeader name="My Devices"></MainHeader>
+      <MainHeader name="My Devices" />
 
-      <div className="font-sm flex h-page-header shrink-0 items-center justify-end gap-2 bg-card px-6 text-sm shadow">
-        <h3 className="mr-auto font-medium capitalize">Devices</h3>
+      <div className="flex items-center justify-between  ">
+        <h3 className="">Devices</h3>
         {(user?.role === "ADMIN" || user?.role === "SYS_ADMIN") && (
-          <>
-            <ConfigureDeviceButton devices={data} className="gap-2 uppercase">
+          <div className="flex gap-3">
+            <ConfigureDeviceButton devices={data} className="header-button">
               <Bolt size={16} />
-              <span>Device configuration</span>
+              <span className="hidden  md:flex">Device configuration</span>
             </ConfigureDeviceButton>
-            <AddDeviceButton className="gap-2 uppercase">
+            <AddDeviceButton className="header-button">
               <PlusIcon size={16} />
-              <span>add new Device</span>
+
+              <span className="hidden  md:flex">add new Device</span>
             </AddDeviceButton>
-          </>
+          </div>
         )}
       </div>
     </>

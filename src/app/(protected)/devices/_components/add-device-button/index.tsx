@@ -132,28 +132,31 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
   return (
     <Sheet onOpenChange={handleClose}>
       <SheetTrigger asChild>
-        <Button {...props} />
+        <Button
+          className="h-8 px-2 py-1 text-xs md:h-10 md:px-4 md:py-2 md:text-base"
+          {...props}
+        />
       </SheetTrigger>
-      <SheetContent className="flex flex-col">
+      <SheetContent className="flex w-full flex-col overflow-auto sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>
+          <SheetTitle className="text-base md:text-xl">
             <span>Add Device</span>
           </SheetTitle>
-
-          <SheetDescription>
+          <SheetDescription className="text-xs md:text-base">
             Fill in the form below to add a new device
           </SheetDescription>
         </SheetHeader>
         <form
           action={handleSubmit}
-          className="flex flex-1 flex-col gap-2 py-4 "
+          className="flex flex-1 flex-col gap-1 py-2 md:gap-2 md:py-4"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <Button
               variant={isScannerMode ? "default" : "outline"}
               onClick={() => setIsScannerMode(!isScannerMode)}
+              className="text-xs md:text-base"
             >
-              {isScannerMode ? "Switch to Manual Input" : "Scan QR Code"}
+              {isScannerMode ? "Manual Input" : "Scan QR"}
             </Button>
           </div>
           {isScannerMode ? (
@@ -162,21 +165,27 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
             <FormInput
               name="deviceId"
               label="Device ID *"
-              className="mt-4"
+              className="mt-2 md:mt-4"
               required
               value={scannedDeviceId || ""}
               onChange={(e) => setScannedDeviceId(e.target.value)}
               errors={fieldErrors.deviceId}
             />
           )}
-          <Label className="mt-4 inline-block">Post</Label>
+          <Label className="mt-2 inline-block text-sm md:mt-4 md:text-base">
+            Post
+          </Label>
           <Select onValueChange={(id) => handlePostChange(id)} value={post?.id}>
-            <SelectTrigger>
+            <SelectTrigger className="text-xs md:text-base">
               <SelectValue className="w-full" placeholder="Select a post" />
             </SelectTrigger>
             <SelectContent>
               {posts.map((post) => (
-                <SelectItem key={post.id} value={post.id}>
+                <SelectItem
+                  key={post.id}
+                  value={post.id}
+                  className="text-xs md:text-base"
+                >
                   {post.name}
                 </SelectItem>
               ))}
@@ -185,15 +194,18 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
 
           {post?.id && (
             <>
-              {" "}
               <FormSelect
                 name="planningId"
                 placeholder="Select planning"
                 label="Planning"
-                className="mt-4"
+                className="mt-2 md:mt-4"
               >
                 {post.plannings.map((op) => (
-                  <SelectItem key={op.id} value={op.id} className="text-xs">
+                  <SelectItem
+                    key={op.id}
+                    value={op.id}
+                    className="text-xs md:text-sm"
+                  >
                     {op.operation.name} from{" "}
                     {format(new Date(op.startDate), "PP")} to{" "}
                     {format(new Date(op.endDate), "PP")}
@@ -202,32 +214,41 @@ export function AddDeviceButton(props: AddDeviceButtonProps) {
               </FormSelect>
               <AddEditPlanningButton
                 postId={post?.id || ""}
-                className=" mt-4 flex w-full gap-2 rounded-sm p-0 text-sm font-medium"
+                className="mt-2 flex w-full gap-1 rounded-sm p-0 text-xs font-medium md:mt-4 md:gap-2 md:text-sm"
                 variant={"outline"}
                 size={"icon"}
                 expertises={post?.expertises || []}
                 onClose={handleNewPlanning}
               >
-                <PlusIcon size={18} />
+                <PlusIcon size={14} className="md:size-18" />
                 <span>Add new planning</span>
               </AddEditPlanningButton>
             </>
           )}
-          <Label className="mt-4 inline-block">Value</Label>
-          <Input type="number" name="count" className="w-full" />
-          <div className="mt-auto flex items-center justify-end gap-4">
+          <Label className="mt-2 inline-block text-sm md:mt-4 md:text-base">
+            Value
+          </Label>
+          <Input
+            type="number"
+            name="count"
+            className="w-full text-xs md:text-base"
+          />
+          <div className="mt-auto flex items-center justify-end gap-2 md:gap-4">
             <SheetClose ref={closeRef}></SheetClose>
             <Button
               type="button"
               variant="outline"
-              className="flex w-24 gap-2"
+              className="flex w-16 gap-1 text-xs md:w-24 md:gap-2 md:text-base"
               onClick={handleClose}
             >
-              <ArrowLeftIcon size={18} />
+              <ArrowLeftIcon size={12} className="md:size-18" />
               <span>Cancel</span>
             </Button>
-            <Button type="submit" className="flex w-24 gap-2">
-              <PlusIcon size={18} />
+            <Button
+              type="submit"
+              className="flex w-16 gap-1 text-xs md:w-24 md:gap-2 md:text-base"
+            >
+              <PlusIcon size={12} className="md:size-18" />
               Save
             </Button>
           </div>

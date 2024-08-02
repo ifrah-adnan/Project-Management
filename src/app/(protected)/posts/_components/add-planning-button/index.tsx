@@ -171,15 +171,6 @@ export function AddEditPlanningForm({
       return;
     }
 
-    // const { result, error, fieldErrors } = await addPlanning(parsed.data);
-    // if (fieldErrors) setFieldErrors(fieldErrors);
-    // if (error) {
-    //   toast.error(error);
-    //   return;
-    // }
-    // toast.success("Planning added successfully");
-    // router.refresh();
-    // handleClose();
     mutate(
       `addPlanningData/${postId}`,
       async () => {
@@ -187,12 +178,7 @@ export function AddEditPlanningForm({
         if (fieldErrors) setFieldErrors(fieldErrors);
         if (error) {
           toast.error(error);
-          return {
-            operators,
-            operations,
-            plannings,
-            commandProjects,
-          };
+          return { operators, operations, plannings, commandProjects };
         }
         toast.success("Planning added successfully");
         back();
@@ -211,14 +197,14 @@ export function AddEditPlanningForm({
   };
 
   return (
-    <form action={action}>
-      <Label className="mt-4 inline-block">Command</Label>
+    <form action={action} className="space-y-2 md:space-y-4">
+      <Label className="text-xs md:text-sm">Command</Label>
       <Select
         required
         onValueChange={setCommandProjectId}
         value={command_project_id}
       >
-        <SelectTrigger>
+        <SelectTrigger className="text-xs md:text-sm">
           <SelectValue
             className="w-full"
             placeholder="Select a Command project"
@@ -226,10 +212,12 @@ export function AddEditPlanningForm({
         </SelectTrigger>
         <SelectContent>
           {commandProjects.map((op) => (
-            <SelectItem key={op.id} value={op.id}>
-              {op.command.reference}
-              {" > "}
-              {op.project.name}
+            <SelectItem
+              key={op.id}
+              value={op.id}
+              className="text-xs md:text-sm"
+            >
+              {op.command.reference} {" > "} {op.project.name}
             </SelectItem>
           ))}
         </SelectContent>
@@ -239,57 +227,68 @@ export function AddEditPlanningForm({
         name="operationId"
         placeholder="Select operation"
         label="Operation"
-        className="mt-4"
+        className="mt-2 text-xs md:mt-4 md:text-sm"
         defaultValue={planing?.operation.id}
         errors={fieldErrors.operationId}
       >
         {operations.map((op) => (
-          <SelectItem key={op.id} value={op.id}>
+          <SelectItem key={op.id} value={op.id} className="text-xs md:text-sm">
             {op.name}
           </SelectItem>
         ))}
       </FormSelect>
+
       <FormSelect
         name="operatorId"
         placeholder="Select operator"
         label="Operator"
-        className="mt-4"
+        className="mt-2 text-xs md:mt-4 md:text-sm"
         defaultValue={planing?.operator.id}
         errors={fieldErrors.operatorId}
       >
         {operators.map((op) => (
-          <SelectItem key={op.id} value={op.id}>
+          <SelectItem key={op.id} value={op.id} className="text-xs md:text-sm">
             {op.name}
           </SelectItem>
         ))}
       </FormSelect>
+
       <FormInput
         label="Start date"
         type="date"
         name="startDate"
-        className="mt-4"
+        className="mt-2 text-xs md:mt-4 md:text-sm"
         defaultValue={
           planing?.startDate &&
           new Date(planing.startDate).toISOString().split("T")[0]
         }
         errors={fieldErrors.startDate}
       />
+
       <FormInput
         label="End date"
         type="date"
         name="endDate"
-        className="mt-4"
+        className="mt-2 text-xs md:mt-4 md:text-sm"
         defaultValue={
           planing?.endDate &&
           new Date(planing.endDate).toISOString().split("T")[0]
         }
         errors={fieldErrors.endDate}
       />
-      <div className="mt-8 flex justify-end gap-4 [&_*]:w-20     ">
-        <Button variant="outline" type="button" onClick={back}>
+
+      <div className="mt-4 flex justify-end gap-2 md:mt-8 md:gap-4">
+        <Button
+          variant="outline"
+          type="button"
+          onClick={back}
+          className="w-16 text-xs md:w-20 md:text-sm"
+        >
           Cancel
         </Button>
-        <Button>Save</Button>
+        <Button type="submit" className="w-16 text-xs md:w-20 md:text-sm">
+          Save
+        </Button>
       </div>
     </form>
   );
@@ -369,31 +368,36 @@ export function AddEditPlanningButton({
       }}
     >
       <DialogTrigger asChild>
-        <Button {...props} disabled={disabled || isLoading || error} />
+        <Button
+          className="h-8 px-2 py-1 text-xs md:h-10 md:px-4 md:py-2 md:text-base"
+          {...props}
+          disabled={disabled || isLoading || error}
+        />
       </DialogTrigger>
-      <DialogContent className="flex min-h-[30rem] flex-col">
+      <DialogContent className="flex min-h-[30rem] w-full max-w-[90vw] flex-col sm:max-w-md md:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-sm md:text-base">
             {view === "write" && (
               <Button
-                variant={"ghost"}
+                variant="ghost"
                 onClick={() => {
                   setView("view");
                   setPlaningId(null);
                 }}
+                className="h-8 w-8 p-1 md:h-10 md:w-10 md:p-2"
               >
-                <MoveLeftIcon size={16} />
+                <MoveLeftIcon size={14} className="md:size-16" />
               </Button>
             )}
             {view === "view" && (
               <div className="flex items-center gap-2">
                 <span>Plannings for this post</span>
                 <Button
-                  className=""
+                  className="h-8 w-8 p-1 md:h-10 md:w-10 md:p-2"
                   variant="ghost"
                   onClick={() => setView("write")}
                 >
-                  <CalendarPlus2Icon size={20} />
+                  <CalendarPlus2Icon size={16} className="md:size-20" />
                 </Button>
               </div>
             )}
@@ -402,13 +406,13 @@ export function AddEditPlanningButton({
         </DialogHeader>
         {view === "view" ? (
           <div className="h-1 flex-1 overflow-auto rounded border">
-            <Table className="w-full text-xs [&_td]:px-2 [&_th]:px-2">
+            <Table className="w-full text-[10px] md:text-xs [&_td]:px-1 md:[&_td]:px-2 [&_th]:px-1 md:[&_th]:px-2">
               <thead>
                 <tr>
-                  <th className="w-[4rem]">Operator</th>
+                  <th className="w-[3rem] md:w-[4rem]">Operator</th>
                   <th>Operation</th>
-                  <th className="w-[7rem]">from</th>
-                  <th className="w-[8rem]">to</th>
+                  <th className="w-[5rem] md:w-[7rem]">from</th>
+                  <th className="w-[6rem] md:w-[8rem]">to</th>
                 </tr>
               </thead>
               <tbody>
@@ -418,24 +422,28 @@ export function AddEditPlanningButton({
                       <TooltipProvider delayDuration={50}>
                         <Tooltip>
                           <TooltipTrigger>
-                            <Avatar className="size-7 border-2 border-[#E6B3BA]">
+                            <Avatar className="size-5 border-2 border-[#E6B3BA] md:size-7">
                               <AvatarImage
                                 src={item.operator.name || ""}
                                 alt={item.operator.name}
                               />
-                              <AvatarFallback className="font-bold">
+                              <AvatarFallback className="text-[8px] font-bold md:text-xs">
                                 {`${item.operator.name.charAt(0).toUpperCase()}`}
                               </AvatarFallback>
                             </Avatar>
                           </TooltipTrigger>
-                          <TooltipContent side="top" align="center">
+                          <TooltipContent
+                            side="top"
+                            align="center"
+                            className="text-xs md:text-sm"
+                          >
                             {item.operator.name}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </td>
                     <td>
-                      <div className="max-w-[8rem] truncate">
+                      <div className="max-w-[6rem] truncate md:max-w-[8rem]">
                         {item.operation.name}{" "}
                       </div>
                     </td>
@@ -443,7 +451,7 @@ export function AddEditPlanningButton({
                       {new Date(item.startDate).toLocaleDateString("en-GB")}
                     </td>
                     <td>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 md:gap-2">
                         <span>
                           {new Date(item.endDate).toLocaleDateString("en-GB")}
                         </span>
@@ -452,29 +460,29 @@ export function AddEditPlanningButton({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-7"
+                              className="size-5 md:size-7"
                             >
-                              <Ellipsis size={16} />
+                              <Ellipsis size={12} className="md:size-16" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="flex w-fit flex-col gap-2">
+                          <PopoverContent className="flex w-fit flex-col gap-1 md:gap-2">
                             <Button
-                              className="justify-start gap-2 px-6 hover:text-sky-500"
+                              className="justify-start gap-1 px-4 text-xs hover:text-sky-500 md:gap-2 md:px-6 md:text-sm"
                               variant="ghost"
                               onClick={() => {
                                 setView("write");
                                 setPlaningId(item.id);
                               }}
                             >
-                              <PencilIcon size={16} />
+                              <PencilIcon size={12} className="md:size-16" />
                               <span>Edit</span>
                             </Button>
                             <Button
-                              className="justify-start gap-2 px-6 hover:text-red-500"
+                              className="justify-start gap-1 px-4 text-xs hover:text-red-500 md:gap-2 md:px-6 md:text-sm"
                               variant="ghost"
                               onClick={() => handleDelete(item.id)}
                             >
-                              <TrashIcon size={16} />
+                              <TrashIcon size={12} className="md:size-16" />
                               <span>Delete</span>
                             </Button>
                           </PopoverContent>

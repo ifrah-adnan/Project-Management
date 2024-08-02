@@ -134,24 +134,24 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
       <SheetTrigger asChild>
         <Button {...props} />
       </SheetTrigger>
-      <SheetContent className="flex flex-col">
+      <SheetContent className="flex w-full flex-col overflow-auto p-2 sm:p-4 md:p-6">
         <SheetHeader>
-          <SheetTitle>
+          <SheetTitle className="text-lg sm:text-xl md:text-2xl">
             <span>Add Project</span>
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className="text-sm sm:text-base">
             Fill in the form below to add a new project
           </SheetDescription>
         </SheetHeader>
         <form
           action={handleSubmit}
-          className="flex flex-1 flex-col gap-2 py-4 "
+          className="flex flex-1 flex-col gap-2 py-2 sm:gap-4 sm:py-4"
         >
-          <div className=" border p-2">
-            <div className="grid grid-cols-2 ">
+          <div className="border p-1 sm:p-2">
+            <div className="grid grid-cols-2">
               <Button
                 variant="ghost"
-                className={`rounded-none border-b-2 hover:text-[#fa993a] ${newCommand === "existing command" && "border-b-[#FA993A]"} "`}
+                className={`rounded-none border-b-2 text-xs hover:text-[#fa993a] sm:text-sm ${newCommand === "existing command" && "border-b-[#FA993A]"}`}
                 onClick={(e) => {
                   e.preventDefault();
                   setNewCommand("existing command");
@@ -161,7 +161,7 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
               </Button>{" "}
               <Button
                 variant="ghost"
-                className={`rounded-none border-b-2 hover:text-[#fa993a] ${newCommand === "new command" && "border-b-[#FA993A]"} "`}
+                className={`rounded-none border-b-2 text-xs hover:text-[#fa993a] sm:text-sm ${newCommand === "new command" && "border-b-[#FA993A]"}`}
                 onClick={(e) => {
                   e.preventDefault();
                   setNewCommand("new command");
@@ -173,9 +173,11 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
 
             {newCommand === "existing command" ? (
               <>
-                <Label className="mt-4 inline-block">Command</Label>
+                <Label className="mt-2 inline-block text-sm sm:mt-4 sm:text-base">
+                  Command
+                </Label>
                 <Select required onValueChange={setCommandId} value={commandId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue
                       className="w-full"
                       placeholder="Select a Command"
@@ -183,7 +185,11 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {commands.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
+                      <SelectItem
+                        key={item.id}
+                        value={item.id}
+                        className="text-sm sm:text-base"
+                      >
                         {item.reference}
                       </SelectItem>
                     ))}
@@ -191,7 +197,7 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
                 </Select>
               </>
             ) : (
-              <div className="m-2">
+              <div className="m-1 sm:m-2">
                 <CreateNewCommandButton
                   setNewCommand={setNewCommand}
                   closePopoverRef={closePopoverRef}
@@ -199,11 +205,11 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
               </div>
             )}
           </div>
-          <div className=" border p-2">
-            <div className="grid grid-cols-2 ">
+          <div className="border p-1 sm:p-2">
+            <div className="grid grid-cols-2">
               <Button
                 variant="ghost"
-                className={`rounded-none border-b-2 hover:text-[#fa993a] ${newProject === "existing project" && "border-b-[#FA993A]"} "`}
+                className={`rounded-none border-b-2 text-xs hover:text-[#fa993a] sm:text-sm ${newCommand === "existing command" && "border-b-[#FA993A]"}`}
                 onClick={(e) => {
                   e.preventDefault();
                   setNewProject("existing project");
@@ -213,7 +219,7 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
               </Button>{" "}
               <Button
                 variant="ghost"
-                className={`rounded-none border-b-2 hover:text-[#fa993a] ${newProject === "new project" && "border-b-[#FA993A]"} "`}
+                className={`rounded-none border-b-2 text-xs hover:text-[#fa993a] sm:text-sm ${newCommand === "new command" && "border-b-[#FA993A]"}`}
                 onClick={(e) => {
                   e.preventDefault();
                   setNewProject("new project");
@@ -225,9 +231,11 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
 
             {newProject === "existing project" ? (
               <>
-                <Label className="mt-4 inline-block">Project</Label>
+                <Label className="mt-2 inline-block text-sm sm:mt-4 sm:text-base">
+                  Project
+                </Label>
                 <Select required onValueChange={setProjectId} value={projectId}>
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm sm:text-base">
                     <SelectValue
                       className="w-full"
                       placeholder="Select a project"
@@ -244,7 +252,11 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
                       </SelectItem>
                     )}
                     {projects2.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
+                      <SelectItem
+                        key={item.id}
+                        value={item.id}
+                        className="text-sm sm:text-base"
+                      >
                         {item.name}
                       </SelectItem>
                     ))}
@@ -252,32 +264,44 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
                 </Select>
               </>
             ) : (
-              <div className="m-2">
+              <div className="m-1 sm:m-2">
                 <CreateNewProjectButton
                   setNewProject={setNewProject}
                   closePopoverRef={closePopoverRef}
                 />
               </div>
             )}
-          </div>
-          <Label>Target</Label>
-          <Input type="number" name="target" className="w-full" required />
-          <Label>Deadline</Label>
-          <Input type="date" name="endDate" className="w-full" required />
-
-          <div className="mt-auto flex items-center justify-end gap-4">
+          </div>{" "}
+          <Label className="text-sm sm:text-base">Target</Label>
+          <Input
+            type="number"
+            name="target"
+            className="w-full text-sm sm:text-base"
+            required
+          />
+          <Label className="text-sm sm:text-base">Deadline</Label>
+          <Input
+            type="date"
+            name="endDate"
+            className="w-full text-sm sm:text-base"
+            required
+          />
+          <div className="mt-auto flex items-center justify-end gap-2 sm:gap-4">
             <SheetClose ref={closeRef}></SheetClose>
             <Button
               type="button"
               variant="outline"
-              className="flex w-24 gap-2"
+              className="flex w-20 gap-1 text-xs sm:w-24 sm:gap-2 sm:text-sm"
               onClick={handleClose}
             >
-              <ArrowLeftIcon size={18} />
+              <ArrowLeftIcon size={16} className="sm:size-18" />
               <span>Cancel</span>
             </Button>
-            <Button type="submit" className="flex w-24 gap-2">
-              <PlusIcon size={18} />
+            <Button
+              type="submit"
+              className="flex w-20 gap-1 text-xs sm:w-24 sm:gap-2 sm:text-sm"
+            >
+              <PlusIcon size={16} className="sm:size-18" />
               Save
             </Button>
           </div>
