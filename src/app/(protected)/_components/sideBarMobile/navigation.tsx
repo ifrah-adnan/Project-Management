@@ -1,17 +1,17 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Monitor } from "lucide-react";
-import { FolderKanban } from "lucide-react";
-import { SquareKanbanIcon } from "lucide-react";
-import { ShoppingBasketIcon } from "lucide-react";
-import { FolderClockIcon } from "lucide-react";
-import { DockIcon } from "lucide-react";
-import { UsersIcon } from "lucide-react";
-import { BookTextIcon } from "lucide-react";
-import { ScrollTextIcon } from "lucide-react";
-import { SettingsIcon } from "lucide-react";
-import { CircleHelpIcon } from "lucide-react";
+import {
+  Monitor,
+  FolderKanban,
+  ShoppingBasketIcon,
+  DockIcon,
+  UsersIcon,
+  BookTextIcon,
+  ScrollTextIcon,
+  SettingsIcon,
+  CircleHelpIcon,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LinkItem } from "../sidebar";
 import { useSession } from "@/components/session-provider";
@@ -48,6 +48,7 @@ export const Navigation = ({
       setOpen(false);
     }
   }, [pathname, setOpen]);
+
   return (
     <motion.div
       variants={variants}
@@ -61,90 +62,76 @@ export const Navigation = ({
         icon={<Monitor size={18} />}
         onClick={() => navigateWithOrganization("/")}
       >
-        dashboard
+        Dashboard
       </LinkItem>
       <LinkItem
         href="/projects"
         icon={<FolderKanban size={18} />}
         onClick={() => navigateWithOrganization("/projects")}
       >
-        projects
+        Projects
       </LinkItem>
       <LinkItem
         href="/products"
-        icon={<SquareKanbanIcon size={18} />}
+        icon={<ShoppingBasketIcon size={18} />}
         onClick={() => navigateWithOrganization("/products")}
       >
-        products
+        Products
       </LinkItem>
       <LinkItem
         href="/commands"
         icon={<ShoppingBasketIcon size={18} />}
         onClick={() => navigateWithOrganization("/commands")}
       >
-        commands
-      </LinkItem>
-      <LinkItem
-        href="/sprints"
-        icon={<FolderClockIcon size={18} />}
-        onClick={() => navigateWithOrganization("/sprints")}
-      >
-        sprints
+        Commands
       </LinkItem>
       <LinkItem
         href="/posts"
         icon={<DockIcon size={18} />}
         onClick={() => navigateWithOrganization("/posts")}
       >
-        posts
+        Posts
       </LinkItem>
       <LinkItem
         href="/operators"
         icon={<UsersIcon size={18} />}
         onClick={() => navigateWithOrganization("/operators")}
       >
-        operators
+        Operators
       </LinkItem>
       <LinkItem
         href="/expertise"
         icon={<BookTextIcon size={18} />}
         onClick={() => navigateWithOrganization("/expertise")}
       >
-        operation Type
+        Expertise
       </LinkItem>
-      {/* <LinkItem href="/bom" icon={<ReceiptTextIcon size={18} />}>
-          bom
-        </LinkItem>
-        <LinkItem href="/boa" icon={<ReceiptTextIcon size={18} />}>
-          boa
-        </LinkItem> */}
       <LinkItem
         href="/operations"
         icon={<ScrollTextIcon size={18} />}
         onClick={() => navigateWithOrganization("/operations")}
       >
-        operations history
+        Operations History
       </LinkItem>
-
       <LinkItem
-        className="mt-auto"
         href="/settings"
         icon={<SettingsIcon size={18} />}
         onClick={() => navigateWithOrganization("/settings")}
+        className="mt-auto"
       >
-        settings
+        Settings
       </LinkItem>
       <LinkItem href="/help" icon={<CircleHelpIcon size={18} />}>
-        help center
+        Help Center
       </LinkItem>
-      <div className="flex items-center gap-2  px-3 py-2">
+      <div className="flex items-center gap-2 px-3 py-2">
         <Avatar className="size-12 border-2 border-[#E6B3BA]">
-          <AvatarImage src={user.image || ""} alt="@shadcn" />
+          <AvatarImage src={user.image || ""} alt="@user" />
           <AvatarFallback className="font-bold">
-            {`${user.name.charAt(0).toUpperCase()}`}
+            {user.name.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <div className=" flex-1">
+        <div className="flex-1">
           <div className="max-w-full truncate font-semibold capitalize">
             {user.name}
           </div>

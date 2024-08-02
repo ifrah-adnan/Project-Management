@@ -104,48 +104,54 @@ export function EditPostButton({ post, ...props }: AddOperatorButtonProps) {
       <SheetTrigger asChild>
         <Button {...props} />
       </SheetTrigger>
-      <SheetContent className="flex flex-col">
+      <SheetContent className="flex w-full flex-col overflow-auto p-2 sm:p-4">
         <SheetHeader>
-          <SheetTitle>
+          <SheetTitle className="text-lg sm:text-xl">
             <span>Edit Post</span>
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className="text-sm sm:text-base">
             Fill in the form below to edit a new post
           </SheetDescription>
         </SheetHeader>
         <form
           action={handleSubmit}
-          className="flex flex-1 flex-col gap-2 py-4 "
+          className="flex flex-1 flex-col gap-2 py-2 sm:gap-4 sm:py-4"
         >
           <FormInput
             name="name"
             label="Name *"
-            className="mt-4"
+            className="mt-2 sm:mt-4"
             defaultValue={post.name}
             required
             errors={fieldErrors.name}
           />
-          <Label className="mt-4 inline-block">Expertises</Label>
+          <Label className="mt-2 inline-block text-sm sm:mt-4 sm:text-base">
+            Expertises
+          </Label>
           <MultiSelect
             options={data?.expertises || []}
             value={selectedExpertise}
             valueRenderer={(value) => value.name}
             optionRenderer={(option) => option.name}
             onValueChange={setSelectedExpertise}
+            className="text-sm sm:text-base"
           />
-          <div className="mt-auto flex items-center justify-end gap-4">
+          <div className="mt-auto flex items-center justify-end gap-2 sm:gap-4">
             <SheetClose ref={closeRef}></SheetClose>
             <Button
               type="button"
               variant="outline"
-              className="flex w-24 gap-2"
+              className="flex w-20 gap-1 text-xs sm:w-24 sm:gap-2 sm:text-sm"
               onClick={handleClose}
             >
-              <ArrowLeftIcon size={18} />
+              <ArrowLeftIcon size={16} className="sm:size-18" />
               <span>Cancel</span>
             </Button>
-            <Button type="submit" className="flex w-24 gap-2">
-              <PlusIcon size={18} />
+            <Button
+              type="submit"
+              className="flex w-20 gap-1 text-xs sm:w-24 sm:gap-2 sm:text-sm"
+            >
+              <PlusIcon size={16} className="sm:size-18" />
               Save
             </Button>
           </div>

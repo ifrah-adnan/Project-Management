@@ -107,12 +107,15 @@ export function AddUserButton(props: AddUserButtonProps) {
   return (
     <Sheet onOpenChange={handleClose}>
       <SheetTrigger asChild>
-        <Button {...props} />
+        <Button
+          className="h-9 px-3 py-1.5 text-sm md:h-10 md:px-4 md:py-2 md:text-base"
+          {...props}
+        />
       </SheetTrigger>
-      <SheetContent className="flex flex-col overflow-auto">
+      <SheetContent className="flex w-full flex-col overflow-auto sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Add User</SheetTitle>
-          <SheetDescription>
+          <SheetTitle className="text-lg md:text-xl">Add User</SheetTitle>
+          <SheetDescription className="text-sm md:text-base">
             Fill the form below to add a new user
           </SheetDescription>
         </SheetHeader>
@@ -173,19 +176,22 @@ export function AddUserButton(props: AddUserButtonProps) {
               <FormErrors errors={fieldErrors.expertise} />
             </>
           )}
-          <div className="mt-auto flex items-center justify-end gap-4">
+          <div className="mt-auto flex items-center justify-end gap-2 md:gap-4">
             <SheetClose ref={closeRef}></SheetClose>
             <Button
               type="button"
               variant="outline"
-              className="flex w-24 gap-2"
+              className="flex w-20 gap-1 text-sm md:w-24 md:gap-2 md:text-base"
               onClick={handleClose}
             >
-              <ArrowLeftIcon size={18} />
+              <ArrowLeftIcon size={16} className="md:size-18" />
               <span>Cancel</span>
             </Button>
-            <Button type="submit" className="flex w-24 gap-2">
-              <PlusIcon size={18} />
+            <Button
+              type="submit"
+              className="flex w-20 gap-1 text-sm md:w-24 md:gap-2 md:text-base"
+            >
+              <PlusIcon size={16} className="md:size-18" />
               Save User
             </Button>
           </div>

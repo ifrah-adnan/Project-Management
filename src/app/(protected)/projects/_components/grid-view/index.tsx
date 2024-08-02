@@ -55,7 +55,7 @@ export const GridView: React.FC<{ data: TData }> = ({ data }) => {
   }, [data, organizationId]);
   return (
     <main>
-      <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-4 text-sm">
+      <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-4 text-sm sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {filteredData.map((item) => {
           const client = item.command.client;
           const value = (item.done / item.target) * 100;
@@ -68,8 +68,11 @@ export const GridView: React.FC<{ data: TData }> = ({ data }) => {
             sprints = `${completedSprints}/${totalSprints}`;
           }
           return (
-            <Card key={item.id} className="flex flex-col gap-6 p-4">
-              <div className="flex items-center justify-end gap-2">
+            <Card
+              key={item.id}
+              className="flex flex-col gap-4 p-3 sm:gap-6 sm:p-4"
+            >
+              <div className="flex items-center justify-end gap-1 sm:gap-2">
                 <div className="mr-auto flex flex-col gap-1">
                   <span className="font-medium">{item.project.name}</span>
                   <span className="text-xs capitalize">
@@ -115,18 +118,18 @@ export const GridView: React.FC<{ data: TData }> = ({ data }) => {
               <div className="relative">
                 <CircularProgress
                   value={value}
-                  className="mx-auto w-2/3 stroke-sky-900 shadow-black/0"
+                  className="mx-auto w-1/2 stroke-sky-900 shadow-black/0 sm:w-2/3"
                   gradient={{
                     startColor: "#2196F3",
                     endColor: "#0c4a6e",
                   }}
                 />
-                <span className="absolute bottom-1/2 right-1/2 translate-x-1/2 translate-y-1/2 text-2xl font-medium">
+                <span className="absolute bottom-1/2 right-1/2 translate-x-1/2 translate-y-1/2 text-xl font-medium sm:text-2xl">
                   {value.toFixed(2).toString().padStart(2, "0")}
                 </span>
               </div>
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-center gap-6">
+              <div className="flex flex-col gap-2 sm:gap-3">
+                <div className="flex justify-center gap-4 sm:gap-6">
                   <div className="flex items-center gap-1">
                     <span className="size-5 rounded bg-gradient-to-r from-[#2196F3] to-[#0c4a6e]"></span>
                     <span className="font-medium text-gray-500">Done:</span>
@@ -140,14 +143,14 @@ export const GridView: React.FC<{ data: TData }> = ({ data }) => {
                 </div>
                 <Progress
                   value={value}
-                  className="h-2 text-red-500"
+                  className="h-1.5 text-red-500 sm:h-2"
                   color={
                     (value < 25 && "#ef4444") ||
                     (value < 75 && "#eab308") ||
                     "#22c55e"
                   }
                 />
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 text-xs sm:gap-2 sm:text-sm">
                   <span className="text-gray-500">Sprints</span>
                   <ConfigureSprintButton
                     commandProjectId={item.id}

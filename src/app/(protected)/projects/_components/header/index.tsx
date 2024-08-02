@@ -39,13 +39,13 @@ export default function Header() {
   };
 
   return (
-    <>
+    <div className="p-0">
       <MainHeader name="My Projects"></MainHeader>
       <div className="font-sm flex h-page-header shrink-0 items-center justify-end gap-2 bg-card px-6 text-sm shadow">
         <h3 className="mr-auto font-medium capitalize">
           <FolderOpen />
         </h3>
-        <div className="mr-auto flex">
+        <div className="mr-auto flex ">
           {views.map((v) => (
             <button
               className={cn(
@@ -67,10 +67,10 @@ export default function Header() {
         {(user?.role === "ADMIN" || user?.role === "SYS_ADMIN") && (
           <AddProjectButton className="gap-2 uppercase">
             <PlusIcon size={16} />
-            <span>add new project</span>
+            <span className="hidden md:flex">add new project</span>
           </AddProjectButton>
         )}
       </div>
-    </>
+    </div>
   );
 }

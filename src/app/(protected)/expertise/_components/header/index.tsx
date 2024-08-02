@@ -17,7 +17,7 @@ export default function Header() {
         {(user?.role === "ADMIN" || user?.role === "SYS_ADMIN") && (
           <AddExpertiseButton className="gap-2 uppercase">
             <PlusIcon size={16} />
-            <span>add new expertise</span>
+            <span className="hidden md:flex">add new expertise</span>
           </AddExpertiseButton>
         )}
       </div>

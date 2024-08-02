@@ -100,20 +100,24 @@ export function EditExpertiseButton({
       <SheetTrigger asChild>
         <Button {...props} />
       </SheetTrigger>
-      <SheetContent className="flex flex-col">
+      <SheetContent className="flex w-full max-w-md flex-col p-2 sm:p-4 md:p-6">
         <SheetHeader>
-          <SheetTitle>Add Expertise</SheetTitle>
-          <SheetDescription>Add a new expertise to the list</SheetDescription>
+          <SheetTitle className="text-lg sm:text-xl md:text-2xl">
+            Add Expertise
+          </SheetTitle>
+          <SheetDescription className="text-sm sm:text-base">
+            Add a new expertise to the list
+          </SheetDescription>
         </SheetHeader>
         <form
-          className="flex flex-1 flex-col gap-2 py-4 "
+          className="flex flex-1 flex-col gap-2 py-2 sm:gap-4 sm:py-4"
           action={handleSubmit}
         >
           {" "}
           <FormInput
             name="name"
             label="Name *"
-            className="mt-4"
+            className="mt-2 sm:mt-4"
             required
             defaultValue={expertise.name}
             errors={fieldErrors.name}
@@ -121,32 +125,38 @@ export function EditExpertiseButton({
           <FormInput
             name="code"
             label="Code *"
-            className="mt-4"
+            className="mt-2 sm:mt-4"
             required
             defaultValue={expertise.code}
             errors={fieldErrors.code}
           />
-          <Label className="mt-4 inline-block">Operations </Label>
+          <Label className="mt-2 inline-block text-sm sm:mt-4 sm:text-base">
+            Operations{" "}
+          </Label>
           <MultiSelect
             options={data?.expertise || []}
             value={operations}
             onValueChange={setOperations}
             optionRenderer={(option) => option.name}
             valueRenderer={(option) => option.name}
+            className="text-sm sm:text-base"
           />
-          <FormErrors errors={fieldErrors.operations} />
-          <div className="mt-auto flex items-center justify-end gap-4">
+          <FormErrors errors={fieldErrors.operations} className="text-sm" />
+          <div className="mt-auto flex items-center justify-end gap-2 sm:gap-4">
             <SheetClose ref={closeRef}></SheetClose>
             <Button
               type="button"
               variant="outline"
-              className="flex w-24 gap-2"
+              className="flex w-20 gap-1 text-xs sm:w-24 sm:gap-2 sm:text-sm"
               onClick={handleClose}
             >
-              <ArrowLeftIcon size={18} />
+              <ArrowLeftIcon size={16} className="sm:size-18" />
               <span>Cancel</span>
             </Button>
-            <Button type="submit" className="flex w-24 gap-2">
+            <Button
+              type="submit"
+              className="flex w-20 gap-1 text-xs sm:w-24 sm:gap-2 sm:text-sm"
+            >
               <PlusIcon size={18} />
               Save
             </Button>

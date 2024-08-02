@@ -50,160 +50,167 @@ export default function List({ data, total }: { data: TData; total: number }) {
   }, [organizationId, data]);
 
   return (
-    <main className="p-6">
-      <Card className="mx-auto flex h-full w-full max-w-screen-2xl flex-1  flex-col overflow-auto p-4 ">
-        <Table>
-          <thead>
-            <tr>
-              <th>name</th>
-              <th>expertises</th>
-              <th>
-                <div className="flex gap-2">
-                  <span>Planning</span>
-                  <span className="font-medium text-gray-500">
-                    {"(Operator / Project / Operation / Date)"}
-                  </span>
-                </div>
-              </th>
-              <th>date added</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((item) => {
-              const currentPlanning = item.plannings[0];
-              const post = {
-                id: item.id,
-                name: item.name,
-                expertises: item.expertises,
-              };
+    <main className="p-2 sm:p-4 md:p-6">
+      <Card className="mx-auto flex h-full w-full max-w-screen-2xl flex-1 flex-col overflow-auto p-2 sm:p-4">
+        <div className="overflow-x-auto">
+          <Table className="w-full min-w-[1000px] text-xs sm:text-sm">
+            <thead>
+              <tr>
+                <th className="p-2 sm:p-3">Name</th>
+                <th className="p-2 sm:p-3">Expertises</th>
+                <th className="p-2 sm:p-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                    <span>Planning</span>
+                    <span className="text-xs font-medium text-gray-500">
+                      {"(Operator / Project / Operation / Date)"}
+                    </span>
+                  </div>
+                </th>
+                <th className="p-2 sm:p-3">Date Added</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.map((item) => {
+                const post = {
+                  id: item.id,
+                  name: item.name,
+                  expertises: item.expertises,
+                };
 
-              return (
-                <tr key={item.id}>
-                  <td>{item.name}</td>
-                  <td>
-                    {item.expertises.length > 0 ? (
-                      <div className="max-w-[15rem] truncate">
-                        {item.expertises.map((e) => e.name).join(", ")}
-                      </div>
-                    ) : (
-                      <span className="text-gray-500">No expertises</span>
-                    )}
-                  </td>
-                  <td>
-                    <div className="flex items-center gap-2">
-                      {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
-                        <AddEditPlanningButton
-                          postId={item.id}
-                          className="size-8 rounded-md"
-                          variant={"outline"}
-                          size={"icon"}
-                          expertises={item.expertises}
-                          onClose={() => console.log("Dialog closed")}
-                        >
-                          <CalendarIcon size={16} />
-                        </AddEditPlanningButton>
-                      )}
-
-                      {item.plannings && item.plannings.length > 0 ? (
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <Avatar className="size-7 border-2 border-[#E6B3BA]">
-                              <AvatarImage
-                                src={item.plannings[0].operator.name || ""}
-                                alt={item.plannings[0].operator.name}
-                              />
-                              <AvatarFallback className="font-bold">
-                                {`${item.plannings[0].operator.name.charAt(0).toUpperCase()}`}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="capitalize">
-                              {item.plannings[0].operator.name}
-                            </span>
-                            <span className="capitalize">
-                              {item.plannings[0]?.commandProject.project.name}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span>{item.plannings[0]?.operation.name}</span>
-                          </div>
-                          <div className="flex gap-2">
-                            <div className="flex gap-1">
-                              <span className="text-gray-500">from</span>
-                              <span>
-                                {format(
-                                  new Date(item.plannings[0].startDate),
-                                  "PP",
-                                )}
-                              </span>
-                            </div>
-                            <div className="flex gap-1">
-                              <span className="text-gray-500">to</span>
-                              <span>
-                                {format(
-                                  new Date(item.plannings[0].endDate),
-                                  "PP",
-                                )}
-                              </span>
-                            </div>
-                          </div>
+                return (
+                  <tr key={item.id}>
+                    <td className="p-2 sm:p-3">{item.name}</td>
+                    <td className="p-2 sm:p-3">
+                      {item.expertises.length > 0 ? (
+                        <div className="max-w-[8rem] truncate sm:max-w-[15rem]">
+                          {item.expertises.map((e) => e.name).join(", ")}
                         </div>
                       ) : (
-                        <span className="text-gray-500">
-                          No planning for now
-                        </span>
+                        <span className="text-gray-500">No expertises</span>
                       )}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="flex items-center justify-between gap-4">
-                      <span>{format(new Date(item.createdAt), "PP")}</span>
-                      {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
-                        <Popover>
-                          <PopoverTrigger>
-                            <Ellipsis size={16} />
-                          </PopoverTrigger>
-                          <PopoverContent
-                            align="end"
-                            className="flex w-fit flex-col gap-2"
+                    </td>
+                    <td className="p-2 sm:p-3">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        {(user.role === "ADMIN" ||
+                          user.role === "SYS_ADMIN") && (
+                          <AddEditPlanningButton
+                            postId={item.id}
+                            className="size-7 rounded-md sm:size-8"
+                            variant="outline"
+                            size="icon"
+                            expertises={item.expertises}
+                            onClose={() => console.log("Dialog closed")}
                           >
-                            <EditPostButton
-                              post={post}
-                              variant="ghost"
-                              className="justify-start gap-2 px-6 hover:text-sky-500"
-                            >
-                              <PencilIcon size={16} />
-                              <span>Edit</span>
-                            </EditPostButton>
+                            <CalendarIcon size={14} className="sm:size-16" />
+                          </AddEditPlanningButton>
+                        )}
 
-                            <ConfirmButton
-                              variant="ghost"
-                              size="icon"
-                              className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
-                              action={async () => {
-                                await handleDelete(item.id, session.user.id);
-                              }}
+                        {item.plannings && item.plannings.length > 0 ? (
+                          <div className="flex flex-col gap-2 text-xs sm:flex-row sm:items-center sm:gap-4 sm:text-sm">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="size-6 border-2 border-[#E6B3BA] sm:size-7">
+                                <AvatarImage
+                                  src={item.plannings[0].operator.name || ""}
+                                  alt={item.plannings[0].operator.name}
+                                />
+                                <AvatarFallback className="text-xs font-bold sm:text-sm">
+                                  {`${item.plannings[0].operator.name.charAt(0).toUpperCase()}`}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="max-w-[4rem] truncate capitalize sm:max-w-full">
+                                {item.plannings[0].operator.name}
+                              </span>
+                              <span className="max-w-[4rem] truncate capitalize sm:max-w-full">
+                                {item.plannings[0]?.commandProject.project.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="max-w-[6rem] truncate sm:max-w-full">
+                                {item.plannings[0]?.operation.name}
+                              </span>
+                            </div>
+                            <div className="flex flex-col gap-1 sm:flex-row sm:gap-2">
+                              <div className="flex gap-1">
+                                <span className="text-gray-500">from</span>
+                                <span>
+                                  {format(
+                                    new Date(item.plannings[0].startDate),
+                                    "PP",
+                                  )}
+                                </span>
+                              </div>
+                              <div className="flex gap-1">
+                                <span className="text-gray-500">to</span>
+                                <span>
+                                  {format(
+                                    new Date(item.plannings[0].endDate),
+                                    "PP",
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-500 sm:text-sm">
+                            No planning for now
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-2 sm:p-3">
+                      <div className="flex items-center justify-between gap-2 sm:gap-4">
+                        <span className="text-xs sm:text-sm">
+                          {format(new Date(item.createdAt), "PP")}
+                        </span>
+                        {(user.role === "ADMIN" ||
+                          user.role === "SYS_ADMIN") && (
+                          <Popover>
+                            <PopoverTrigger>
+                              <Ellipsis size={14} className="sm:size-16" />
+                            </PopoverTrigger>
+                            <PopoverContent
+                              align="end"
+                              className="flex w-fit flex-col gap-1 sm:gap-2"
                             >
-                              <Trash2Icon size={16} />
-                              <span>Delete</span>
-                            </ConfirmButton>
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+                              <EditPostButton
+                                post={post}
+                                variant="ghost"
+                                className="justify-start gap-1 px-3 text-xs hover:text-sky-500 sm:gap-2 sm:px-6 sm:text-sm"
+                              >
+                                <PencilIcon size={14} className="sm:size-16" />
+                                <span>Edit</span>
+                              </EditPostButton>
+
+                              <ConfirmButton
+                                variant="ghost"
+                                size="icon"
+                                className="flex w-full justify-start gap-1 rounded-md px-3 text-xs hover:text-red-500 sm:gap-2 sm:px-6 sm:text-sm"
+                                action={async () => {
+                                  await handleDelete(item.id, session.user.id);
+                                }}
+                              >
+                                <Trash2Icon size={14} className="sm:size-16" />
+                                <span>Delete</span>
+                              </ConfirmButton>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </div>
         {data.length === 0 && (
           <div className="grid flex-1 place-content-center">
-            <span className=" text-center text-3xl font-semibold opacity-50">
+            <span className="text-center text-xl font-semibold opacity-50 sm:text-2xl md:text-3xl">
               No Data
             </span>
           </div>
         )}
-        <div className="mt-auto flex justify-end px-4 pb-4 pt-1">
+        <div className="mt-auto flex justify-end px-2 pb-2 pt-1 sm:px-4 sm:pb-4">
           <ParamsPagination total={total} />
         </div>
       </Card>
