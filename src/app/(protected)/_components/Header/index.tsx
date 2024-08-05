@@ -14,8 +14,11 @@ const MainHeader: React.FC<MainHeaderProps> = ({ name, onSearch }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    onSearch(e.target.value);
+    const newSearchTerm = e.target.value;
+    setSearchTerm(newSearchTerm);
+    if (typeof onSearch === "function") {
+      onSearch(newSearchTerm);
+    }
   };
 
   return (

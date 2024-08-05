@@ -16,7 +16,15 @@ import {
 import { EditExpertiseButton } from "../edit-expertise-button";
 import { handleDelete } from "../../_utils/actions";
 import { getServerSession } from "@/lib/auth";
-export default function List({ data, total }: { data: TData; total: number }) {
+export default function List({
+  data,
+  total,
+  searchTerm,
+}: {
+  data: TData;
+  total: number;
+  searchTerm: string;
+}) {
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
@@ -38,12 +46,22 @@ export default function List({ data, total }: { data: TData; total: number }) {
 
   useEffect(() => {
     if (organizationId && data.length > 0) {
-      const filtered = data.filter(
+      let filtered = data.filter(
         (item) => item.organizationId === organizationId,
       );
+
+      if (searchTerm) {
+        filtered = filtered.filter(
+          (item) =>
+            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.code.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+      }
+
       setFilteredData(filtered);
     }
-  }, [organizationId, data]);
+  }, [organizationId, data, searchTerm]);
+  console.log(searchTerm, "llllll");
 
   console.log("filteredData", filteredData);
   return (

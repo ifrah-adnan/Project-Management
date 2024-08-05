@@ -16,21 +16,34 @@ import {
 import ParamsPagination from "@/components/params-pagination";
 import { useSession } from "@/components/session-provider";
 
-export default function List({ data, total }: { data: TData; total: number }) {
+export default function List({
+  data,
+  total,
+  searchTerm,
+}: {
+  data: TData;
+  total: number;
+  searchTerm: string;
+}) {
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
 
   useEffect(() => {
     if (user) {
-      setFilteredData(data);
+      let filtered = data.filter(
+        (item) =>
+          item.deviceId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.post?.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+      setFilteredData(filtered);
     }
-  }, [data, user]);
+  }, [data, user, searchTerm]);
 
   return (
     <main className="  p-2 sm:p-6">
       <Card className="  mx-auto flex h-full w-full max-w-screen-2xl flex-1 flex-col overflow-auto p-2 sm:p-4">
-        <div className=" debug ">
+        <div className="  ">
           <Table className=" divide-y divide-gray-200">
             <thead>
               <tr>

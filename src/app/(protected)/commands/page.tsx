@@ -1,7 +1,7 @@
 import React from "react";
-import Header from "./_components/header";
 import { findMany } from "./_utils/actions";
 import List from "./_components/list";
+import ClientList from "./_components/ClientList";
 
 export default async function Page({
   searchParams,
@@ -21,8 +21,7 @@ export default async function Page({
 
   return (
     <main className="flex flex-col">
-      <Header />
-      <List {...adaptedResult} />
+      <ClientList {...adaptedResult} />
     </main>
   );
 }

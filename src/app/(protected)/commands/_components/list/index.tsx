@@ -18,17 +18,27 @@ import {
 } from "@/components/ui/popover";
 import { EditCommandButton } from "../edit-command-button";
 import { useSession } from "@/components/session-provider";
-export default function List({ data, total }: { data: TData2; total: number }) {
+export default function List({
+  data,
+  total,
+  searchTerm,
+}: {
+  data: TData2;
+  total: number;
+  searchTerm: string;
+}) {
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData2>([]);
 
   useEffect(() => {
     if (user) {
-      const filtered = data;
+      let filtered = data.filter((item) =>
+        item.reference.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
       setFilteredData(filtered);
     }
-  }, [data, user]);
+  }, [data, user, searchTerm]);
 
   return (
     <div className="h-1 flex-1 p-6">
