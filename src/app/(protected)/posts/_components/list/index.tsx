@@ -109,13 +109,13 @@ export default function List({
                           user.role === "SYS_ADMIN") && (
                           <AddEditPlanningButton
                             postId={item.id}
-                            className="size-7 rounded-md sm:size-8"
+                            className="flex items-center justify-center rounded-full bg-gray-100 p-1 transition-colors duration-200 hover:bg-gray-200 sm:p-1.5 md:p-2 lg:p-2.5 xl:p-3"
                             variant="outline"
                             size="icon"
                             expertises={item.expertises}
                             onClose={() => console.log("Dialog closed")}
                           >
-                            <CalendarIcon size={10} className="sm:size-16" />
+                            <CalendarIcon className="h-4 w-4 text-gray-600 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8" />
                           </AddEditPlanningButton>
                         )}
 
@@ -180,7 +180,7 @@ export default function List({
                           user.role === "SYS_ADMIN") && (
                           <Popover>
                             <PopoverTrigger>
-                              <Ellipsis size={14} className="sm:size-16" />
+                              <Ellipsis size={14} className="sm:size-9" />
                             </PopoverTrigger>
                             <PopoverContent
                               align="end"
