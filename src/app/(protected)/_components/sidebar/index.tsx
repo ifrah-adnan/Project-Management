@@ -14,6 +14,7 @@ import {
   ChevronDownIcon,
   MenuIcon,
   XIcon,
+  ChevronRightIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
@@ -117,6 +118,12 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
       router.push(path);
     }
   };
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+  };
+
+  const userTypes = ["SYS_ADMIN", "ADMIN", "USER", "CLIENT", "OPERATOR"];
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -224,14 +231,47 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
               Devices
             </LinkItem>
             {isAdmin && (
-              <LinkItem
-                href="/users"
-                icon={<UsersIcon size={16} />}
-                onClick={() => navigateWithOrganization("/users")}
-                isCollapsed={isCollapsed}
-              >
-                Users
-              </LinkItem>
+              <div>
+                <button
+                  onClick={toggleUserMenu}
+                  className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-400">
+                      <UsersIcon size={16} />
+                    </span>
+                    {!isCollapsed && <span>Users</span>}
+                  </div>
+                  {!isCollapsed && (
+                    <span className="text-gray-400">
+                      {isUserMenuOpen ? (
+                        <ChevronDownIcon size={16} />
+                      ) : (
+                        <ChevronRightIcon size={16} />
+                      )}
+                    </span>
+                  )}
+                </button>
+                {isUserMenuOpen && !isCollapsed && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {userTypes.map((userType) => (
+                      <LinkItem
+                        key={userType}
+                        href={`/users?typeOfuser=${userType}`}
+                        icon={<UsersIcon size={14} />}
+                        className="py-1 text-sm"
+                        onClick={() =>
+                          navigateWithOrganization(
+                            `/users?typeOfuser=${userType}`,
+                          )
+                        }
+                      >
+                        {userType}
+                      </LinkItem>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
             <LinkItem
               href="/settings"

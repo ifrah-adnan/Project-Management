@@ -27,8 +27,11 @@ const views = [
     icon: <LayoutGridIcon size={16} />,
   },
 ];
+interface HeaderProps {
+  onSearch: (searchTerm: string) => void;
+}
 
-export default function Header() {
+const Header: React.FC<HeaderProps> = ({ onSearch }) => {
   const { view, toggleView } = useStore();
   const { session } = useSession();
   const user = session?.user;
@@ -40,7 +43,7 @@ export default function Header() {
 
   return (
     <div className="p-0">
-      <MainHeader name="My Projects"></MainHeader>
+      <MainHeader name="My Projects" onSearch={onSearch}></MainHeader>
       <div className="font-sm flex h-page-header shrink-0 items-center justify-end gap-2 bg-card px-6 text-sm shadow">
         <h3 className="mr-auto font-medium capitalize">
           <FolderOpen />
@@ -73,4 +76,5 @@ export default function Header() {
       </div>
     </div>
   );
-}
+};
+export default Header;

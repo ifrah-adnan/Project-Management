@@ -8,6 +8,7 @@ import { TData } from "./_utils/schemas";
 import { AdminComponent } from "./_components/AdminComponent";
 import { OrganizationfindMany } from "../organizations/_utils/action";
 import HeaderAdmin from "./_components/HeaderAdmin";
+import ClientList from "./_components/Clientist";
 type ResultState = null | {
   data: TData;
   total: number;
@@ -61,8 +62,7 @@ export default function Page({
   return (
     <main className="flex flex-col">
       <>
-        <Header />
-        <List {...result} />
+        <ClientList {...result} userId={session.user.id} />
       </>
     </main>
   );

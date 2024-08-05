@@ -116,12 +116,16 @@ const generatePDF = (data: any, projectName: string) => {
   return pdf;
 };
 
-export const ListView: React.FC<{ data: TData }> = ({ data }) => {
+export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
+  data,
+  searchTerm,
+}) => {
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
   const [organizationId, setOrganizationId] = useState<any>(null);
   const [currentProjectName, setCurrentProjectName] = useState<string>("");
+  const [localSearchTerm, setLocalSearchTerm] = useState<string>(searchTerm);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -134,21 +138,35 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
 
     fetchSession();
   }, []);
-
   useEffect(() => {
-    if (organizationId) {
-      const filtered = data.filter(
+    if (organizationId && data.length > 0) {
+      let filtered = data.filter(
         (item) => item.organizationId === organizationId,
       );
+
+      if (searchTerm) {
+        filtered = filtered.filter(
+          (item) =>
+            item.command.client?.name
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            item.project.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+      }
+
       setFilteredData(filtered);
     }
-  }, [data, organizationId]);
+  }, [organizationId, data, searchTerm]);
 
   const [doneValues, setDoneValues] = useState<{ [key: string]: number }>({});
   const [isPending, startTransition] = useTransition();
   const [openDialogs, setOpenDialogs] = useState<{ [key: string]: boolean }>(
     {},
   );
+  const [operations, setOperations] = useState<any[]>([]);
+  const [operationCount, setOperationCount] = useState<any>(0);
+  const [isLoadingOperations, setIsLoadingOperations] = useState(false);
+  const [targets, setTargets] = useState<{ [key: string]: number }>({});
 
   const handleUpdateDoneValue = async (id: string, newValue: number) => {
     startTransition(async () => {
@@ -162,23 +180,16 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
     });
   };
 
-  const [operations, setOperations] = useState<any[]>([]);
-  const [operationCount, setOperationCount] = useState<any>(0);
-  const [isLoadingOperations, setIsLoadingOperations] = useState(false);
-  const [targets, setTargets] = useState<{ [key: string]: number }>({});
-
   const handleOpenDialog = async (
     commandProjectId: string,
     projectName: string,
   ) => {
     setIsLoadingOperations(true);
     setCurrentProjectName(projectName);
+    console.log("voila xxxle serach tearm", searchTerm);
 
     try {
       const result = await getOperationProgress2(commandProjectId);
-      console.log(result);
-      console.log(result.targets, "this is target ");
-
       if (result.operationDetails) {
         setOperations(result.operationDetails);
         setOperationCount(result.operationCount);
@@ -203,7 +214,7 @@ export const ListView: React.FC<{ data: TData }> = ({ data }) => {
       <Table className="w-full">
         <thead>
           <tr>
-            <th>project</th>
+            <th>project </th>
             <th>client</th>
             <th>done</th>
             <th>target</th>

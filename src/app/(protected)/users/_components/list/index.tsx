@@ -17,20 +17,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useSession } from "@/components/session-provider";
+import { useSearchParams } from "next/navigation";
 
 export default function List({
   data,
   total,
   userId,
+  searchTerm,
 }: {
   data: TData;
   total: number;
   userId: string;
+  searchTerm: string;
 }) {
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
   const [organizationId, setOrganizationId] = useState<any>(null);
+  const searchParams = useSearchParams();
+  const typeOfuser = searchParams.get("typeOfuser");
 
   useEffect(() => {
     if (session && session.user) {
@@ -42,12 +47,28 @@ export default function List({
 
   useEffect(() => {
     if (organizationId && data.length > 0) {
-      const filtered = data.filter(
+      let filtered = data.filter(
         (item) => item.organizationId === organizationId,
       );
+
+      if (typeOfuser) {
+        filtered = filtered.filter(
+          (item) => item.role.toLowerCase() === typeOfuser.toLowerCase(),
+        );
+      }
+
+      if (searchTerm) {
+        filtered = filtered.filter(
+          (item) =>
+            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.role.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+      }
+
       setFilteredData(filtered);
     }
-  }, [organizationId, data]);
+  }, [organizationId, data, typeOfuser, searchTerm]);
 
   return (
     <div className="h-1 flex-1 p-3">
