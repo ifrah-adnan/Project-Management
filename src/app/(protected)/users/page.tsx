@@ -1,9 +1,10 @@
 import React from "react";
 import Header from "./_components/header";
-import { findMany } from "./_utils/actions";
 import List from "./_components/list";
+import { findMany } from "./_utils/actions";
 import { getServerSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import ClientList from "./_components/clientList";
 
 export default async function Page({
   searchParams,
@@ -16,8 +17,7 @@ export default async function Page({
 
   return (
     <main className="flex flex-col">
-      <Header />
-      <List {...result} userId={session.user.id} />
+      <ClientList {...result} userId={session.user.id} />
     </main>
   );
 }
