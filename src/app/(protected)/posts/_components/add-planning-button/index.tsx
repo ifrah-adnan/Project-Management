@@ -460,9 +460,9 @@ export function AddEditPlanningButton({
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-5 md:size-7"
+                              className="size-5 md:size-5"
                             >
-                              <Ellipsis size={12} className="md:size-16" />
+                              <Ellipsis size={12} className="md:size-7" />
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="flex w-fit flex-col gap-1 md:gap-2">
