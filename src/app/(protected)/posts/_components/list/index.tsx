@@ -21,7 +21,15 @@ import UpdatePojectCount from "../update-project-count";
 import { useSession } from "@/components/session-provider";
 import { useEffect, useState } from "react";
 import { getServerSession } from "@/lib/auth";
-export default function List({ data, total }: { data: TData; total: number }) {
+export default function List({
+  data,
+  total,
+  searchTerm,
+}: {
+  data: TData;
+  total: number;
+  searchTerm: string;
+}) {
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
@@ -42,12 +50,18 @@ export default function List({ data, total }: { data: TData; total: number }) {
 
   useEffect(() => {
     if (organizationId && data.length > 0) {
-      const filtered = data.filter(
+      let filtered = data.filter(
         (item) => item.organizationId === organizationId,
       );
+      if (searchTerm) {
+        filtered = filtered.filter((item) =>
+          item.name.toLowerCase().includes(searchTerm.toLowerCase()),
+        );
+      }
+
       setFilteredData(filtered);
     }
-  }, [organizationId, data]);
+  }, [organizationId, data, searchTerm]);
 
   return (
     <main className="p-2 sm:p-4 md:p-6">
@@ -101,7 +115,7 @@ export default function List({ data, total }: { data: TData; total: number }) {
                             expertises={item.expertises}
                             onClose={() => console.log("Dialog closed")}
                           >
-                            <CalendarIcon size={14} className="sm:size-16" />
+                            <CalendarIcon size={10} className="sm:size-16" />
                           </AddEditPlanningButton>
                         )}
 

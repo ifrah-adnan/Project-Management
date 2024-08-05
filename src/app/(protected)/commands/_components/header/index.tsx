@@ -8,13 +8,17 @@ import { AddCommandButton } from "../add-command-button";
 import { useSession } from "@/components/session-provider";
 import MainHeader from "@/app/(protected)/_components/Header";
 
-export default function Header() {
+interface HeaderProps {
+  onSearch: (searchTerm: string) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onSearch }) => {
   const { session } = useSession();
   const user = session?.user;
 
   return (
     <>
-      <MainHeader name="My Commands"></MainHeader>
+      <MainHeader name="My Commands" onSearch={onSearch}></MainHeader>
 
       <div className="font-sm flex h-page-header shrink-0 items-center justify-end gap-2 bg-card px-6 text-sm shadow">
         <h3 className="mr-auto font-medium capitalize">Commands</h3>
@@ -27,4 +31,5 @@ export default function Header() {
       </div>
     </>
   );
-}
+};
+export default Header;
