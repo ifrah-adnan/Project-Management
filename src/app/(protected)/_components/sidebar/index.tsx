@@ -196,7 +196,7 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
               onClick={() => navigateWithOrganization("/projects")}
               isCollapsed={isCollapsed}
             >
-              Projects
+              Commands
             </LinkItem>
             <LinkItem
               href="/commands"
@@ -204,7 +204,7 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
               onClick={() => navigateWithOrganization("/commands")}
               isCollapsed={isCollapsed}
             >
-              Commands
+              Projects
             </LinkItem>
             <LinkItem
               href="/posts"
