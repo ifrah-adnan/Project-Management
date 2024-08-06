@@ -96,12 +96,19 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
   const handleSubmit = async (formData: FormData) => {
     const target = formData.get("target") as string;
     const endDate = formData.get("endDate") as string;
+    const selectedDate = new Date(endDate);
+    const currentDate = new Date();
+
+    if (selectedDate < currentDate) {
+      toast.error("The selected date cannot be in the past.");
+      return;
+    }
 
     const data = {
       command_id: commandId,
       project_id: projectId,
       target: +target,
-      endDate: new Date(endDate),
+      endDate: selectedDate,
     };
 
     const parsed = createInputSchema.safeParse(data);
@@ -113,6 +120,7 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
       );
       return;
     }
+
     const { result, error, fieldErrors } = await createCommandProject(
       parsed.data,
       user.id,
