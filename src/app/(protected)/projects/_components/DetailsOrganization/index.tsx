@@ -99,9 +99,9 @@ const DetailsDialog = ({ isOpen, onClose, orgId }: DetailsDialogProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="max-h-[90vh] w-[95vw] overflow-y-auto sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
+          <DialogTitle className="flex flex-col items-center space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
             <Avatar className="h-10 w-10">
               <AvatarImage
                 src={orgDetails?.imagePath || ""}
@@ -109,7 +109,9 @@ const DetailsDialog = ({ isOpen, onClose, orgId }: DetailsDialogProps) => {
               />
               <AvatarFallback>{orgDetails?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
-            <span>{orgDetails?.name || "Organization"} Details</span>
+            <span className="text-center sm:text-left">
+              {orgDetails?.name || "Organization"} Details
+            </span>
           </DialogTitle>
         </DialogHeader>
         {isLoading ? (
@@ -118,13 +120,19 @@ const DetailsDialog = ({ isOpen, onClose, orgId }: DetailsDialogProps) => {
           <p className="text-red-500">{error}</p>
         ) : orgDetails ? (
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="stats">Statistics</TabsTrigger>
-              <TabsTrigger value="chart">Chart</TabsTrigger>
+            <TabsList className="mb-4 grid w-full grid-cols-3">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="text-xs sm:text-sm">
+                Statistics
+              </TabsTrigger>
+              <TabsTrigger value="chart" className="text-xs sm:text-sm">
+                Chart
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="overview">
-              <div className="mt-4 space-y-4">
+              <div className="mt-4 space-y-4 text-sm sm:text-base">
                 <p>
                   <strong>Description:</strong>{" "}
                   {orgDetails.description || "N/A"}
@@ -139,7 +147,7 @@ const DetailsDialog = ({ isOpen, onClose, orgId }: DetailsDialogProps) => {
               </div>
             </TabsContent>
             <TabsContent value="stats">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <StatCard
                   title="Users"
                   value={orgDetails.userCount}
@@ -173,19 +181,33 @@ const DetailsDialog = ({ isOpen, onClose, orgId }: DetailsDialogProps) => {
               </div>
             </TabsContent>
             <TabsContent value="chart">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 10 }}
+                      interval={0}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </TabsContent>
           </Tabs>
         ) : null}
         <DialogFooter>
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose} className="w-full sm:w-auto">
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
