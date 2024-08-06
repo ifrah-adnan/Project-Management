@@ -61,7 +61,6 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
     }
     closeRef.current?.click();
   };
-
   const handleSubmit = async (formData: FormData) => {
     const data = {
       name: formData.get("name") as string,
@@ -86,6 +85,24 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
     try {
       await createOrganizationWithAdmin(data, imagePath);
       toast.success("Organization and admin created successfully");
+
+      // Envoyer un e-mail
+      const emailResponse = await fetch("/api/sendEmail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: data.adminEmail,
+          subject: "Welcome to the Organization",
+          html: `<p>Hello ${data.adminName},</p><p>Your organization has been created. Please log in using this <a href="http://your-app-url/login">link</a>.</p>`,
+        }),
+      });
+
+      if (emailResponse.ok) {
+        toast.success("Email sent successfully");
+      } else {
+        toast.error("Failed to send email");
+      }
+
       handleClose();
     } catch (error) {
       console.error("Error creating organization and admin:", error);
