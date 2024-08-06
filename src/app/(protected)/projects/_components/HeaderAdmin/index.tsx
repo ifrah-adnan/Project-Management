@@ -10,7 +10,7 @@ export default function HeaderAdmin() {
       <h3 className="mr-auto font-medium capitalize">My Organizations</h3>
       <AddOrganizationButton className="gap-2 uppercase">
         <PlusIcon size={16} />
-        <span>Create new Organization</span>
+        <span className="hidden md:flex">Create new Organization</span>
       </AddOrganizationButton>
     </div>
   );

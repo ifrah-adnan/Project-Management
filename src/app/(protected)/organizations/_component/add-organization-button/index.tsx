@@ -146,10 +146,12 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
       <SheetTrigger asChild>
         <Button {...props} />
       </SheetTrigger>
-      <SheetContent className="flex flex-col overflow-y-auto ">
+      <SheetContent className="flex w-full flex-col overflow-y-auto sm:max-w-md md:max-w-lg">
         <SheetHeader>
-          <SheetTitle>Add Organization</SheetTitle>
-          <SheetDescription>
+          <SheetTitle className="text-xl sm:text-2xl">
+            Add Organization
+          </SheetTitle>
+          <SheetDescription className="text-sm sm:text-base">
             Add a new organization to the list
           </SheetDescription>
         </SheetHeader>
@@ -159,10 +161,10 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
             const formData = new FormData(e.target as HTMLFormElement);
             handleSubmit(formData);
           }}
-          className="flex flex-1 flex-col gap-2 py-4 "
+          className="flex flex-1 flex-col gap-4 py-6"
         >
           {Object.keys(fieldErrors).length > 0 && (
-            <div className="mb-4 text-red-500">
+            <div className="mb-4 text-sm text-red-500 sm:text-base">
               Please correct the errors below.
             </div>
           )}
@@ -170,7 +172,6 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
           <FormInput
             name="name"
             label="Name *"
-            className="mt-4"
             required
             errors={fieldErrors.name}
           />
@@ -178,42 +179,40 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
           <FormTextarea
             name="description"
             label="Description *"
-            className="mt-4"
             required
             errors={fieldErrors.description}
           />
+
           <FormInput
             name="adress"
-            label="Adress  "
+            label="Address"
             type="text"
-            className="mt-4"
             errors={fieldErrors.name}
           />
+
           <FormInput
             name="adminName"
             label="Admin Name *"
-            className="mt-4"
             required
             errors={fieldErrors.adminName}
           />
+
           <FormInput
             name="adminEmail"
             label="Admin Email *"
             type="email"
-            className="mt-4"
             required
             errors={fieldErrors.adminEmail}
           />
+
           <FormInput
             name="adminPassword"
             label="Admin Password *"
             type="password"
-            className="mt-4"
             required
             errors={fieldErrors.adminPassword}
           />
 
-          {/* File upload input */}
           <div className="mt-6">
             <Label
               htmlFor="file"
@@ -221,20 +220,20 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
             >
               Organization Logo
             </Label>
-            <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-6 pb-6 pt-5">
+            <div className="mt-1 flex justify-center rounded-md border-2 border-dashed border-gray-300 px-4 py-4 sm:px-6 sm:py-6">
               <div className="space-y-1 text-center">
                 {imageUrl ? (
                   <Image
                     src={imageUrl}
                     alt="Preview"
-                    className="mx-auto h-32 w-32 rounded-md object-cover"
+                    className="mx-auto h-24 w-24 rounded-md object-cover sm:h-32 sm:w-32"
                     width={128}
                     height={128}
                   />
                 ) : (
-                  <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <ImageIcon className="mx-auto h-10 w-10 text-gray-400 sm:h-12 sm:w-12" />
                 )}
-                <div className="flex text-sm text-gray-600">
+                <div className="flex flex-col items-center justify-center text-sm text-gray-600 sm:flex-row">
                   <label
                     htmlFor="file"
                     className="relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:text-indigo-500"
@@ -250,7 +249,7 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
                       ref={fileInputRef}
                     />
                   </label>
-                  <p className="pl-1">or drag and drop</p>
+                  <p className="mt-1 pl-1 sm:mt-0">or drag and drop</p>
                 </div>
                 <p className="text-xs text-gray-500">
                   PNG, JPG, GIF up to 10MB
@@ -259,18 +258,21 @@ export function AddOrganizationButton(props: AddOperatorButtonProps) {
             </div>
           </div>
 
-          <div className="mt-auto flex items-center justify-end gap-4">
+          <div className="mt-auto flex flex-col items-center justify-end gap-4 sm:flex-row">
             <SheetClose ref={closeRef}></SheetClose>
             <Button
               type="button"
               variant="outline"
-              className="flex w-24 gap-2"
+              className="flex w-full justify-center gap-2 sm:w-auto"
               onClick={handleClose}
             >
               <ArrowLeftIcon size={18} />
               <span>Cancel</span>
             </Button>
-            <Button type="submit" className="flex w-24 gap-2">
+            <Button
+              type="submit"
+              className="flex w-full justify-center gap-2 sm:w-auto"
+            >
               <PlusIcon size={18} />
               Save
             </Button>
