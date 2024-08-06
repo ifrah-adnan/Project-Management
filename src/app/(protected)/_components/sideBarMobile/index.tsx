@@ -177,18 +177,18 @@ const SideBarMobile: React.FC<SideBarMobileProps> = ({ className }) => {
               ) : (
                 <>
                   <LinkItem
-                    href="/projects"
+                    href="/commands"
                     icon={<FolderKanban size={14} />}
+                    onClick={() => navigateWithOrganization("/commands")}
+                  >
+                    Commands (O F)
+                  </LinkItem>
+                  <LinkItem
+                    href="/projects"
+                    icon={<ShoppingBasketIcon size={14} />}
                     onClick={() => navigateWithOrganization("/projects")}
                   >
                     Projects
-                  </LinkItem>
-                  <LinkItem
-                    href="/commands"
-                    icon={<ShoppingBasketIcon size={14} />}
-                    onClick={() => navigateWithOrganization("/commands")}
-                  >
-                    Commands
                   </LinkItem>
                   <LinkItem
                     href="/posts"

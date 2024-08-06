@@ -191,17 +191,17 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
         ) : (
           <>
             <LinkItem
-              href="/projects"
+              href="/commands"
               icon={<FolderKanban size={16} />}
-              onClick={() => navigateWithOrganization("/projects")}
+              onClick={() => navigateWithOrganization("/commands")}
               isCollapsed={isCollapsed}
             >
-              Commands
+              Commands (O F)
             </LinkItem>
             <LinkItem
-              href="/commands"
+              href="/projects"
               icon={<ShoppingBasketIcon size={16} />}
-              onClick={() => navigateWithOrganization("/commands")}
+              onClick={() => navigateWithOrganization("/projects")}
               isCollapsed={isCollapsed}
             >
               Projects
