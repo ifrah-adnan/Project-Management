@@ -14,6 +14,7 @@ import {
   PlusCircle,
   Map,
   ChevronDown,
+  PlusIcon,
 } from "lucide-react";
 import { ConfirmButton } from "@/components/confirm-button";
 import { EditOrganizationButton } from "@/app/(protected)/organizations/_component/edit-organization-button";
@@ -50,6 +51,7 @@ import Image from "next/image";
 import MapDialog from "../map-dialog/MapDialog";
 import DetailsDialog from "../DetailsOrganization";
 import { motion } from "framer-motion";
+import { AddOrganizationButton } from "@/app/(protected)/organizations/_component/add-organization-button";
 
 type TData = {
   id: any;
@@ -135,6 +137,12 @@ export function AdminComponent({
   return (
     <div className="h-1 flex-1 bg-gradient-to-br from-gray-50 to-gray-100 p-4 dark:from-gray-900 dark:to-gray-800 sm:p-6">
       <div className="space-y-4 sm:space-y-6">
+        <div className="mb-4 flex justify-end">
+          <AddOrganizationButton className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            <PlusIcon className="mr-2 inline-block" size={16} />
+            Create new Organization
+          </AddOrganizationButton>
+        </div>
         {/* <div className="relative mx-auto max-w-md">
           <Input
             type="text"
