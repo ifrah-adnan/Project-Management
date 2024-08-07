@@ -69,7 +69,7 @@ function ButtonAddOperation() {
       code: "",
     },
   });
-  const [view, setView] = React.useState("create");
+  const [view, setView] = React.useState("select");
   const toggle = (value: string) => {
     setView(value);
   };
