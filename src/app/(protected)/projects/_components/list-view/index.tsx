@@ -208,6 +208,7 @@ export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
     const pdf = generatePDF(operations, currentProjectName);
     pdf.save("project_info.pdf");
   };
+  console.log("this is information for all project", filteredData);
 
   return (
     <Card className="mx-auto h-full w-full max-w-screen-2xl overflow-auto p-4">
@@ -215,6 +216,8 @@ export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
         <thead>
           <tr>
             <th>project </th>
+            <th>reference Command </th>
+
             <th>client</th>
             <th>done</th>
             <th>target</th>
@@ -374,6 +377,7 @@ export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
                     </DialogContent>
                   </Dialog>
                 </td>
+                <td>{item.command.reference}</td>
                 <td>
                   {client ? (
                     <div className="flex items-center gap-2">
@@ -394,66 +398,7 @@ export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
                     "N/A"
                   )}
                 </td>
-                <td>
-                  <Dialog
-                    open={openDialogs[item.id]}
-                    onOpenChange={(open) =>
-                      setOpenDialogs((prev) => ({ ...prev, [item.id]: open }))
-                    }
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                      >
-                        <span className="text-gray-700">
-                          {doneValues[item.id] ?? item.done}
-                        </span>
-                        <PencilIcon
-                          size={14}
-                          className="text-gray-400 transition-colors duration-200 hover:text-blue-500"
-                        />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Update Done Value</DialogTitle>
-                      </DialogHeader>
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          const newValue = Number(
-                            (e.target as HTMLFormElement).doneValue.value,
-                          );
-                          handleUpdateDoneValue(item.id, newValue);
-                        }}
-                      >
-                        <Input
-                          name="doneValue"
-                          type="number"
-                          defaultValue={doneValues[item.id] ?? item.done}
-                        />
-                        <Button
-                          type="submit"
-                          disabled={isPending}
-                          className="mt-4 flex w-full items-center justify-center gap-2"
-                        >
-                          {isPending ? (
-                            <>
-                              <RefreshCw className="animate-spin" size={16} />
-                              Updating...
-                            </>
-                          ) : (
-                            <>
-                              <RefreshCw size={16} />
-                              Update
-                            </>
-                          )}
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </td>
+                <td>{item.done}</td>
                 <td>{item.target}</td>
                 <td>
                   <div className="flex items-center gap-2">
