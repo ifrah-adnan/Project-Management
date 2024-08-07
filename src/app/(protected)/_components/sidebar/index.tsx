@@ -292,18 +292,6 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
           </>
         )}
       </nav>
-
-      <div className="border-t border-gray-200 p-4 dark:border-gray-700">
-        <div
-          className={cn(
-            "flex items-center",
-            isCollapsed ? "justify-center" : "justify-between",
-          )}
-        >
-          {!isCollapsed && <UserButton />}
-          <ModeToggle />
-        </div>
-      </div>
     </div>
   );
 };
