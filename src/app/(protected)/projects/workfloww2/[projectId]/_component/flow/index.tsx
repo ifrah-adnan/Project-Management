@@ -130,6 +130,7 @@ function Flow() {
         className="h w-full"
         nodeTypes={NodeType}
         edgeTypes={EdgeType}
+        style={{ backgroundColor: "#f0f0f0" }}
         minZoom={0.5}
         maxZoom={1.5}
         fitView
@@ -141,7 +142,7 @@ function Flow() {
         onEdgeUpdateEnd={onEdgeUpdateEnd}
         onEdgeUpdateStart={onEdgeUpdateStart}
       >
-        <Background color="#7a7676" gap={10} variant={BackgroundVariant.Dots} />
+        <Background color="#000000" gap={10} variant={BackgroundVariant.Dots} />
       </ReactFlow>
       <AddOperation />
       {nodeSelected && <EditOperation />}

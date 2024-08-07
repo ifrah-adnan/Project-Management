@@ -58,7 +58,7 @@ function SelectOperation({
                 key={index}
                 variant="outline"
                 className={cn(
-                  "mt-2 flex w-full  cursor-pointer items-center gap-4 rounded-md  border-[#D2D3D6] border-[2]  transition-colors ",
+                  " relative mt-2 flex w-full cursor-pointer items-center gap-4 rounded-md  border-[#D2D3D6] border-[2]  transition-colors ",
                   {
                     "bg-[#FA993A] text-white":
                       operationSelected?.id === node.id,
@@ -91,6 +91,11 @@ function SelectOperation({
                     </span>
                   </div>
                 </div>
+                {node.isFinal && (
+                  <div className="absolute -right-[10px] top-[30px] rotate-45  whitespace-nowrap rounded-r-md rounded-tl-md bg-red-600 px-[32px] text-sm text-white">
+                    Final
+                  </div>
+                )}
               </Card>
             );
           })}
