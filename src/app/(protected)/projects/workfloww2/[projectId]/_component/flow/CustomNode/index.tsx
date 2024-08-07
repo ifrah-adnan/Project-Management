@@ -33,13 +33,16 @@ function CustomNode({
   return (
     <Card
       variant="muted"
-      className="relative min-w-[14rem] max-w-full px-2 py-1"
+      className="relative min-w-[14rem] max-w-full px-3 py-2"
       style={{
+        backgroundColor: "#2C3E50",
+        color: "#ECF0F1",
         boxShadow:
           nodeSelected?.id === id
-            ? "0px 3.2px 0px 0px #3357A3"
-            : "0px 3.2px 0px 0px #00000026",
-        transition: "box-shadow 0.3s",
+            ? "0px 4px 8px rgba(52, 152, 219, 0.5)"
+            : "0px 2px 4px rgba(0, 0, 0, 0.3)",
+        transition: "all 0.3s ease",
+        borderRadius: "8px",
       }}
     >
       <Handle
@@ -48,43 +51,63 @@ function CustomNode({
         isConnectable={isConnectable}
         position={Position.Top}
         style={{
-          background: "white",
-          width: "10px",
-          height: "10px",
-          border: "none",
+          background: "#3498DB",
+          width: "12px",
+          height: "12px",
+          border: "2px solid #ECF0F1",
+          top: "-6px",
         }}
       />
 
-      <div className="flex h-full w-full items-center gap-2">
-        <Button variant="outline" className="size-12">
+      <div className="flex h-full w-full items-center gap-3">
+        <Button
+          variant="outline"
+          className="size-12 border-[#3498DB] bg-transparent hover:bg-[#34495E]"
+        >
           {data.icon &&
             typeof data.icon === "string" &&
             React.createElement(
               icons?.[data.icon as keyof typeof icons] as React.ComponentType<{
                 size: number;
+                color: string;
               }>,
-              { size: 20 },
+              { size: 24, color: "#3498DB" },
             )}
         </Button>
-        <div className="flex flex-col gap-1 truncate text-sm ">
-          <span>{data.name}</span>
+        <div className="flex flex-col gap-1 truncate text-sm">
+          <span className="font-semibold">
+            {data.name}{" "}
+            {data.isFinal && (
+              <span className="text-xs font-normal text-[#BDC3C7]">
+                (Final)
+              </span>
+            )}
+          </span>
 
-          <div className="flex items-center gap-1 text-xs text-[#AAAAAA]">
-            <Clock1 size={15} />
-            <span>Time estimated:{data.estimatedTime}</span>
+          <div className="flex items-center gap-1 text-xs text-[#BDC3C7]">
+            <Clock1 size={12} />
+            <span>Est. time: {data.estimatedTime}</span>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Button className="size-5 rounded-full p-0" variant="ghost">
-            <Repeat size={14} />
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            className="size-8 rounded-full p-0"
+            variant="ghost"
+            style={{ color: "#3498DB" }}
+          >
+            <Repeat size={16} />
           </Button>
           <Popover>
             <PopoverTrigger asChild>
-              <Button className="size-5 rounded-full p-0" variant="ghost">
-                <EllipsisVertical size={14} />
+              <Button
+                className="size-8 rounded-full p-0"
+                variant="ghost"
+                style={{ color: "#3498DB" }}
+              >
+                <EllipsisVertical size={16} />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[6rem] p-0">
+            <PopoverContent className="w-[8rem] border-[#3498DB] bg-[#34495E] p-1">
               <div className="flex flex-col gap-1">
                 <Button
                   onClick={() => {
@@ -93,9 +116,9 @@ function CustomNode({
                     setNodeSelected(node);
                   }}
                   variant="ghost"
-                  className="flex items-center justify-between gap-2 px-2 text-sm"
+                  className="flex items-center justify-start gap-2 px-2 py-1 text-sm text-[#ECF0F1] hover:bg-[#2C3E50]"
                 >
-                  <Pencil size={20} />
+                  <Pencil size={16} />
                   Edit
                 </Button>
                 <Button
@@ -108,10 +131,9 @@ function CustomNode({
                     setNodes(newNodes);
                   }}
                   variant="ghost"
-                  color="danger"
-                  className="flex items-center justify-between gap-2 px-2 text-sm hover:bg-red-100 hover:text-red-500"
+                  className="flex items-center justify-start gap-2 px-2 py-1 text-sm text-[#E74C3C] hover:bg-[#2C3E50]"
                 >
-                  <Trash2 size={20} />
+                  <Trash2 size={16} />
                   Delete
                 </Button>
               </div>
@@ -140,14 +162,14 @@ function CustomNode({
         position={Position.Bottom}
         style={{
           position: "absolute",
-          width: "1rem",
-          height: "1rem",
+          width: "12px",
+          height: "12px",
           borderRadius: "100%",
-          bottom: "0",
+          bottom: "-6px",
           left: "50%",
-          transform: "translate(-50%, 98%)",
-          border: "none",
-          background: "transparent",
+          transform: "translateX(-50%)",
+          border: "2px solid #ECF0F1",
+          background: "#3498DB",
         }}
       />
     </Card>

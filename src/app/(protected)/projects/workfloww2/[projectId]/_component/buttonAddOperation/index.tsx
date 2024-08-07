@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Clock1, MousePointer, PlusIcon, ShieldPlus } from "lucide-react";
-import React, { useEffect, useTransition } from "react";
+import React, { useEffect, useMemo, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,16 @@ import SelectOperation from "./selectOperation";
 import { createOperation } from "../../../_utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { v4 as uuid } from "uuid";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import useSWR from "swr";
+import { getPosts } from "@/app/(protected)/devices/_utils/actions";
 const views = [
   {
     value: "create",
@@ -37,6 +47,27 @@ const views = [
     icon: <MousePointer size={16} />,
   },
 ];
+type TPost = {
+  expertises: {
+    operations: {
+      name: string;
+      id: string;
+    }[];
+    name: string;
+    id: string;
+  }[];
+  plannings: {
+    startDate: Date;
+    endDate: Date;
+    operation: {
+      id: string;
+      name: string;
+    };
+    id: string;
+  }[];
+  name: string;
+  id: string;
+};
 const formSchema = z.object({
   name: z.string().min(3).max(255),
   description: z.string().optional().default(""),
@@ -91,9 +122,11 @@ function ButtonAddOperation() {
       startTransition(async () => {
         try {
           const id = uuid();
+          const postId = post?.id;
           const res = await createOperation({
             ...data,
             id,
+            postId,
           });
           setNodes([
             ...nodes,
@@ -139,6 +172,14 @@ function ButtonAddOperation() {
     form.reset();
     setOpen((prev) => !prev);
   };
+  const { data } = useSWR(`posts`, getPosts);
+  const posts = useMemo(() => data || [], [data]);
+  const [post, setPost] = React.useState<TPost | undefined>();
+
+  function handlePostChange(id: string) {
+    const p = posts?.filter((item) => item.id === id)[0];
+    setPost(p);
+  }
 
   return (
     <Dialog onOpenChange={handClose} open={open}>
@@ -321,7 +362,25 @@ function ButtonAddOperation() {
                       </FormItem>
                     )}
                   />
-
+                  <Label className="mt-4 inline-block">Post</Label>
+                  <Select
+                    onValueChange={(id) => handlePostChange(id)}
+                    value={post?.id}
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        className="w-full"
+                        placeholder="Select a post"
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {posts.map((post) => (
+                        <SelectItem key={post.id} value={post.id}>
+                          {post.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormField
                     control={form.control}
                     name="isFinal"

@@ -12,22 +12,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ArrowLeftIcon, PlusIcon } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { FieldErrors } from "@/actions/utils";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import FormInput from "@/components/form-input";
 import { TCreateInput, createInputSchema } from "../../_utils/schemas";
 import { create, getExpertises } from "../../_utils/actions";
 import useSWR from "swr";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import FormErrors from "@/components/form-errors";
 import { MultiSelect } from "@/components/multi-select";
 import { Input } from "@/components/ui/input";
@@ -54,6 +47,15 @@ export function AddUserButton(props: AddUserButtonProps) {
   });
 
   const expertise = data?.expertise || [];
+  const searchParams = useSearchParams();
+
+  const typeOfuser = searchParams.get("typeOfuser");
+
+  useEffect(() => {
+    if (typeOfuser) {
+      setRole(typeOfuser as Role);
+    }
+  }, [typeOfuser]);
 
   const handleClose = () => {
     setFieldErrors({});
@@ -61,6 +63,7 @@ export function AddUserButton(props: AddUserButtonProps) {
     closeRef.current?.click();
   };
   const availableRoles = roles.filter((role) => role !== "SYS_ADMIN");
+
   const handleSubmit = async (formData: FormData) => {
     const session = await getServerSession();
     if (!session || !["SYS_ADMIN", "ADMIN"].includes(session.user.role)) {
@@ -114,13 +117,19 @@ export function AddUserButton(props: AddUserButtonProps) {
       </SheetTrigger>
       <SheetContent className="flex w-full flex-col overflow-auto sm:max-w-md">
         <SheetHeader>
-          <SheetTitle className="text-lg md:text-xl">Add User</SheetTitle>
+          <SheetTitle className="text-lg md:text-xl">
+            Add {typeOfuser}
+          </SheetTitle>
           <SheetDescription className="text-sm md:text-base">
-            Fill the form below to add a new user
+            Fill the form below to add a new {typeOfuser}
           </SheetDescription>
         </SheetHeader>
         <form
-          action={handleSubmit}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            handleSubmit(formData);
+          }}
           className="flex flex-1 flex-col gap-2 py-4 "
         >
           <Label className="space-x-2">
@@ -149,23 +158,17 @@ export function AddUserButton(props: AddUserButtonProps) {
             errors={fieldErrors.password}
           />
 
-          <Label className="mt-4 inline-block">Role </Label>
-          <Select value={role} onValueChange={(val) => setRole(val as Role)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Role" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableRoles.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label className="mt-4 inline-block">Role</Label>
+          <Input
+            name="role"
+            value={typeOfuser ?? ""}
+            readOnly
+            className="cursor-not-allowed bg-gray-100"
+          />
           <FormErrors errors={fieldErrors.role} />
-          {!isLoading && !error && role === "OPERATOR" && (
+          {!isLoading && !error && typeOfuser === "OPERATOR" && (
             <>
-              <Label className="mt-4 inline-block">Expertise </Label>
+              <Label className="mt-4 inline-block">Expertise</Label>
               <MultiSelect
                 options={expertise}
                 value={selectedExpertise}
@@ -192,7 +195,7 @@ export function AddUserButton(props: AddUserButtonProps) {
               className="flex w-20 gap-1 text-sm md:w-24 md:gap-2 md:text-base"
             >
               <PlusIcon size={16} className="md:size-18" />
-              Save User
+              Save {typeOfuser}
             </Button>
           </div>
         </form>
