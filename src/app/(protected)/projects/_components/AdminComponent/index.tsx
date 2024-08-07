@@ -135,15 +135,16 @@ export function AdminComponent({
   }
 
   return (
-    <div className="h-1 flex-1 bg-gradient-to-br from-gray-50 to-gray-100 p-4 dark:from-gray-900 dark:to-gray-800 sm:p-6">
-      <div className="space-y-4 sm:space-y-6">
-        <div className="mb-4 flex justify-end">
-          <AddOrganizationButton className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            <PlusIcon className="mr-2 inline-block" size={16} />
-            Create new Organization
-          </AddOrganizationButton>
-        </div>
-        {/* <div className="relative mx-auto max-w-md">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="flex-grow p-4 sm:p-6">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="mb-4 flex justify-end">
+            <AddOrganizationButton className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+              <PlusIcon className="mr-2 inline-block" size={16} />
+              Create new Organization
+            </AddOrganizationButton>
+          </div>
+          {/* <div className="relative mx-auto max-w-md">
           <Input
             type="text"
             placeholder="Search organizations..."
@@ -157,176 +158,179 @@ export function AdminComponent({
           />
         </div> */}
 
-        <motion.div
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {filteredData.map((org, index) => (
-            <motion.div
-              key={org.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <Card className="flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:border-blue-400 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
-                <CardContent className="flex-grow p-4 sm:p-6">
-                  <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center space-x-3 sm:space-x-4">
-                      {org.imagePath ? (
-                        <Image
-                          src={org.imagePath}
-                          alt={`${org.name} logo`}
-                          className="h-10 w-10 rounded-full object-cover ring-2 ring-blue-500 sm:h-12 sm:w-12"
-                          height={48}
-                          width={48}
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 sm:h-12 sm:w-12">
-                          <Building
-                            size={20}
-                            className="text-blue-600 sm:h-6 sm:w-6"
+          <motion.div
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {filteredData.map((org, index) => (
+              <motion.div
+                key={org.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Card className="flex h-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.02] hover:border-blue-400 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                  <CardContent className="flex-grow p-4 sm:p-6">
+                    <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        {org.imagePath ? (
+                          <Image
+                            src={org.imagePath}
+                            alt={`${org.name} logo`}
+                            className="h-10 w-10 rounded-full object-cover ring-2 ring-blue-500 sm:h-12 sm:w-12"
+                            height={48}
+                            width={48}
                           />
-                        </div>
-                      )}
-                      <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 sm:text-base">
-                        {org.name}
-                      </h3>
-                    </div>
-                    <div className="mt-2 flex space-x-2 sm:mt-0">
-                      {/* {org.address && (
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 sm:h-12 sm:w-12">
+                            <Building
+                              size={20}
+                              className="text-blue-600 sm:h-6 sm:w-6"
+                            />
+                          </div>
+                        )}
+                        <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 sm:text-base">
+                          {org.name}
+                        </h3>
+                      </div>
+                      <div className="mt-2 flex space-x-2 sm:mt-0">
+                        {/* {org.address && (
                         <MapDialog
                           address={org.address}
                           organizationName={org.name}
                         />
                       )} */}
-                      {org.users.length >= 1 && (
-                        <ViewAllAdminsDialog
-                          admins={org.users}
-                          organizationName={org.name}
-                        />
-                      )}
-                      <Dialog
-                        open={openDialogs[org.id] || false}
-                        onOpenChange={(open) =>
-                          open ? openDialog(org.id) : closeDialog(org.id)
-                        }
-                      >
-                        <DialogTrigger asChild>
-                          <Button
+                        {org.users.length >= 1 && (
+                          <ViewAllAdminsDialog
+                            admins={org.users}
+                            organizationName={org.name}
+                          />
+                        )}
+                        <Dialog
+                          open={openDialogs[org.id] || false}
+                          onOpenChange={(open) =>
+                            open ? openDialog(org.id) : closeDialog(org.id)
+                          }
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
+                            >
+                              <PlusCircle className="h-5 w-5 text-blue-500" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>
+                                Add new Admin for {org.name}
+                              </DialogTitle>
+                              <DialogDescription>
+                                Enter the details of the new admin.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <form
+                              onSubmit={async (e) => {
+                                e.preventDefault();
+                                const formData = new FormData(e.currentTarget);
+                                await handleAddAdmin(formData, org.id);
+                              }}
+                            >
+                              <div className="grid gap-4 py-4">
+                                <input
+                                  type="hidden"
+                                  name="organizationId"
+                                  value={org.id}
+                                />
+                                <FormInput
+                                  name="adminName"
+                                  label="Admin Name"
+                                  required
+                                />
+                                <FormInput
+                                  name="adminEmail"
+                                  label="Admin Email"
+                                  type="email"
+                                  required
+                                />
+                                <FormInput
+                                  name="adminPassword"
+                                  label="Admin Password"
+                                  type="password"
+                                  required
+                                />
+                              </div>
+                              <DialogFooter>
+                                <Button type="submit">Add Admin</Button>
+                              </DialogFooter>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </div>
+                    <p className="mb-4 line-clamp-3 text-xs text-gray-600 dark:text-gray-300 sm:text-sm">
+                      {org.description}
+                    </p>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                      <Calendar size={16} className="sm:h-5 sm:w-5" />
+                      <span>
+                        Created on{" "}
+                        {new Date(org.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-col border-t border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700 sm:flex-row sm:justify-between sm:p-4">
+                    <Button
+                      onClick={handleViewDetails(org.id)}
+                      className="mb-2 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:mb-0 sm:w-auto"
+                    >
+                      View Details
+                    </Button>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button className="w-full rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 sm:w-auto">
+                          Manage
+                          <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>{" "}
+                      <PopoverContent align="end" className="w-48">
+                        <div className="flex flex-col space-y-2">
+                          <EditOrganizationButton
+                            organization={org}
                             variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900"
+                            className="justify-start text-left text-gray-700 hover:bg-gray-100 hover:text-blue-600 dark:text-gray-200 dark:hover:bg-gray-700"
                           >
-                            <PlusCircle className="h-5 w-5 text-blue-500" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle>
-                              Add new Admin for {org.name}
-                            </DialogTitle>
-                            <DialogDescription>
-                              Enter the details of the new admin.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <form
-                            onSubmit={async (e) => {
-                              e.preventDefault();
-                              const formData = new FormData(e.currentTarget);
-                              await handleAddAdmin(formData, org.id);
+                            <PencilIcon size={16} className="mr-2" />
+                            <span>Edit</span>
+                          </EditOrganizationButton>
+                          <ConfirmButton
+                            variant="ghost"
+                            className="justify-start text-left text-gray-700 hover:bg-gray-100 hover:text-red-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                            action={async () => {
+                              await deleteOrganization(org.id);
+                              await deleteById(org.users[0].id);
                             }}
                           >
-                            <div className="grid gap-4 py-4">
-                              <input
-                                type="hidden"
-                                name="organizationId"
-                                value={org.id}
-                              />
-                              <FormInput
-                                name="adminName"
-                                label="Admin Name"
-                                required
-                              />
-                              <FormInput
-                                name="adminEmail"
-                                label="Admin Email"
-                                type="email"
-                                required
-                              />
-                              <FormInput
-                                name="adminPassword"
-                                label="Admin Password"
-                                type="password"
-                                required
-                              />
-                            </div>
-                            <DialogFooter>
-                              <Button type="submit">Add Admin</Button>
-                            </DialogFooter>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </div>
-                  <p className="mb-4 line-clamp-3 text-xs text-gray-600 dark:text-gray-300 sm:text-sm">
-                    {org.description}
-                  </p>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
-                    <Calendar size={16} className="sm:h-5 sm:w-5" />
-                    <span>
-                      Created on {new Date(org.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex flex-col border-t border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700 sm:flex-row sm:justify-between sm:p-4">
-                  <Button
-                    onClick={handleViewDetails(org.id)}
-                    className="mb-2 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:mb-0 sm:w-auto"
-                  >
-                    View Details
-                  </Button>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button className="w-full rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 sm:w-auto">
-                        Manage
-                        <ChevronDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>{" "}
-                    <PopoverContent align="end" className="w-48">
-                      <div className="flex flex-col space-y-2">
-                        <EditOrganizationButton
-                          organization={org}
-                          variant="ghost"
-                          className="justify-start text-left text-gray-700 hover:bg-gray-100 hover:text-blue-600 dark:text-gray-200 dark:hover:bg-gray-700"
-                        >
-                          <PencilIcon size={16} className="mr-2" />
-                          <span>Edit</span>
-                        </EditOrganizationButton>
-                        <ConfirmButton
-                          variant="ghost"
-                          className="justify-start text-left text-gray-700 hover:bg-gray-100 hover:text-red-600 dark:text-gray-200 dark:hover:bg-gray-700"
-                          action={async () => {
-                            await deleteOrganization(org.id);
-                            await deleteById(org.users[0].id);
-                          }}
-                        >
-                          <Trash2Icon size={16} className="mr-2" />
-                          <span>Delete</span>
-                        </ConfirmButton>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
+                            <Trash2Icon size={16} className="mr-2" />
+                            <span>Delete</span>
+                          </ConfirmButton>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </div>
-      <div className="mt-8 flex justify-end px-4">
+      <div className="mt-auto flex justify-end p-4">
         <ParamsPagination total={total} />
       </div>
+
       <DetailsDialog
         isOpen={detailsDialog.isOpen}
         onClose={() => setDetailsDialog({ isOpen: false, orgId: null })}
