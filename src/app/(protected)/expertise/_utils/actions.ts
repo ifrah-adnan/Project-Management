@@ -198,6 +198,11 @@ export async function getOperations() {
     select: {
       id: true,
       name: true,
+      code: true,
+      description: true,
+      isFinal: true,
+      estimatedTime: true,
+      icon: true,
     },
   });
 }

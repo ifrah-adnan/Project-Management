@@ -15,6 +15,7 @@ import {
   MenuIcon,
   XIcon,
   ChevronRightIcon,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
@@ -213,6 +214,14 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
               isCollapsed={isCollapsed}
             >
               Posts
+            </LinkItem>
+            <LinkItem
+              href="/operations"
+              icon={<Activity size={16} />}
+              onClick={() => navigateWithOrganization("/operations")}
+              isCollapsed={isCollapsed}
+            >
+              Operations
             </LinkItem>
             <LinkItem
               href="/expertise"
