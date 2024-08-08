@@ -255,7 +255,7 @@ export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
                         <ListIcon className="text-blue-600" size={20} />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-h-[90vh] w-full overflow-x-auto sm:max-w-[90vw] ">
+                    <DialogContent className="max-h-[90vh] w-full overflow-x-auto sm:max-w-[90vw]">
                       <DialogHeader className="border-b pb-4">
                         <DialogTitle className="text-2xl font-bold">
                           Operations: {item.project.name}
@@ -282,92 +282,70 @@ export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
                               <Download className="mr-2 h-4 w-4" />
                               Export
                             </Button>
-                            {/* <Button size="sm">
-                              <Plus className="mr-2 h-4 w-4" />
-                              Add Operation
-                            </Button> */}
                           </div>
                         </div>
                         <div className="rounded-md border">
-                          <div className="overflow-x-auto">
+                          <div className="grid grid-cols-4 gap-4 p-4">
                             {isLoadingOperations ? (
-                              <div className="p-8 text-center">
+                              <div className="col-span-4 p-8 text-center">
                                 Loading operations...
                               </div>
                             ) : operations.length > 0 ? (
-                              <Table className="  w-[200px] overflow-x-auto text-sm">
-                                <thead>
-                                  <tr className="bg-muted/30">
-                                    <th className="w-1/4 p-3 text-left font-semibold">
-                                      Name
-                                    </th>
-                                    <th className="w-24 p-3 text-center font-semibold">
-                                      Completed
-                                    </th>
-                                    <th className="w-24 p-3 text-center font-semibold">
-                                      Today
-                                    </th>
-                                    <th className="w-24 p-3 text-center font-semibold">
-                                      Last Week
-                                    </th>
-                                    <th className="w-24 p-3 text-center font-semibold">
-                                      Last Month
-                                    </th>
-                                    <th className="w-24 p-3 text-center font-semibold">
-                                      Target
-                                    </th>
-                                    <th className="w-40 p-3 text-left font-semibold">
-                                      Progress
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {operations.map((op, index) => (
-                                    <tr
-                                      key={op.id}
-                                      className={
-                                        index % 2 === 0 ? "bg-muted/10" : ""
-                                      }
+                              operations.map((op) => (
+                                <div
+                                  key={op.id}
+                                  className="flex flex-col items-center justify-center space-y-2 rounded-md bg-card p-4 shadow-md"
+                                >
+                                  <div className="relative h-20 w-20">
+                                    <svg
+                                      className="h-full w-full"
+                                      viewBox="0 0 100 100"
+                                      xmlns="http://www.w3.org/2000/svg"
                                     >
-                                      <td className="w-1/4 p-3 text-left">
-                                        {op.name}
-                                      </td>
-                                      <td className="w-24 p-3 text-center">
-                                        {op.completedCount}
-                                      </td>
-                                      <td className="w-24 p-3 text-center">
-                                        {op.todayCount}
-                                      </td>
-                                      <td className="w-24 p-3 text-center">
-                                        {op.lastWeekCount}
-                                      </td>
-                                      <td className="w-24 p-3 text-center">
-                                        {op.lastMonthCount}
-                                      </td>
-                                      <td className="w-24 p-3 text-center">
-                                        {targets[op.id] || "N/A"}
-                                      </td>
-                                      <td className="w-40 p-3">
-                                        <div className="flex items-center">
-                                          <div className="mr-2 h-2 w-full rounded-full bg-muted">
-                                            <div
-                                              className="h-2 rounded-full bg-primary"
-                                              style={{
-                                                width: `${op.progress}%`,
-                                              }}
-                                            ></div>
-                                          </div>
-                                          <span className="ml-1 w-9 text-right text-xs font-medium">
-                                            {op.progress.toFixed(2)}%
-                                          </span>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </Table>
+                                      <circle
+                                        cx="50"
+                                        cy="50"
+                                        r="40"
+                                        fill="transparent"
+                                        stroke="#E6B3BA"
+                                        strokeWidth="4"
+                                      />
+                                      <circle
+                                        cx="50"
+                                        cy="50"
+                                        r="40"
+                                        fill="transparent"
+                                        stroke="#8D99AE"
+                                        strokeWidth="4"
+                                        strokeDasharray="251.2"
+                                        strokeDashoffset={
+                                          251.2 - (251.2 * op.progress) / 100
+                                        }
+                                        transform="rotate(-90 50 50)"
+                                      />
+                                      <text
+                                        x="50"
+                                        y="50"
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        className="text-sm font-medium text-primary"
+                                      >
+                                        {op.progress.toFixed(2)}%
+                                      </text>
+                                    </svg>
+                                  </div>
+                                  <div className="text-center text-sm font-medium text-[#2B2D42]">
+                                    {op.name}
+                                  </div>
+                                  <div className="flex w-full items-center justify-between text-xs text-[#8D99AE]">
+                                    <div>Completed: {op.completedCount}</div>
+                                    <div>Target: {targets[op.id] || "N/A"}</div>
+                                    <div>Today: {op.todayCount}</div>
+                                  </div>
+                                </div>
+                              ))
                             ) : (
-                              <div className="p-8 text-center">
+                              <div className="col-span-4 p-8 text-center">
                                 No operations found for this project.
                               </div>
                             )}

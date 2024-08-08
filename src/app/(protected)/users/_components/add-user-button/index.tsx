@@ -195,7 +195,7 @@ export function AddUserButton(props: AddUserButtonProps) {
               className="flex w-20 gap-1 text-sm md:w-24 md:gap-2 md:text-base"
             >
               <PlusIcon size={16} className="md:size-18" />
-              Save {typeOfuser}
+              Save
             </Button>
           </div>
         </form>

@@ -44,7 +44,7 @@ export default function List({
     <main className="  p-2 sm:p-6">
       <Card className="  mx-auto flex h-full w-full max-w-screen-2xl flex-1 flex-col overflow-auto p-2 sm:p-4">
         <div className="  ">
-          <Table className=" divide-y divide-gray-200">
+          <Table className="w-full min-w-[1000px] text-xs sm:text-sm">
             <thead>
               <tr>
                 <th className="px-2 py-2 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
