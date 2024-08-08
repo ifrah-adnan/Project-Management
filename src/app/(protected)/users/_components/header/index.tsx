@@ -22,9 +22,9 @@ const Header: React.FC<HeaderProps> = ({ onSearch }) => {
     <>
       <MainHeader name={name} onSearch={onSearch} />
       <div className="font-sm flex h-page-header shrink-0 items-center justify-end gap-2 bg-card px-6 text-sm shadow">
-        <h3 className="mr-auto font-medium capitalize">
+        {/* <h3 className="mr-auto font-medium capitalize">
           <Users />
-        </h3>
+        </h3> */}
         {(user?.role === "ADMIN" || user?.role === "SYS_ADMIN") && (
           <AddUserButton className="gap-2 uppercase">
             <PlusIcon size={16} />

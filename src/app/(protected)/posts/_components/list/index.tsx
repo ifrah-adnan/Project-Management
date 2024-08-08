@@ -180,7 +180,7 @@ export default function List({
                           user.role === "SYS_ADMIN") && (
                           <Popover>
                             <PopoverTrigger>
-                              <Ellipsis size={14} className="sm:size-9" />
+                              <Ellipsis size={16} />
                             </PopoverTrigger>
                             <PopoverContent
                               align="end"
@@ -191,7 +191,7 @@ export default function List({
                                 variant="ghost"
                                 className="justify-start gap-1 px-3 text-xs hover:text-sky-500 sm:gap-2 sm:px-6 sm:text-sm"
                               >
-                                <PencilIcon size={14} className="sm:size-16" />
+                                <PencilIcon size={16} />
                                 <span>Edit</span>
                               </EditPostButton>
 
@@ -203,7 +203,7 @@ export default function List({
                                   await handleDelete(item.id, session.user.id);
                                 }}
                               >
-                                <Trash2Icon size={14} className="sm:size-16" />
+                                <Trash2Icon size={16} />
                                 <span>Delete</span>
                               </ConfirmButton>
                             </PopoverContent>

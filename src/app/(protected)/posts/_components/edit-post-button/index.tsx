@@ -104,9 +104,9 @@ export function EditPostButton({ post, ...props }: AddOperatorButtonProps) {
       <SheetTrigger asChild>
         <Button {...props} />
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col overflow-auto p-2 sm:p-4">
+      <SheetContent className="flex w-full max-w-md flex-col p-2 sm:p-4 md:p-6">
         <SheetHeader>
-          <SheetTitle className="text-lg sm:text-xl">
+          <SheetTitle className="text-lg sm:text-xl md:text-2xl">
             <span>Edit Post</span>
           </SheetTitle>
           <SheetDescription className="text-sm sm:text-base">

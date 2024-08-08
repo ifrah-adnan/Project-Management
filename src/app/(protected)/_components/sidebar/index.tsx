@@ -124,7 +124,7 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
     setIsUserMenuOpen(!isUserMenuOpen);
   };
 
-  const userTypes = ["SYS_ADMIN", "ADMIN", "USER", "CLIENT", "OPERATOR"];
+  const userTypes = ["ADMIN", "USER", "CLIENT", "OPERATOR"];
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
