@@ -32,6 +32,9 @@ export interface AddUserButtonProps extends ButtonProps {}
 
 export function AddUserButton(props: AddUserButtonProps) {
   const closeRef = React.useRef<HTMLButtonElement>(null);
+  const searchParams = useSearchParams();
+
+  const typeOfuser = searchParams.get("typeOfuser");
   const [fieldErrors, setFieldErrors] = React.useState<
     FieldErrors<TCreateInput>
   >({});
@@ -47,19 +50,16 @@ export function AddUserButton(props: AddUserButtonProps) {
   });
 
   const expertise = data?.expertise || [];
-  const searchParams = useSearchParams();
 
-  const typeOfuser = searchParams.get("typeOfuser");
+  console.log("type of user ", typeOfuser);
 
   useEffect(() => {
     if (typeOfuser) {
       setRole(typeOfuser as Role);
     }
   }, [typeOfuser]);
-
   const handleClose = () => {
     setFieldErrors({});
-    setRole("USER");
     closeRef.current?.click();
   };
   const availableRoles = roles.filter((role) => role !== "SYS_ADMIN");
@@ -74,6 +74,7 @@ export function AddUserButton(props: AddUserButtonProps) {
     const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    console.log("this is role ", role);
 
     const data: TCreateInput = {
       name,
@@ -85,6 +86,7 @@ export function AddUserButton(props: AddUserButtonProps) {
     };
 
     const parsed = createInputSchema.safeParse(data);
+    console.log("this is data ", data);
 
     if (!parsed.success) {
       toast.error("Invalid input");
@@ -102,7 +104,7 @@ export function AddUserButton(props: AddUserButtonProps) {
 
     if (result) {
       handleClose();
-      toast.success("User added successfully");
+      toast.success(`${typeOfuser}  added successfully`);
       router.refresh();
     }
   };
