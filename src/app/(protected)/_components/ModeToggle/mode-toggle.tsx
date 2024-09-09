@@ -30,7 +30,7 @@ export function ModeToggle() {
           className:
             "h-[1.2rem] w-[1.2rem] transition-all duration-300 ease-in-out",
         })}
-      <span className="sr-only">Toggle theme</span>
+      <span className="sr-only">Toggle theme .</span>
     </Button>
   );
 }
