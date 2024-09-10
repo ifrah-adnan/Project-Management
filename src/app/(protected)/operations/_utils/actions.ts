@@ -341,3 +341,76 @@ export async function handleDelete(id: string) {
   await deleteById(id);
   revalidatePath("/users");
 }
+
+export async function deleteOperationById(id: string) {
+  const session = await getServerSession();
+  const organizationId = await checkUserPermissions(session);
+
+  const whereClause: any = { id };
+  if (organizationId) {
+    whereClause.organizationId = organizationId;
+  }
+
+  await db.operation.delete({ where: whereClause });
+}
+
+export async function handleDeleteO(id: string) {
+  await deleteOperationById(id);
+  revalidatePath("/users");
+}
+
+export async function updateOperation({
+  operationId,
+  name,
+  code,
+  description,
+  isFinal,
+  estimatedTime,
+  user,
+}: {
+  operationId: string;
+  name: string;
+  code: string;
+  description: string;
+  isFinal: boolean;
+  estimatedTime: number;
+  user: string;
+}): Promise<{
+  result?: any;
+  error?: string;
+  fieldErrors?: Record<string, string>;
+}> {
+  try {
+    const operation = await db.operation.update({
+      where: { id: operationId },
+      data: {
+        name,
+        code,
+        description,
+        isFinal,
+        estimatedTime,
+      },
+    });
+
+    // await logHistory(
+    //   ActionType.UPDATE,
+    //   `Operation updated: ${name} by user ${user}`,
+    //   EntityType.OPERATION,
+    //   operation.id,
+    //   user,
+    // );
+
+    return { result: operation };
+  } catch (error: any) {
+    const fieldErrors: Record<string, string> = {};
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        fieldErrors[error.meta?.target as string] =
+          "This value is already taken.";
+      }
+    }
+
+    return { error: error.message, fieldErrors };
+  }
+}
