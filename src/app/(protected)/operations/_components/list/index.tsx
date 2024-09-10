@@ -5,6 +5,16 @@ import { Card } from "@/components/ui/card";
 import { useSession } from "@/components/session-provider";
 import { useSearchParams } from "next/navigation";
 import IconComponent from "../IconComponent";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Ellipsis, PencilIcon, Trash2Icon } from "lucide-react";
+import { EditExpertiseButton } from "@/app/(protected)/expertise/_components/edit-expertise-button";
+import { ConfirmButton } from "@/components/confirm-button";
+import { EditOperationButton } from "../edit-operation-button";
+import { handleDelete, handleDeleteO } from "../../_utils/actions";
 
 interface Operation {
   id: string;
@@ -24,6 +34,7 @@ interface ListProps {
 
 const List: React.FC<ListProps> = ({ data, userId, searchTerm }) => {
   const { session } = useSession();
+  const user = session?.user;
   const searchParams = useSearchParams();
   const [filteredData, setFilteredData] = useState<Operation[]>([]);
 
@@ -67,6 +78,39 @@ const List: React.FC<ListProps> = ({ data, userId, searchTerm }) => {
                 <td>{item.description}</td>
                 <td>{item.isFinal ? "Yes" : "No"}</td>
                 <td>{item.estimatedTime} minutes</td>
+                <td>
+                  {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
+                    <Popover>
+                      <PopoverTrigger>
+                        <Ellipsis size={16} />
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="end"
+                        className="flex w-fit flex-col gap-1 sm:gap-2"
+                      >
+                        <EditOperationButton
+                          operation={item}
+                          variant="ghost"
+                          className="justify-start gap-1 bg-none px-3 text-xs hover:text-sky-500 sm:gap-2 sm:px-6 sm:text-sm"
+                        >
+                          <PencilIcon size={16} />
+                          <span>Edit</span>
+                        </EditOperationButton>
+                        <ConfirmButton
+                          variant="ghost"
+                          size="icon"
+                          className="flex w-full justify-start gap-1 rounded-md px-3 text-xs hover:text-red-500 sm:gap-2 sm:px-6 sm:text-sm"
+                          action={async () => {
+                            await handleDeleteO(item.id);
+                          }}
+                        >
+                          <Trash2Icon size={16} />
+                          <span>Delete</span>
+                        </ConfirmButton>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
