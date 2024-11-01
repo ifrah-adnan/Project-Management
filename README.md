@@ -10,6 +10,5 @@ pnpm install
 pnpm prisma migrate dev
 
 pnpm dev
-# or
 
 ```
