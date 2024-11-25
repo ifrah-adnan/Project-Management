@@ -35,9 +35,9 @@ export async function findMany(params = defaultParams): Promise<{
   const session = await getServerSession();
   const organizationId =
     session?.user.organizationId || session?.user.organization?.id;
-  if (!organizationId) {
-    throw new Error("Organization ID not found");
-  }
+  // if (!organizationId) {
+  //   throw new Error("Organization ID not found");
+  // }
 
   const page = parseInt(params.page) || 1;
   const perPage = parseInt(params.perPage) || 10;
@@ -123,9 +123,9 @@ export async function deleteById(id: string, userId: string) {
   const session = await getServerSession();
   const organizationId =
     session?.user.organizationId || session?.user.organization?.id;
-  if (!organizationId) {
-    throw new Error("Organization ID not found");
-  }
+  // if (!organizationId) {
+  //   throw new Error("Organization ID not found");
+  // }
   await db.device.deleteMany({
     where: {
       id,
@@ -217,9 +217,9 @@ export async function getPosts() {
   const session = await getServerSession();
   const organizationId =
     session?.user.organizationId || session?.user.organization?.id;
-  if (!organizationId) {
-    throw new Error("Organization ID not found");
-  }
+  // if (!organizationId) {
+  //   throw new Error("Organization ID not found");
+  // }
 
   return await db.post.findMany({
     where: { organizationId },

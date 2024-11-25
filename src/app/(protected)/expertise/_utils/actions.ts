@@ -188,9 +188,9 @@ export async function getOperations() {
   const organizationId =
     serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
-  if (!organizationId) {
-    throw new Error("Organization ID not found");
-  }
+  // if (!organizationId) {
+  //   throw new Error("Organization ID not found");
+  // }
   let where: Prisma.OperationWhereInput = { organizationId: organizationId };
   return await db.operation.findMany({
     where,
