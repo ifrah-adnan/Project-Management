@@ -3,6 +3,7 @@ const nextConfig = {
   images: {
     domains: ["localhost"],
   },
+
   webpack: (config) => {
     config.module.rules.push({
       test: /leaflet\.css$/,
