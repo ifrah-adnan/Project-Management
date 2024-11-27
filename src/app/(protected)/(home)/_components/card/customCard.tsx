@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FiActivity, FiTarget, FiCalendar, FiLayers } from "react-icons/fi";
 import { CommandProject } from "../../page";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 type Props = {
   project: CommandProject;
@@ -23,82 +24,88 @@ function CustomCard({ project }: Props) {
   }
 
   return (
-    <Link href={`/project-overview?commandProjectId=${commandProjectId}`}>
-      <Card className="mt-4 w-[300px] rounded-lg bg-white p-4 shadow-md transition-shadow duration-300 hover:shadow-lg dark:bg-gray-800">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-semibold">
-            {project.command.reference}
-          </span>
-          <span className="text-sm text-gray-500">...</span>
-        </div>
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            Status
-          </span>
-          <span
-            className={`text-sm font-medium ${getStatusColor(project.status)}`}
-          >
-            {project.status}
-          </span>
-        </div>
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            Project
-          </span>
-          <span className="text-sm font-medium">{project.project.name}</span>
-        </div>
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center">
-            <FiActivity className="mr-1 text-gray-600" />
+    <Link
+      href={`/project-overview?commandProjectId=${commandProjectId}`}
+      passHref
+      legacyBehavior
+    >
+      <a>
+        <Card className="mt-4 w-[300px] rounded-lg bg-white p-4 shadow-md transition-shadow duration-300 hover:shadow-lg dark:bg-gray-800">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-semibold">
+              {project.command.reference}
+            </span>
+            <span className="text-sm text-gray-500">...</span>
+          </div>
+          <div className="mb-2 flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              Done:
+              Status
+            </span>
+            <span
+              className={`text-sm font-medium ${getStatusColor(project.status)}`}
+            >
+              {project.status}
             </span>
           </div>
-          <span className="text-sm font-medium">{project.done}</span>
-        </div>
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center">
-            <FiTarget className="mr-1 text-gray-600" />
+          <div className="mb-2 flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">
-              Target:
+              Project
             </span>
+            <span className="text-sm font-medium">{project.project.name}</span>
           </div>
-          <span className="text-sm font-medium">{project.target}</span>
-        </div>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center">
+              <FiActivity className="mr-1 text-gray-600" />
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Done:
+              </span>
+            </div>
+            <span className="text-sm font-medium">{project.done}</span>
+          </div>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center">
+              <FiTarget className="mr-1 text-gray-600" />
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Target:
+              </span>
+            </div>
+            <span className="text-sm font-medium">{project.target}</span>
+          </div>
 
-        <div className="my-4">
-          <Progress
-            value={value}
-            className="h-2"
-            color={
-              (value < 25 && "#ef4444") ||
-              (value < 75 && "#eab308") ||
-              "#22c55e"
-            }
-          />
-        </div>
+          <div className="my-4">
+            <Progress
+              value={value}
+              className={cn(
+                "h-2",
+                value < 25 && "bg-red-500",
+                value >= 25 && value < 75 && "bg-yellow-500",
+                value >= 75 && "bg-green-500",
+              )}
+            />
+          </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <FiLayers className="mr-1 text-gray-600" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Sprints:
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <FiLayers className="mr-1 text-gray-600" />
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Sprints:
+              </span>
+            </div>
+            <span className="text-sm font-medium">{sprints || "N/A"}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <FiCalendar className="mr-1 text-gray-600" />
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Date:
+              </span>
+            </div>
+            <span className="text-sm font-medium">
+              {new Date(project.endDate).toLocaleDateString()}
             </span>
           </div>
-          <span className="text-sm font-medium">{sprints || "N/A"}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <FiCalendar className="mr-1 text-gray-600" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Date:
-            </span>
-          </div>
-          <span className="text-sm font-medium">
-            {new Date(project.endDate).toLocaleDateString()}
-          </span>
-        </div>
-      </Card>
+        </Card>
+      </a>
     </Link>
   );
 }
