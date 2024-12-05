@@ -51,6 +51,7 @@ import { Input } from "@/components/ui/input";
 import { getOperationProgress } from "@/actions/operation-progress";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useRouter } from "next/navigation";
 
 const generatePDF = (data: any, projectName: string) => {
   const pdf = new jsPDF();
@@ -167,6 +168,7 @@ export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
   const [operationCount, setOperationCount] = useState<any>(0);
   const [isLoadingOperations, setIsLoadingOperations] = useState(false);
   const [targets, setTargets] = useState<{ [key: string]: number }>({});
+  const router = useRouter();
 
   const handleUpdateDoneValue = async (id: string, newValue: number) => {
     startTransition(async () => {
@@ -203,254 +205,271 @@ export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
       setIsLoadingOperations(false);
     }
   };
-
+  const handleRowClick = (id: string) => {
+    router.push(`/project-overview?commandProjectId=${id}`);
+  };
   const handleDownload = () => {
     const pdf = generatePDF(operations, currentProjectName);
     pdf.save("project_info.pdf");
   };
+  console.log(operations, "tssssss333");
   console.log("this is information for all project", filteredData);
 
   return (
     <Card className="mx-auto h-full w-full max-w-screen-2xl overflow-auto p-4">
-      <Table className="w-full">
-        <thead>
-          <tr>
-            <th>project </th>
-            <th>reference Command </th>
+      <div className="w-full overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead className="sticky top-0 z-10 bg-background">
+            <tr>
+              <th className="whitespace-nowrap px-4 py-2 text-left">Project</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left">
+                Reference Command
+              </th>
+              <th className="whitespace-nowrap px-4 py-2 text-left">Client</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left">Done</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left">Target</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left">Sprints</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left">Status</th>
+              <th className="whitespace-nowrap px-4 py-2 text-left">
+                Deadline
+              </th>
+              <th className="whitespace-nowrap px-4 py-2 text-left">
+                Operations
+              </th>
+              <th className="whitespace-nowrap px-4 py-2 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map((item) => {
+              let totalSprints = item.sprint
+                ? Math.ceil(item.target / item.sprint.target)
+                : undefined;
+              let completedSprints = item.sprint
+                ? Math.floor(item.done / item.sprint.target)
+                : undefined;
+              let sprints = totalSprints
+                ? `${completedSprints}/${totalSprints}`
+                : undefined;
+              const client = item.command.client;
 
-            <th>client</th>
-            <th>done</th>
-            <th>target</th>
-            <th>sprints</th>
-            <th>status</th>
-            <th>deadline</th>
-            <th>operations</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredData.map((item) => {
-            let totalSprints: number | undefined = undefined;
-            let completedSprints: number | undefined = undefined;
-            let done = 0;
-            let sprints: undefined | string = undefined;
-            if (item.sprint) {
-              totalSprints = Math.ceil(item.target / item.sprint.target);
-              completedSprints = Math.floor(done / item.sprint.target);
-              sprints = `${completedSprints}/${totalSprints}`;
-            }
-            const client = item.command.client;
-            return (
-              <tr key={item.id}>
-                <td>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="flex items-center space-x-2 p-2 font-medium text-blue-600 hover:bg-blue-100"
-                        onClick={() =>
-                          handleOpenDialog(item.id, item.project.name)
-                        }
-                      >
-                        <span>{item.project.name}</span>
-                        <ListIcon className="text-blue-600" size={20} />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-h-[90vh] w-full overflow-x-auto sm:max-w-[90vw]">
-                      <DialogHeader className="border-b pb-4">
-                        <DialogTitle className="text-2xl font-bold">
-                          Operations: {item.project.name}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="mt-4 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
-                              <Filter className="mr-2 h-4 w-4" />
-                              Filter
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <RefreshCw className="mr-2 h-4 w-4" />
-                              Refresh
-                            </Button>
+              return (
+                <tr
+                  key={item.id}
+                  className="cursor-pointer border-b transition-colors hover:bg-gray-50"
+                  onClick={() => handleRowClick(item.id)}
+                >
+                  <td className="px-4 py-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="flex items-center space-x-2 p-2 font-medium text-blue-600 hover:bg-blue-100"
+                          onClick={() =>
+                            handleOpenDialog(item.id, item.project.name)
+                          }
+                        >
+                          <span>{item.project.name}</span>
+                          <ListIcon className="text-blue-600" size={20} />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-h-[90vh] w-full overflow-x-auto sm:max-w-[90vw]">
+                        <DialogHeader className="border-b pb-4">
+                          <DialogTitle className="text-2xl font-bold">
+                            Operations: {item.project.name}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="outline">
+                                <Filter className="mr-2 h-4 w-4" />
+                                Filter
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Refresh
+                              </Button>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleDownload}
+                              >
+                                <Download className="mr-2 h-4 w-4" />
+                                Export
+                              </Button>
+                            </div>
                           </div>
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={handleDownload}
-                            >
-                              <Download className="mr-2 h-4 w-4" />
-                              Export
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="rounded-md border">
-                          <div className="grid grid-cols-4 gap-4 p-4">
-                            {isLoadingOperations ? (
-                              <div className="col-span-4 p-8 text-center">
-                                Loading operations...
-                              </div>
-                            ) : operations.length > 0 ? (
-                              operations.map((op) => (
-                                <div
-                                  key={op.id}
-                                  className="flex flex-col items-center justify-center space-y-2 rounded-md bg-card p-4 shadow-md"
-                                >
-                                  <div className="relative h-20 w-20">
-                                    <svg
-                                      className="h-full w-full"
-                                      viewBox="0 0 100 100"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <circle
-                                        cx="50"
-                                        cy="50"
-                                        r="40"
-                                        fill="transparent"
-                                        stroke="#E6B3BA"
-                                        strokeWidth="4"
-                                      />
-                                      <circle
-                                        cx="50"
-                                        cy="50"
-                                        r="40"
-                                        fill="transparent"
-                                        stroke="#8D99AE"
-                                        strokeWidth="4"
-                                        strokeDasharray="251.2"
-                                        strokeDashoffset={
-                                          251.2 - (251.2 * op.progress) / 100
-                                        }
-                                        transform="rotate(-90 50 50)"
-                                      />
-                                      <text
-                                        x="50"
-                                        y="50"
-                                        textAnchor="middle"
-                                        dominantBaseline="middle"
-                                        className="text-sm font-medium text-primary"
-                                      >
-                                        {op.progress.toFixed(2)}%
-                                      </text>
-                                    </svg>
-                                  </div>
-                                  <div className="text-center text-sm font-medium text-[#2B2D42]">
-                                    {op.name}
-                                  </div>
-                                  <div className="flex w-full items-center justify-between text-xs text-[#8D99AE]">
-                                    <div>Completed: {op.completedCount}</div>
-                                    <div>Target: {targets[op.id] || "N/A"}</div>
-                                    <div>Today: {op.todayCount}</div>
-                                  </div>
+                          <div className="rounded-md border">
+                            <div className="grid grid-cols-4 gap-4 p-4">
+                              {isLoadingOperations ? (
+                                <div className="col-span-4 p-8 text-center">
+                                  Loading operations...
                                 </div>
-                              ))
-                            ) : (
-                              <div className="col-span-4 p-8 text-center">
-                                No operations found for this project.
-                              </div>
-                            )}
+                              ) : operations.length > 0 ? (
+                                operations.map((op) => (
+                                  <div
+                                    key={op.id}
+                                    className="flex flex-col items-center justify-center space-y-2 rounded-md bg-card p-4 shadow-md"
+                                  >
+                                    <div className="relative h-20 w-20">
+                                      <svg
+                                        className="h-full w-full"
+                                        viewBox="0 0 100 100"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                      >
+                                        <circle
+                                          cx="50"
+                                          cy="50"
+                                          r="40"
+                                          fill="transparent"
+                                          stroke="#E6B3BA"
+                                          strokeWidth="4"
+                                        />
+                                        <circle
+                                          cx="50"
+                                          cy="50"
+                                          r="40"
+                                          fill="transparent"
+                                          stroke="#8D99AE"
+                                          strokeWidth="4"
+                                          strokeDasharray="251.2"
+                                          strokeDashoffset={
+                                            251.2 - (251.2 * op.progress) / 100
+                                          }
+                                          transform="rotate(-90 50 50)"
+                                        />
+                                        <text
+                                          x="50"
+                                          y="50"
+                                          textAnchor="middle"
+                                          dominantBaseline="middle"
+                                          className="text-sm font-medium text-primary"
+                                        >
+                                          {op.progress.toFixed(2)}%
+                                        </text>
+                                      </svg>
+                                    </div>
+                                    <div className="text-center text-sm font-medium text-[#2B2D42]">
+                                      {op.name}
+                                    </div>
+                                    <div className="flex w-full items-center justify-between text-xs text-[#8D99AE]">
+                                      <div>Completed: {op.completedCount}</div>
+                                      <div>
+                                        Target: {targets[op.id] || "N/A"}
+                                      </div>
+                                      <div>Today: {op.todayCount}</div>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="col-span-4 p-8 text-center">
+                                  No operations found for this project.
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
+                      </DialogContent>
+                    </Dialog>
+                  </td>
+                  <td className="px-4 py-2">{item.command.reference}</td>
+                  <td className="px-4 py-2">
+                    {client ? (
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-7 w-7 border-2 border-[#E6B3BA]">
+                          <AvatarImage
+                            src={client.image || ""}
+                            alt={client.name}
+                          />
+                          <AvatarFallback className="font-bold">
+                            {client.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="capitalize">{client.name}</span>
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                </td>
-                <td>{item.command.reference}</td>
-                <td>
-                  {client ? (
+                    ) : (
+                      "N/A"
+                    )}
+                  </td>
+                  <td className="px-4 py-2">{item.done}</td>
+                  <td className="px-4 py-2">{item.target}</td>
+                  <td className="px-4 py-2">
                     <div className="flex items-center gap-2">
-                      <Avatar className="size-7 border-2 border-[#E6B3BA]">
-                        <AvatarImage
-                          src={client.image || ""}
-                          alt={client.name}
-                        />
-                        <AvatarFallback className="font-bold">
-                          {`${client.name.charAt(0).toUpperCase()}`}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="capitalize">
-                        {item.command.client?.name}
+                      <span className={cn({ "text-gray-500": !sprints })}>
+                        {sprints || "N/A"}
                       </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle sprint configuration
+                        }}
+                      >
+                        <Settings2Icon size={16} />
+                      </Button>
                     </div>
-                  ) : (
-                    "N/A"
-                  )}
-                </td>
-                <td>{item.done}</td>
-                <td>{item.target}</td>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn({
-                        "text-gray-500": !sprints,
-                      })}
-                    ></span>
-                    {sprints || "N/A"}
-                    <ConfigureSprintButton
-                      commandProjectId={item.id}
-                      sprint={item.sprint}
-                      maxTarget={item.target}
-                      size="icon"
-                      variant="ghost"
-                      className="size-7"
-                    >
-                      <Settings2Icon size={16} />
-                    </ConfigureSprintButton>
-                  </div>
-                </td>
-                <td>{statusMap[item.status] || "N/A"}</td>
-                <td>{format(new Date(item.endDate), "PP")}</td>
-                <td className=" w-[12rem] shrink-0">
-                  <Link href={`/projects/workflow/${item.project.id}`}>
+                  </td>
+                  <td className="px-4 py-2">
+                    {statusMap[item.status] || "N/A"}
+                  </td>
+                  <td className="px-4 py-2">
+                    {format(new Date(item.endDate), "PP")}
+                  </td>
+                  <td className="px-4 py-2">
                     <Button
                       variant="outline"
                       size="sm"
                       className="h-fit gap-2 bg-card py-1 font-normal"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/projects/workflow/${item.project.id}`);
+                      }}
                     >
                       <GitBranchPlusIcon size={16} />
                       <span>View operations</span>
                     </Button>
-                  </Link>
-                </td>
-                <td>
-                  {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
-                    <Popover>
-                      <PopoverTrigger>
-                        <Ellipsis size={16} />
-                      </PopoverTrigger>
-                      <PopoverContent
-                        align="end"
-                        className=" flex w-fit flex-col gap-2"
-                      >
-                        <EditProjectButton
-                          project={item}
-                          variant="ghost"
-                          className=" justify-start gap-2   px-6  hover:text-sky-500 "
+                  </td>
+                  <td className="px-4 py-2">
+                    {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => e.stopPropagation()} // Empêche la redirection
+                          >
+                            <Ellipsis size={16} />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          align="end"
+                          className="flex w-fit flex-col gap-2"
                         >
-                          <PencilIcon size={16} />
-                          <span>Edit</span>
-                        </EditProjectButton>
-
-                        <ConfirmButton
-                          variant="ghost"
-                          size="icon"
-                          className=" flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
-                          action={async () => {
-                            await handleDeleteCommandProject(item.id);
-                          }}
-                        >
-                          <Trash2Icon size={16} />
-                          <span>Delete</span>
-                        </ConfirmButton>
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
+                          <Button
+                            variant="ghost"
+                            className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCommandProject(item.id);
+                            }}
+                          >
+                            <Trash2Icon size={16} />
+                            <span>Delete</span>
+                          </Button>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 };

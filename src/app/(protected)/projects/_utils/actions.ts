@@ -533,6 +533,126 @@ export async function getOperationsForCommandProject(
     return { error: "Failed to fetch operations" };
   }
 }
+
+export async function calculateOperationTargetss(commandProjectId: string) {
+  try {
+    const commandProject = await db.commandProject.findUnique({
+      where: { id: commandProjectId },
+      include: { project: { include: { workFlow: true } } },
+    });
+
+    if (!commandProject || !commandProject.project.workFlow) {
+      throw new Error("Command project or workflow not found");
+    }
+
+    const { target: projectTarget } = commandProject;
+    const workFlowId = commandProject.project.workFlow.id;
+
+    const workflowNodes = await db.workFlowNode.findMany({
+      where: { workFlowId },
+      include: {
+        operation: true,
+        targetEdges: true,
+      },
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const lastWeek = new Date(today);
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    const lastMonth = new Date(today);
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    let totalCompleted = 0;
+
+    const operationTargets = await Promise.all(
+      workflowNodes.map(async (node) => {
+        const { operation, targetEdges } = node;
+        let operationTarget = 0;
+
+        if (operation.isFinal) {
+          operationTarget = projectTarget;
+        } else {
+          const totalCount = targetEdges.reduce(
+            (sum: number, edge) => sum + edge.count,
+            0,
+          );
+          operationTarget = totalCount * projectTarget;
+        }
+
+        const deviceIds = await db.device
+          .findMany({
+            where: {
+              planning: {
+                commandProjectId: commandProjectId,
+                operationId: node.operation.id,
+              },
+            },
+            select: {
+              id: true,
+            },
+          })
+          .then((devices) => devices.map((device) => device.id));
+
+        const [totalCount, todayCount, lastWeekCount, lastMonthCount] =
+          await Promise.all([
+            db.operationRecord.aggregate({
+              where: { deviceId: { in: deviceIds } },
+              _sum: { count: true },
+            }),
+            db.operationRecord.aggregate({
+              where: {
+                deviceId: { in: deviceIds },
+                createdAt: { gte: today },
+              },
+              _sum: { count: true },
+            }),
+            db.operationRecord.aggregate({
+              where: {
+                deviceId: { in: deviceIds },
+                createdAt: { gte: lastWeek },
+              },
+              _sum: { count: true },
+            }),
+            db.operationRecord.aggregate({
+              where: {
+                deviceId: { in: deviceIds },
+                createdAt: { gte: lastMonth },
+              },
+              _sum: { count: true },
+            }),
+          ]);
+
+        const completedCount = totalCount._sum.count || 0;
+        totalCompleted += completedCount;
+
+        const progress = (completedCount / operationTarget) * 100;
+
+        return {
+          operationId: operation.id,
+          operationName: operation.name,
+          target: operationTarget,
+          completed: completedCount,
+          todayCount: todayCount._sum.count || 0,
+          lastWeekCount: lastWeekCount._sum.count || 0,
+          lastMonthCount: lastMonthCount._sum.count || 0,
+          progress: progress,
+        };
+      }),
+    );
+
+    return {
+      operationTargets,
+      totalCompleted,
+      totalTarget: projectTarget,
+      totalProgress: (totalCompleted / projectTarget) * 100,
+    };
+  } catch (error) {
+    console.error("Error calculating operation targets:", error);
+    throw error;
+  }
+}
+
 export async function getOperationProgress2(
   commandProjectId: string,
 ): Promise<OperationProgressSummary> {
@@ -821,4 +941,57 @@ export async function calculateOperationTargets(commandProjectId: string) {
   calculateTargets(finalNode.id, baseTarget);
 
   return targets;
+}
+
+export async function getProjectDetails(commandProjectId: string) {
+  try {
+    const commandProject = await db.commandProject.findUnique({
+      where: { id: commandProjectId },
+      include: {
+        project: {
+          include: {
+            workFlow: true,
+          },
+        },
+        command: {
+          include: {
+            client: true,
+          },
+        },
+        user: true,
+        organization: true,
+        sprint: true,
+      },
+    });
+
+    if (!commandProject) {
+      throw new Error("Command Project not found");
+    }
+
+    // Reformat the data to match the structure expected by the frontend
+    const formattedProject = {
+      id: commandProject.id,
+      projectName: commandProject.project.name,
+      projectDescription: commandProject.project.description,
+      status: commandProject.status,
+      organization: commandProject.organization,
+      createdAt: commandProject.createdAt,
+      updatedAt: commandProject.updatedAt,
+      command: commandProject.command,
+      client: commandProject.command.client,
+      target: commandProject.target,
+      done: commandProject.done,
+      startDate: commandProject.startDate,
+      endDate: commandProject.endDate,
+      sprint: commandProject.sprint,
+      workflow: commandProject.project.workFlow,
+      user: commandProject.user,
+    };
+
+    revalidatePath(`/project/${commandProjectId}`);
+    return formattedProject;
+  } catch (error) {
+    console.error("Failed to fetch command project details:", error);
+    throw new Error("Failed to fetch command project details");
+  }
 }

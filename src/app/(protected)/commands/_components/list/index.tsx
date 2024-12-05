@@ -1,15 +1,13 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { TData2 } from "../../_utils/schemas";
 import { Table } from "@/components/table";
 import { Card } from "@/components/ui/card";
-import { format } from "date-fns";
 import { ConfirmButton } from "@/components/confirm-button";
-import { deleteById, handleDelete } from "../../_utils/actions";
-import { revalidatePath } from "next/cache";
+import { handleDelete } from "../../_utils/actions";
 import ParamsPagination from "@/components/params-pagination";
-import { CalendarIcon, Ellipsis, PencilIcon, Trash2Icon } from "lucide-react";
-
+import { Ellipsis, PencilIcon, Trash2Icon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Popover,
@@ -18,6 +16,8 @@ import {
 } from "@/components/ui/popover";
 import { EditCommandButton } from "../edit-command-button";
 import { useSession } from "@/components/session-provider";
+import Link from "next/link";
+
 export default function List({
   data,
   total,
@@ -42,7 +42,7 @@ export default function List({
 
   return (
     <div className="h-1 flex-1 p-6">
-      <Card className=" mx-auto flex h-full w-full max-w-screen-2xl flex-1 flex-col overflow-auto ">
+      <Card className="mx-auto flex h-full w-full max-w-screen-2xl flex-1 flex-col overflow-auto">
         <Table>
           <thead>
             <tr>
@@ -54,7 +54,14 @@ export default function List({
           <tbody>
             {filteredData.map((item) => (
               <tr key={item.id}>
-                <td>{item.reference}</td>
+                <td>
+                  <Link
+                    href={`/commands/${item.id}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {item.reference}
+                  </Link>
+                </td>
                 <td>
                   {item.client ? (
                     <div className="flex items-center gap-2">
@@ -77,7 +84,6 @@ export default function List({
                 </td>
                 <td>
                   <div className="flex items-center justify-between gap-4">
-                    {/* <span>{format(new Date(item.deadline), "PP")}</span> */}
                     {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
                       <Popover>
                         <PopoverTrigger>
@@ -98,7 +104,7 @@ export default function List({
                           <ConfirmButton
                             variant="ghost"
                             size="icon"
-                            className=" flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
+                            className="flex w-full justify-start gap-2 rounded-md px-6 hover:text-red-500"
                             action={async () => {
                               await handleDelete(item.id, user.id);
                             }}
@@ -117,7 +123,7 @@ export default function List({
         </Table>
         {data.length === 0 && (
           <div className="grid flex-1 place-content-center">
-            <span className=" text-center text-3xl font-semibold opacity-50">
+            <span className="text-center text-3xl font-semibold opacity-50">
               No Data
             </span>
           </div>

@@ -91,6 +91,32 @@ export async function findMany(params = defaultParams): Promise<{
   return { data, total };
 }
 
+export async function getCommandProjects(commandId: string) {
+  try {
+    const command = await db.command.findUnique({
+      where: { id: commandId },
+      include: {
+        commandProjects: {
+          include: {
+            project: true,
+            user: true,
+          },
+        },
+        client: true,
+      },
+    });
+
+    if (!command) {
+      throw new Error("Command not found");
+    }
+
+    return command;
+  } catch (error) {
+    console.error("Error fetching command projects:", error);
+    throw error;
+  }
+}
+
 export async function deleteById(id: string, userId: string) {
   const serverSession = await getServerSession();
   const organizationId =

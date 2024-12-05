@@ -145,8 +145,8 @@ model Planning {
   updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at")
   device           Device?
   operationHistory OperationHistory[]
-  commandProject   CommandProject     @relation(fields: [commandProjectId], references: [id])
-  operation        Operation          @relation(fields: [operationId], references: [id])
+  commandProject   CommandProject[]
+  operation        Operation[]
   post             Post               @relation(fields: [postId], references: [id])
   operator         User               @relation(fields: [operatorId], references: [id])
 

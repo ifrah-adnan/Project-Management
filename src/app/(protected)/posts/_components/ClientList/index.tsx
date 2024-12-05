@@ -7,7 +7,7 @@ export default function ClientList({
   data,
   total,
 }: {
-  data: TData;
+  data: any;
   total: number;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
