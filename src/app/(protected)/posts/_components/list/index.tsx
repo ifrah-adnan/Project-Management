@@ -9,7 +9,6 @@ import { revalidatePath } from "next/cache";
 import ParamsPagination from "@/components/params-pagination";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AddEditPlanningButton } from "../add-planning-button";
 import {
   Popover,
   PopoverContent,
@@ -21,6 +20,8 @@ import UpdatePojectCount from "../update-project-count";
 import { useSession } from "@/components/session-provider";
 import { useEffect, useState } from "react";
 import { getServerSession } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+
 export default function List({
   data,
   total,
@@ -33,8 +34,8 @@ export default function List({
   const { session } = useSession();
   const user = session?.user;
   const [filteredData, setFilteredData] = useState<TData>([]);
-  console.log(data);
   const [organizationId, setOrganizationId] = useState<any>("");
+  const router = useRouter();
 
   useEffect(() => {
     const fetchOrganizationImage = async () => {
@@ -62,6 +63,10 @@ export default function List({
       setFilteredData(filtered);
     }
   }, [organizationId, data, searchTerm]);
+
+  const handlePlanningClick = (postId: string) => {
+    router.push(`/planning?postId=${postId}`);
+  };
 
   return (
     <main className="p-2 sm:p-4 md:p-6">
@@ -107,67 +112,15 @@ export default function List({
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         {(user.role === "ADMIN" ||
                           user.role === "SYS_ADMIN") && (
-                          <AddEditPlanningButton
-                            postId={item.id}
-                            className="flex items-center justify-center rounded-full bg-gray-100 p-1 transition-colors duration-200 hover:bg-gray-200 sm:p-1.5 md:p-2 lg:p-2.5 xl:p-3"
-                            variant="outline"
-                            size="icon"
-                            expertises={item.expertises}
-                            onClose={() => console.log("Dialog closed")}
+                          <Button
+                            onClick={() => handlePlanningClick(item.id)}
+                            className="flex items-center justify-center rounded-md bg-primary px-4 py-2 text-primary-foreground shadow-md transition-colors duration-300 ease-in-out hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50"
                           >
-                            <CalendarIcon className="h-4 w-4 text-gray-600 sm:h-5 sm:w-5 md:h-6 md:w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8" />
-                          </AddEditPlanningButton>
-                        )}
-
-                        {item.plannings && item.plannings.length > 0 ? (
-                          <div className="flex flex-col gap-2 text-xs sm:flex-row sm:items-center sm:gap-4 sm:text-sm">
-                            <div className="flex items-center gap-2">
-                              <Avatar className="size-6 border-2 border-[#E6B3BA] sm:size-7">
-                                <AvatarImage
-                                  src={item.plannings[0].operator.name || ""}
-                                  alt={item.plannings[0].operator.name}
-                                />
-                                <AvatarFallback className="text-xs font-bold sm:text-sm">
-                                  {`${item.plannings[0].operator.name.charAt(0).toUpperCase()}`}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="max-w-[4rem] truncate capitalize sm:max-w-full">
-                                {item.plannings[0].operator.name}
-                              </span>
-                              <span className="max-w-[4rem] truncate capitalize sm:max-w-full">
-                                {item.plannings[0]?.commandProject.project.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="max-w-[6rem] truncate sm:max-w-full">
-                                {item.plannings[0]?.operation.name}
-                              </span>
-                            </div>
-                            <div className="flex flex-col gap-1 sm:flex-row sm:gap-2">
-                              <div className="flex gap-1">
-                                <span className="text-gray-500">from</span>
-                                <span>
-                                  {format(
-                                    new Date(item.plannings[0].startDate),
-                                    "PP",
-                                  )}
-                                </span>
-                              </div>
-                              <div className="flex gap-1">
-                                <span className="text-gray-500">to</span>
-                                <span>
-                                  {format(
-                                    new Date(item.plannings[0].endDate),
-                                    "PP",
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-500 sm:text-sm">
-                            No planning for now
-                          </span>
+                            <CalendarIcon className="mr-2 h-5 w-5" />
+                            <span className="text-sm font-medium">
+                              See Planning
+                            </span>
+                          </Button>
                         )}
                       </div>
                     </td>

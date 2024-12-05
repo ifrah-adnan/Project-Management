@@ -5,6 +5,7 @@ import { DockIcon, PlusIcon } from "lucide-react";
 import { AddPostButton } from "../add-post-button";
 import { useSession } from "@/components/session-provider";
 import MainHeader from "@/app/(protected)/_components/Header";
+import { getDevices } from "../../_utils/actions";
 interface HeaderProps {
   onSearch: (searchTerm: string) => void;
 }

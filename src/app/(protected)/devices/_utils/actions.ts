@@ -163,16 +163,11 @@ export async function deleteById(id: string, userId: string) {
 // export const create = createSafeAction({ scheme: createInputSchema, handler });
 interface CreateDeviceInput {
   deviceId: string;
-  postId: string;
-  planningId: string;
-  count: number;
   userId: string;
 }
+
 export async function createDevice({
   deviceId,
-  postId,
-  planningId,
-  count,
   userId,
 }: CreateDeviceInput): Promise<{
   result?: any;
@@ -191,9 +186,6 @@ export async function createDevice({
       data: {
         userId,
         deviceId,
-        postId,
-        planningId,
-        count,
         organizationId,
       },
     });

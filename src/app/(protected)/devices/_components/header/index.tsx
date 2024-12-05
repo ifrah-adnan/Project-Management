@@ -4,9 +4,9 @@ import React from "react";
 import { Bolt, PlusIcon } from "lucide-react";
 import { AddDeviceButton } from "../add-device-button";
 import { TData } from "../../_utils/schemas";
-import { ConfigureDeviceButton } from "../configure-device-button";
 import { useSession } from "@/components/session-provider";
 import MainHeader from "@/app/(protected)/_components/Header";
+import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
   data: TData;
@@ -25,10 +25,10 @@ export default function Header({ data, onSearch }: HeaderProps) {
         <h3 className="">Devices</h3>
         {(user?.role === "ADMIN" || user?.role === "SYS_ADMIN") && (
           <div className="flex gap-3">
-            <ConfigureDeviceButton devices={data} className="header-button">
+            <Button>
               <Bolt size={16} />
               <span className="hidden md:flex">Device configuration</span>
-            </ConfigureDeviceButton>
+            </Button>
             <AddDeviceButton className="header-button">
               <PlusIcon size={16} />
               <span className="hidden md:flex">Add new Device</span>

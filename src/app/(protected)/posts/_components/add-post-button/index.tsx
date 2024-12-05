@@ -20,30 +20,22 @@ import FormInput from "@/components/form-input";
 import {
   TCreateInput,
   TExpertise,
-  TOperator,
   createInputSchema,
 } from "../../_utils/schemas";
-import {
-  createPost,
-  getExpertises,
-  getOperations,
-  getOperators,
-} from "../../_utils/actions";
+import { createPost, getExpertises, TDevice } from "../../_utils/actions";
 import useSWR from "swr";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/multi-select";
 import { useSession } from "@/components/session-provider";
-import { getServerSession } from "@/lib/auth";
+import { findMany } from "@/app/(protected)/devices/_utils/actions";
 
-export interface AddOperatorButtonProps extends ButtonProps {}
+export interface AddPostButtonProps extends ButtonProps {}
 
-export function AddPostButton(props: AddOperatorButtonProps) {
+export function AddPostButton(props: AddPostButtonProps) {
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const { session } = useSession();
   const user = session?.user;
-
-  console.log(user);
 
   const [fieldErrors, setFieldErrors] = React.useState<
     FieldErrors<TCreateInput>
@@ -51,30 +43,40 @@ export function AddPostButton(props: AddOperatorButtonProps) {
   const [selectedExpertise, setSelectedExpertise] = React.useState<
     TExpertise[]
   >([]);
+  const [selectedDevice, setSelectedDevice] = React.useState<TDevice | null>(
+    null,
+  );
   const router = useRouter();
 
   const { data, isLoading, error } = useSWR("addPostData", async () => {
-    const [expertises] = await Promise.all([getExpertises()]);
-    return { expertises };
+    const [expertises, devices] = await Promise.all([
+      getExpertises(),
+      findMany(),
+    ]);
+    console.log("ddddwe33", data?.devices);
+    return { expertises, devices };
   });
 
+  console.log(data?.devices, "de33333333333");
   const handleClose = () => {
     setFieldErrors({});
     setSelectedExpertise([]);
+    setSelectedDevice(null);
     closeRef.current?.click();
   };
 
   const handleSubmit = async (formData: FormData) => {
     const name = formData.get("name") as string;
-    const expertises = selectedExpertise.map((op) => op.id);
-    console.log("Creating post with data:", { name, expertises, user });
-    const serverSession = await getServerSession();
 
-    const organizationId = serverSession?.user.organization?.id;
+    if (!selectedDevice) {
+      toast.error("Please select a device");
+      return;
+    }
 
     const { result, error, fieldErrors } = await createPost({
       name,
       expertises: selectedExpertise.map((op) => op.id),
+      deviceId: selectedDevice.id,
       userId: user?.id,
     });
 
@@ -92,7 +94,10 @@ export function AddPostButton(props: AddOperatorButtonProps) {
   return (
     <Sheet onOpenChange={handleClose}>
       <SheetTrigger asChild>
-        <Button {...props} />
+        <Button {...props}>
+          <PlusIcon size={18} className="mr-2" />
+          Add Post
+        </Button>
       </SheetTrigger>
       <SheetContent className="flex flex-col">
         <SheetHeader>
@@ -114,6 +119,7 @@ export function AddPostButton(props: AddOperatorButtonProps) {
             required
             errors={fieldErrors.name}
           />
+
           <Label className="mt-4 inline-block">Expertises</Label>
           <MultiSelect
             options={data?.expertises || []}
@@ -122,6 +128,21 @@ export function AddPostButton(props: AddOperatorButtonProps) {
             optionRenderer={(option) => option.name}
             onValueChange={setSelectedExpertise}
           />
+
+          <Label className="mt-4 inline-block">Device *</Label>
+          <MultiSelect
+            options={data?.devices.data.map((d) => d.deviceId) || []}
+            value={selectedDevice?.deviceId ? [selectedDevice.deviceId] : []}
+            valueRenderer={(value) => value}
+            optionRenderer={(option) => option}
+            onValueChange={(values) =>
+              setSelectedDevice(
+                data?.devices.data.find((d) => d.deviceId === values[0]) ||
+                  null,
+              )
+            }
+          />
+
           <div className="mt-auto flex items-center justify-end gap-4">
             <SheetClose ref={closeRef}></SheetClose>
             <Button
@@ -142,7 +163,4 @@ export function AddPostButton(props: AddOperatorButtonProps) {
       </SheetContent>
     </Sheet>
   );
-}
-function useSwr(arg0: string, arg1: () => Promise<void>) {
-  throw new Error("Function not implemented.");
 }
