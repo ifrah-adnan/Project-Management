@@ -25,19 +25,19 @@ import {
   deviceConfigInputSchema,
 } from "../../_utils/schemas";
 import useSWR from "swr";
-import { Label } from "@/components/ui/label";
+// import { Label } from "@/components/ui/label";
 import { configure, getPosts } from "../../_utils/actions";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { AddEditPlanningButton } from "@/app/(protected)/posts/_components/add-planning-button";
-import { FormSelect } from "@/components/form-select";
-import { format } from "date-fns";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { Input } from "@/components/ui/input";
+// import { AddEditPlanningButton } from "@/app/(protected)/posts/_components/add-planning-button";
+// import { FormSelect } from "@/components/form-select";
+// import { format } from "date-fns";
 type TDevice = {
   planning: {
     commandProject: { id: string; project: { name: string } };
@@ -154,103 +154,7 @@ export function ConfigureDeviceButton({
             <span>Device configuration</span>
           </SheetTitle>
         </SheetHeader>
-        <form
-          action={handleSubmit}
-          className="flex flex-1 flex-col gap-2 py-4 "
-        >
-          <Label className="mt-4 inline-block">Devices</Label>
-          <Select
-            onValueChange={(id) => handleDeviceChange(id)}
-            value={deviceToConfigure?.id}
-          >
-            <SelectTrigger>
-              <SelectValue className="w-full" placeholder="Select a post" />
-            </SelectTrigger>
-            <SelectContent>
-              {devices.map((item) => (
-                <SelectItem key={item.id} value={item.id}>
-                  {item.deviceId}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormInput
-            name="deviceId"
-            label="Device ID *"
-            className="mt-4"
-            required
-            defaultValue={deviceToConfigure?.deviceId}
-            errors={fieldErrors.deviceId}
-          />
-          <Label className="mt-4 inline-block">Post</Label>
-          <Select onValueChange={(id) => handlePostChange(id)} value={post?.id}>
-            <SelectTrigger>
-              <SelectValue className="w-full" placeholder="Select a post" />
-            </SelectTrigger>
-            <SelectContent>
-              {posts.map((post) => (
-                <SelectItem key={post.id} value={post.id}>
-                  {post.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {post?.id && (
-            <>
-              {" "}
-              <FormSelect
-                name="planningId"
-                placeholder="Select planning"
-                label="Planning"
-                className="mt-4"
-                // errors={fieldErrors.operationId}
-              >
-                {post.plannings.map((op: any) => (
-                  <SelectItem key={op.id} value={op.id} className="text-xs">
-                    {op.operation.name} from{" "}
-                    {format(new Date(op.startDate), "PP")} to{" "}
-                    {format(new Date(op.endDate), "PP")}
-                  </SelectItem>
-                ))}
-              </FormSelect>
-              <AddEditPlanningButton
-                postId={post?.id || ""}
-                className=" mt-4 flex w-full gap-2 rounded-sm p-0 text-sm font-medium"
-                variant={"outline"}
-                size={"icon"}
-                expertises={post?.expertises || []}
-                onClose={handleNewPlanning}
-              >
-                <PlusIcon size={18} />
-                <span>Add new planning</span>
-              </AddEditPlanningButton>
-            </>
-          )}
-          <Label className="mt-4 inline-block">Value</Label>
-          <Input
-            type="number"
-            name="count"
-            className="w-full"
-            defaultValue={deviceToConfigure?.count}
-          />
-          <div className="mt-auto flex items-center justify-end gap-4">
-            <SheetClose ref={closeRef}></SheetClose>
-            <Button
-              type="button"
-              variant="outline"
-              className="flex w-24 gap-2"
-              onClick={handleClose}
-            >
-              <ArrowLeftIcon size={18} />
-              <span>Cancel</span>
-            </Button>
-            <Button type="submit" className="flex w-24 gap-2">
-              <PlusIcon size={18} />
-              Save
-            </Button>
-          </div>
-        </form>
+        tst
       </SheetContent>
     </Sheet>
   );

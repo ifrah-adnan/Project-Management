@@ -23,7 +23,7 @@ export type TData = {
       id: string;
       startDate: Date;
       endDate: Date;
-      operation: { id: string; name: string };
+      operation: { id: string; name: string }[];
     }[];
     expertises: {
       id: string;
@@ -32,10 +32,10 @@ export type TData = {
     }[];
   } | null;
   planning: {
-    commandProject: { id: string; project: { name: string } };
+    commandProject: { id: string; project: { name: string } }[];
     startDate: Date;
     endDate: Date;
-    operation: { id: string; name: string };
+    operation: { id: string; name: string }[];
     operator: { id: string; name: string; image: string | null };
   } | null;
   user: {

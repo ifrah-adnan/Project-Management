@@ -4,11 +4,11 @@ import { format } from "date-fns";
 interface PlanningDisplayProps {
   planning: Array<{
     operator: { name: string };
-    operation: { name: string };
+    operation: { name: string }[];
     commandProject: {
       command: { reference: string };
       project: { name: string };
-    };
+    }[];
     startDate: Date;
     endDate: Date;
   }>;
@@ -27,12 +27,12 @@ export function PlanningDisplay({ planning }: PlanningDisplayProps) {
               <strong>Operator:</strong> {item.operator.name}
             </div>
             <div>
-              <strong>Operation:</strong> {item.operation.name}
+              <strong>Operation:</strong> {item.operation.map((op) => op.name)}
             </div>
             <div>
               <strong>Command Project:</strong>{" "}
-              {item.commandProject.command.reference} -{" "}
-              {item.commandProject.project.name}
+              {item.commandProject.map((cp) => cp.command.reference)} -{" "}
+              {item.commandProject.map((cp) => cp.project.name)}
             </div>
             <div>
               <strong>Start Date:</strong>{" "}
