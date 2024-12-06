@@ -91,11 +91,11 @@ export type TPlanning = {
   commandProject: {
     project: { id: string; name: string };
     id: string;
-  };
+  }[];
   operation: {
     name: string;
     id: string;
-  };
+  }[];
   id: string;
   operator: {
     name: string;

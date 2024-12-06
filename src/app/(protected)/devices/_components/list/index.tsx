@@ -95,11 +95,15 @@ export default function List({
                             {item.planning?.operator.name}
                           </span>
                           <span className="capitalize">
-                            {item.planning?.commandProject.project.name}
+                            {item.planning?.commandProject.map(
+                              (cp) => cp.project.name,
+                            )}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span>{item.planning?.operation.name}</span>
+                          <span>
+                            {item.planning?.operation.map((op) => op.name)}
+                          </span>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:gap-2">
                           <div className="flex gap-1">

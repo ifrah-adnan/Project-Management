@@ -30,8 +30,9 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   if (orderBy === "name") return { name: order };
   return { createdAt: "desc" as "desc" };
 };
+
 export async function findMany(params = defaultParams): Promise<{
-  data: TData;
+  data: TData[];
   total: number;
 }> {
   const serverSession = await getServerSession();
@@ -89,19 +90,25 @@ export async function findMany(params = defaultParams): Promise<{
             endDate: true,
           },
         },
-        users: { select: { id: true, name: true } }, // Ensure users is always an array
+        users: { select: { id: true, name: true } },
       },
     }),
     db.post.count({ where }),
   ]);
 
-  const data = result.map((post) => ({
-    ...post,
-    users: Array.isArray(post.users) ? post.users : [post.users], // Ensure users is an array
+  const data: any = result.map((post) => ({
+    id: post.id,
+    name: post.name,
+    organizationId: post.organizationId,
+    createdAt: post.createdAt,
+    expertises: post.expertises,
+    plannings: post.plannings,
+    users: post.users,
   }));
 
   return { data, total };
 }
+
 export async function deleteById(id: string, userId: string) {
   await db.planning.deleteMany({ where: { postId: id } });
   const deletedPost = await db.post.delete({ where: { id } });
@@ -129,14 +136,37 @@ export async function deleteById(id: string, userId: string) {
 // };
 
 // export const create = createSafeAction({ scheme: createInputSchema, handler });
+export type TDevice = {
+  id: string;
+  deviceId: string;
+};
+
+export async function getDevices(): Promise<TDevice[]> {
+  try {
+    const devices = await db.device.findMany({
+      select: {
+        id: true,
+        deviceId: true,
+      },
+    });
+    console.log("Fetched devices:", devices); // Add this line for debugging
+    return devices;
+  } catch (error) {
+    console.error("Error fetching devices:", error);
+    throw error; // Make sure to throw the error so it can be caught by the caller
+  }
+}
 interface CreatePostInput {
   name: string;
   expertises: string[];
+  deviceId: string;
   userId: string;
 }
+
 export async function createPost({
   name,
   expertises,
+  deviceId,
   userId,
 }: CreatePostInput): Promise<{
   result?: any;
@@ -151,7 +181,12 @@ export async function createPost({
       return { error: "Organization ID is not available" };
     }
 
-    console.log("Creating post with data:", { name, expertises, userId });
+    console.log("Creating post with data:", {
+      name,
+      expertises,
+      deviceId,
+      userId,
+    });
 
     const post = await db.post.create({
       data: {
@@ -160,6 +195,7 @@ export async function createPost({
         expertises: {
           connect: expertises.map((id) => ({ id })),
         },
+        device: { connect: { id: deviceId } },
         organization: { connect: { id: organizationId } },
       },
     });
@@ -179,6 +215,7 @@ export async function createPost({
     return { error: error.message };
   }
 }
+
 export interface TEditInput extends TCreateInput {
   postId: string;
 }

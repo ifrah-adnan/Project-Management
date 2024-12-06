@@ -483,7 +483,6 @@ export async function updateDoneValue(id: string, newValue: number) {
     return { success: false, error: "Failed to update done value" };
   }
 }
-// types.ts
 export interface Operation {
   id: string;
   name: string;
@@ -517,12 +516,22 @@ export async function getOperationsForCommandProject(
       return { error: "CommandProject not found" };
     }
 
+    // Extract unique operations from all plannings
     const uniqueOperations = commandProject.planings.reduce((acc, planning) => {
-      if (
-        planning.operation &&
-        !acc.some((op) => op.id === planning.operation.id)
-      ) {
-        acc.push(planning.operation as Operation);
+      if (planning.operation && planning.operation.length > 0) {
+        planning.operation.forEach((op) => {
+          if (!acc.some((existingOp) => existingOp.id === op.id)) {
+            acc.push({
+              id: op.id,
+              name: op.name,
+              code: op.code,
+              icon: op.icon,
+              description: op.description ?? undefined,
+              isFinal: op.isFinal,
+              estimatedTime: op.estimatedTime,
+            });
+          }
+        });
       }
       return acc;
     }, [] as Operation[]);
