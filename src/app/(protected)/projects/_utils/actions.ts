@@ -27,6 +27,12 @@ export interface CommandProject {
   id: string;
   commandId: string;
   projectId: string;
+  command?: {
+    client: {
+      name: string;
+    } | null;
+  };
+
   target: number;
   done: number;
   startDate: Date | null;
@@ -410,6 +416,15 @@ export async function getCommandProject(
       id: true,
       commandId: true,
       projectId: true,
+      command: {
+        select: {
+          client: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
       target: true,
       done: true,
       startDate: true,
