@@ -24,11 +24,29 @@ import {
   CommandProject,
   getCommandProject,
   getOperationProgress2,
+  handleDeleteCommandProject,
 } from "../../projects/_utils/actions";
 import {
   getOperationProgress,
   OperationProgressSummary,
 } from "@/actions/operation-progress";
+import {
+  CalendarDays,
+  Ellipsis,
+  ListChecksIcon,
+  PencilIcon,
+  Trash2Icon,
+} from "lucide-react";
+import ConfigureSprintButton from "../../projects/_components/configure-sprint-button";
+import { format } from "date-fns";
+import { CircularProgress } from "@/components/circular-progress";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { EditProjectButton } from "../../projects/_components/edit-project-button";
+import { ConfirmButton } from "@/components/confirm-button";
 
 export default function ProjectOverviewPage() {
   const searchParams = useSearchParams();
@@ -244,66 +262,76 @@ export default function ProjectOverviewPage() {
         </TabsContent>
 
         <TabsContent value="operations">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {operationDetails.length > 0 ? (
-              operationDetails.map((op) => (
-                <div
+          <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-4 text-sm sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {operationDetails.map((op) => {
+              const value = (op.completedCount / (op.target || 1)) * 100;
+              return (
+                <Card
                   key={op.id}
-                  className="flex flex-col items-center justify-center space-y-2 rounded-md bg-card p-4 shadow-md"
+                  className="flex flex-col gap-4 p-3 sm:gap-6 sm:p-4"
                 >
-                  <div className="relative h-20 w-20">
-                    <svg
-                      className="h-full w-full"
-                      viewBox="0 0 100 100"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="transparent"
-                        stroke="#E6B3BA"
-                        strokeWidth="4"
-                      />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="40"
-                        fill="transparent"
-                        stroke="#8D99AE"
-                        strokeWidth="4"
-                        strokeDasharray="251.2"
-                        strokeDashoffset={251.2 - (251.2 * op.progress) / 100}
-                        transform="rotate(-90 50 50)"
-                      />
-                      <text
-                        x="50"
-                        y="50"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        className="fill-primary text-sm font-medium"
-                      >
-                        {op.progress.toFixed(2)}%
-                      </text>
-                    </svg>
+                  <div className="flex items-center justify-end gap-1 sm:gap-2">
+                    <div className="mr-auto flex flex-col gap-1">
+                      <span className="font-medium">{op.name}</span>
+                      <span className="text-xs capitalize">
+                        {commandProject?.command?.client?.name || "N/A"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-center text-sm font-medium text-[#2B2D42]">
-                    {op.name}
+                  <div className="relative">
+                    <CircularProgress
+                      value={value}
+                      className="mx-auto w-1/2 stroke-sky-900 shadow-black/0 sm:w-2/3"
+                      gradient={{
+                        startColor: "#2196F3",
+                        endColor: "#0c4a6e",
+                      }}
+                    />
+                    <span className="absolute bottom-1/2 right-1/2 translate-x-1/2 translate-y-1/2 text-xl font-medium sm:text-2xl">
+                      {value.toFixed(2).toString().padStart(2, "0")}
+                    </span>
                   </div>
-                  <div className="flex w-full items-center justify-between text-xs text-[#8D99AE]">
-                    <div>Completed: {op.completedCount}</div>
-                    <div>Target: {op.target || "N/A"}</div>
-                    <div>Today: {op.todayCount}</div>
+                  <div className="flex flex-col gap-2 sm:gap-3">
+                    <div className="flex justify-center gap-4 sm:gap-6">
+                      <div className="flex items-center gap-1">
+                        <span className="size-5 rounded bg-gradient-to-r from-[#2196F3] to-[#0c4a6e]"></span>
+                        <span className="font-medium text-gray-500">Done:</span>
+                        <span className="font-medium">{op.completedCount}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="size-5 rounded bg-muted"></span>
+                        <span className="font-medium text-gray-500">
+                          Target:
+                        </span>
+                        <span className="font-medium">
+                          {op.target || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                    <Progress
+                      value={value}
+                      className="h-1.5 text-red-500 sm:h-2"
+                      color={
+                        (value < 25 && "#ef4444") ||
+                        (value < 75 && "#eab308") ||
+                        "#22c55e"
+                      }
+                    />
+                    <div className="flex items-center gap-1 text-xs sm:gap-2 sm:text-sm">
+                      <span className="text-gray-500">Today:</span>
+                      <span>{op.todayCount}</span>
+                      <CalendarDays size={16} className="ml-auto" />
+                      <span className="text-gray-500">
+                        {format(new Date(), "PP")}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-span-full p-8 text-center">
-                No operations found for this project.
-              </div>
-            )}
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
+
         <TabsContent value="summary">
           <div className="rounded-md bg-card p-4 shadow-md">
             <h2 className="mb-4 text-xl font-bold">Project Summary</h2>
