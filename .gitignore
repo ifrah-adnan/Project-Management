@@ -38,3 +38,4 @@ next-env.d.ts
 .env
 static
 src/app/dev
+./static
