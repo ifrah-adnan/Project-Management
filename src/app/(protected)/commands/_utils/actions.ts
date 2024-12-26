@@ -313,9 +313,9 @@ export async function getCommands() {
   const organizationId =
     serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
-  if (!organizationId) {
-    throw new Error("Organization ID not found");
-  }
+  // if (!organizationId) {
+  //   throw new Error("Organization ID not found");
+  // }
   let where: Prisma.CommandWhereInput = { organizationId: organizationId };
   return await db.command.findMany({
     where,
@@ -328,9 +328,9 @@ export async function getProjects() {
   const organizationId =
     serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
-  if (!organizationId) {
-    throw new Error("Organization ID not found");
-  }
+  // if (!organizationId) {
+  //   throw new Error("Organization ID not found");
+  // }
   let where: Prisma.ProjectWhereInput = { organizationId: organizationId };
   return await db.project.findMany({
     where,
