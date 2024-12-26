@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
 import ReactFlow, {
   Node,
   Edge,
@@ -15,7 +21,6 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { saveWorkflow } from "@/app/(protected)/products/_utils/actions";
 import { v4 as uuidv4 } from "uuid";
 import CustomNode from "./CustomNode";
@@ -32,7 +37,6 @@ import { Clock, Plus, Save, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
-import { JsonValue } from "@prisma/client/runtime/library";
 
 interface Operation {
   id: string;
@@ -82,19 +86,39 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
   const [selectedOperation, setSelectedOperation] = useState<string | null>(
     null,
   );
-  const [targetCount, setTargetCount] = useState<number>(1);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+  const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
+  const edgeTypes = useMemo(() => ({ custom: CustomEdge }), []);
 
   const handleEdgeChange = useCallback(
-    (edgeId: string, newCount: number) => {
+    (edgeId: string, newCount: number, newTarget: string) => {
       setEdges((eds) =>
         eds.map((edge) =>
           edge.id === edgeId
-            ? { ...edge, data: { ...edge.data, count: newCount } }
+            ? {
+                ...edge,
+                target: newTarget,
+                data: { ...edge.data, count: newCount },
+              }
             : edge,
         ),
       );
+    },
+    [setEdges],
+  );
+  const onEdgeUpdate = useCallback(
+    (oldEdge: Edge, newConnection: Connection) => {
+      setEdges((els) => {
+        const updatedEdge = {
+          ...oldEdge,
+          source: newConnection.source || oldEdge.source,
+          target: newConnection.target || oldEdge.target,
+          sourceHandle: newConnection.sourceHandle,
+          targetHandle: newConnection.targetHandle,
+        };
+        return els.map((el) => (el.id === oldEdge.id ? updatedEdge : el));
+      });
     },
     [setEdges],
   );
@@ -102,7 +126,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
   useEffect(() => {
     if (project.workFlow) {
       const initialNodes: Node[] = project.workFlow.WorkflowNode.map(
-        (node: any) => ({
+        (node: WorkflowNode) => ({
           id: node.id,
           type: "custom",
           data: {
@@ -115,7 +139,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
       );
 
       const initialEdges: Edge[] = project.workFlow.WorkFlowEdge.map(
-        (edge: any) => ({
+        (edge: WorkflowEdge) => ({
           id: edge.id,
           source: edge.sourceId,
           target: edge.targetId,
@@ -132,20 +156,47 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
     }
   }, [project.workFlow, setNodes, setEdges, handleEdgeChange]);
 
+  // const onConnect = useCallback(
+  //   (params: Edge | Connection) => {
+  //     const newEdge = {
+  //       ...params,
+  //       id: uuidv4(),
+  //       data: {
+  //         count: 0,
+  //         onChange: handleEdgeChange,
+  //       },
+  //       type: "custom",
+  //     };
+  //     setEdges((eds) => addEdge(newEdge, eds));
+  //   },
+  //   [setEdges, handleEdgeChange],
+  // );
+  // const onConnect = useCallback(
+  //   (params: Edge | Connection) => {
+  //     setEdges((eds) =>
+  //       addEdge(
+  //         {
+  //           ...params,
+  //           type: "custom",
+  //         },
+  //         eds,
+  //       ),
+  //     );
+  //   },
+  //   [setEdges],
+  // );
   const onConnect = useCallback(
     (params: Edge | Connection) => {
       const newEdge = {
         ...params,
-        id: uuidv4(),
-        data: {
-          count: targetCount,
-          onChange: handleEdgeChange,
-        },
         type: "custom",
+        data: {
+          count: 0,
+        },
       };
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [setEdges, targetCount, handleEdgeChange],
+    [setEdges],
   );
 
   const onInit = (rfi: any) => setReactFlowInstance(rfi);
@@ -153,7 +204,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
   const addOperationToFlow = useCallback(() => {
     if (selectedOperation) {
       const operation = project.projectOperations.find(
-        (po: any) => po.operation.id === selectedOperation,
+        (po: ProjectOperation) => po.operation.id === selectedOperation,
       );
       if (operation) {
         const newNode: Node = {
@@ -229,7 +280,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                   <SelectValue placeholder="Select an operation" />
                 </SelectTrigger>
                 <SelectContent>
-                  {project.projectOperations.map((po: any) => (
+                  {project.projectOperations.map((po: ProjectOperation) => (
                     <SelectItem key={po.operation.id} value={po.operation.id}>
                       <div className="flex w-full items-center justify-between">
                         <span className="font-medium">{po.operation.name}</span>
@@ -253,14 +304,6 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                 Add Operation
               </Button>
             </motion.div>
-            <Input
-              type="number"
-              min="1"
-              value={targetCount}
-              onChange={(e) => setTargetCount(parseInt(e.target.value, 10))}
-              placeholder="Target count"
-              className="w-32 border-gray-300 bg-white focus:border-indigo-500 focus:ring-indigo-500"
-            />
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={saveCurrentWorkflow}
@@ -286,7 +329,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
         <CardContent className="h-full p-0">
           <ReactFlowProvider>
             <div ref={reactFlowWrapper} className="h-full">
-              <ReactFlow
+              {/* <ReactFlow
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
@@ -295,6 +338,17 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                 onInit={onInit}
                 nodeTypes={{ custom: CustomNode }}
                 edgeTypes={{ custom: CustomEdge }}
+                // onEdgeUpdate={onEdgeUpdate}
+                fitView
+              > */}
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
                 fitView
               >
                 <Background color="#f0f0f0" />

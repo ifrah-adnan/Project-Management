@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from "react";
-import { EdgeProps, getBezierPath } from "reactflow";
+import { EdgeProps, getBezierPath, useReactFlow } from "reactflow";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Edit2 } from "lucide-react";
 
 const CustomEdge: React.FC<EdgeProps> = ({
   id,
@@ -14,7 +16,8 @@ const CustomEdge: React.FC<EdgeProps> = ({
   data,
   markerEnd,
 }) => {
-  const [edgePath] = getBezierPath({
+  const { setEdges } = useReactFlow();
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -24,79 +27,133 @@ const CustomEdge: React.FC<EdgeProps> = ({
   });
 
   const [isEditing, setIsEditing] = useState(false);
-  const [count, setCount] = useState(data?.count || 1);
-
-  const handleDoubleClick = useCallback((event: React.MouseEvent) => {
-    event.preventDefault();
-    setIsEditing(true);
-  }, []);
+  const [localCount, setLocalCount] = useState(data?.count || 0);
 
   const handleCountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newCount = parseInt(e.target.value, 10);
-      if (!isNaN(newCount) && newCount > 0) {
-        setCount(newCount);
-        data.onChange(id, newCount);
+      if (!isNaN(newCount) && newCount >= 0) {
+        setLocalCount(newCount);
       }
     },
-    [id, data],
+    [],
   );
 
-  const handleBlur = useCallback(() => {
+  const handleSubmit = useCallback(() => {
+    setEdges((edges) =>
+      edges.map((edge) => {
+        if (edge.id === id) {
+          return {
+            ...edge,
+            data: {
+              ...edge.data,
+              count: localCount,
+            },
+          };
+        }
+        return edge;
+      }),
+    );
     setIsEditing(false);
+  }, [id, localCount, setEdges]);
+
+  const handleCancel = useCallback(() => {
+    setLocalCount(data?.count || 0);
+    setIsEditing(false);
+  }, [data?.count]);
+
+  const startEditing = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
   }, []);
+
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        handleSubmit();
+      }
+      if (e.key === "Escape") {
+        handleCancel();
+      }
+    },
+    [handleSubmit, handleCancel],
+  );
 
   return (
     <>
       <path
         id={id}
-        style={{
-          ...style,
-          strokeWidth: 2,
-          stroke: "url(#edge-gradient)",
-        }}
+        style={style}
         className="react-flow__edge-path"
         d={edgePath}
         markerEnd={markerEnd}
       />
-      {isEditing ? (
-        <foreignObject
-          width={40}
-          height={40}
-          x={(sourceX + targetX) / 2 - 20}
-          y={(sourceY + targetY) / 2 - 20}
-          className="edgebutton-foreignobject"
-          requiredExtensions="http://www.w3.org/1999/xhtml"
+      <foreignObject
+        width={160}
+        height={40}
+        x={labelX - 80}
+        y={labelY - 20}
+        className="edgebutton-foreignobject"
+        requiredExtensions="http://www.w3.org/1999/xhtml"
+      >
+        <div
+          className="flex h-full items-center justify-center"
+          onClick={(e) => e.stopPropagation()}
         >
-          <Input
-            type="number"
-            min="1"
-            value={count}
-            onChange={handleCountChange}
-            onBlur={handleBlur}
-            className="nodrag h-full w-full text-center"
-            autoFocus
-          />
-        </foreignObject>
-      ) : (
-        <text>
-          <textPath
-            href={`#${id}`}
-            style={{ fontSize: 12, fill: "#888", cursor: "pointer" }}
-            startOffset="50%"
-            textAnchor="middle"
-            onDoubleClick={handleDoubleClick}
-          >
-            {`${count} count`}
-          </textPath>
-        </text>
-      )}
-      <defs>
-        <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#667eea" />
-          <stop offset="100%" stopColor="#764ba2" />
-        </linearGradient>
-      </defs>
+          {isEditing ? (
+            <div
+              className="flex items-center gap-2 rounded-md bg-white p-1 shadow-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Input
+                type="number"
+                min="0"
+                value={localCount}
+                onChange={handleCountChange}
+                onKeyDown={handleKeyPress}
+                className="h-8 w-20 text-center text-sm"
+                autoFocus
+              />
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleSubmit}
+                  className="h-8 w-8 p-1"
+                >
+                  ✓
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleCancel}
+                  className="h-8 w-8 p-1"
+                >
+                  ✕
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="flex items-center gap-2 rounded-md bg-white p-2 shadow-md hover:bg-gray-50"
+              role="button"
+              onClick={startEditing}
+            >
+              <span className="min-w-[2rem] text-center text-sm font-medium">
+                {data?.count || 0}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0"
+                onClick={startEditing}
+              >
+                <Edit2 className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </foreignObject>
     </>
   );
 };
