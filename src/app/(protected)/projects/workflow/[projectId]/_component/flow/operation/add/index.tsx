@@ -2,7 +2,7 @@ import Card from "@/components/card";
 import { Button } from "@/components/ui/button";
 import { ChevronsUpDown, Clock1, EllipsisVertical } from "lucide-react";
 import React from "react";
-import ButtonAddOperation from "../../../buttonAddOperation";
+import { ButtonAddOperation } from "../../../buttonAddOperation";
 import { useStore } from "../../../../store";
 import { NodeTypes } from "@/utils/types";
 import icons from "../../../icons";

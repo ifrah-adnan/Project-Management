@@ -195,7 +195,6 @@ export function AddProjectButton({
               <span>Cancel</span>
             </Button>
             <Button type="submit" className="flex w-24 gap-2">
-              <PlusIcon size={18} />
               Save
             </Button>
           </div>

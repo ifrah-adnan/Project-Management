@@ -23,7 +23,7 @@ function UserButton({ className }: { className?: string }) {
       <Popover>
         <PopoverTrigger>
           {" "}
-          <Avatar className="size-6 border-2 border-[#E6B3BA]">
+          <Avatar className="size-9 border-2 border-[#E6B3BA]">
             <AvatarImage src={user.image || ""} alt="@shadcn" />
             <AvatarFallback className="font-bold">
               {`${user.name.charAt(0).toUpperCase()}`}
