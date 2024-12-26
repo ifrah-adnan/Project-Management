@@ -11,27 +11,44 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ArrowLeftIcon, PlusIcon } from "lucide-react";
-import React from "react";
+import { ArrowLeftIcon, PlusIcon, XIcon } from "lucide-react";
+import React, { useState } from "react";
 import { FieldErrors } from "@/actions/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import FormInput from "@/components/form-input";
-import { TCreateInput, createInputSchema } from "../../_utils/schemas";
-import { create } from "../../_utils/actions";
 import FormTextarea from "@/components/form-textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { createInputSchema, TCreateInput } from "../../_utils/schemas";
+import { create } from "../../_utils/actions";
 
-export interface AddOperatorButtonProps extends ButtonProps {}
+export interface AddProjectButtonProps extends ButtonProps {
+  operations: Array<{ id: string; name: string }>;
+}
 
-export function AddProjectButton(props: AddOperatorButtonProps) {
+export function AddProjectButton({
+  operations,
+  ...props
+}: AddProjectButtonProps) {
   const closeRef = React.useRef<HTMLButtonElement>(null);
   const [fieldErrors, setFieldErrors] = React.useState<
     FieldErrors<TCreateInput>
   >({});
   const router = useRouter();
+  const [selectedOperations, setSelectedOperations] = useState<
+    Array<{ id: string; time: number }>
+  >([]);
 
   const handleClose = () => {
     setFieldErrors({});
+    setSelectedOperations([]);
     closeRef.current?.click();
   };
 
@@ -42,6 +59,7 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
     const data = {
       name,
       description: description || undefined,
+      operations: selectedOperations,
     };
 
     const parsed = createInputSchema.safeParse(data);
@@ -97,6 +115,73 @@ export function AddProjectButton(props: AddOperatorButtonProps) {
             className="mt-4"
             errors={fieldErrors.description}
           />
+
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold">Operations</h3>
+            {selectedOperations.map((operation, index) => (
+              <div key={index} className="mt-2 flex items-center gap-2">
+                <Select
+                  value={operation.id}
+                  onValueChange={(value) => {
+                    const updatedOperations = [...selectedOperations];
+                    updatedOperations[index] = {
+                      ...updatedOperations[index],
+                      id: value,
+                    };
+                    setSelectedOperations(updatedOperations);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select operation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {operations.map((op) => (
+                      <SelectItem key={op.id} value={op.id}>
+                        {op.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="number"
+                  placeholder="Time (minutes)"
+                  value={operation.time || ""}
+                  onChange={(e) => {
+                    const updatedOperations = [...selectedOperations];
+                    updatedOperations[index] = {
+                      ...updatedOperations[index],
+                      time: parseInt(e.target.value),
+                    };
+                    setSelectedOperations(updatedOperations);
+                  }}
+                  className="w-32"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setSelectedOperations(
+                      selectedOperations.filter((_, i) => i !== index),
+                    );
+                  }}
+                >
+                  <XIcon size={18} />
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              onClick={() =>
+                setSelectedOperations([
+                  ...selectedOperations,
+                  { id: "", time: 0 },
+                ])
+              }
+              className="mt-2"
+            >
+              Add Operation
+            </Button>
+          </div>
 
           <div className="mt-auto flex items-center justify-end gap-4">
             <SheetClose ref={closeRef}></SheetClose>

@@ -36,7 +36,7 @@ export interface Operation {
   organizationId: string;
   description: string | null;
   isFinal: boolean;
-  estimatedTime: number;
+  // estimatedTime: number;
   createdAt: Date;
   updatedAt: Date;
   expertiseId: string | null;

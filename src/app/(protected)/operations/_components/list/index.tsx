@@ -20,10 +20,10 @@ interface Operation {
   id: string;
   name: string;
   code: string;
-  icon: string;
+  icon?: string;
   description: string;
   isFinal: boolean;
-  estimatedTime: number;
+  // estimatedTime: number;
 }
 
 interface ListProps {
@@ -64,20 +64,19 @@ const List: React.FC<ListProps> = ({ data, userId, searchTerm }) => {
               <th>Code</th>
               <th>Description</th>
               <th>Is Final</th>
-              <th>Estimated Time</th>
             </tr>
           </thead>
           <tbody>
             {filteredData.map((item) => (
               <tr key={item.id}>
                 <td>
-                  <IconComponent iconName={item.icon} />
+                  <IconComponent iconName={item.icon || ""} />
                 </td>
                 <td>{item.name}</td>
                 <td>{item.code}</td>
                 <td>{item.description}</td>
                 <td>{item.isFinal ? "Yes" : "No"}</td>
-                <td>{item.estimatedTime} minutes</td>
+                {/* <td>{item.estimatedTime} minutes</td> */}
                 <td>
                   {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
                     <Popover>

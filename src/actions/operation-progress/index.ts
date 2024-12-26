@@ -49,6 +49,11 @@ export async function getOperationProgress(
         },
       },
       WorkFlowEdge: true,
+      project: {
+        include: {
+          projectOperations: true,
+        },
+      },
     },
   });
 
@@ -203,10 +208,15 @@ export async function getOperationProgress(
 
       const progress = (completedCount / target) * 100;
 
-      workflow.WorkflowNode.forEach((node) => {
-        const nodeTarget = calculateNodeTarget(node.id);
-        totalEstimatedHours += (node.operation.estimatedTime * nodeTarget) / 60;
-      });
+      // Find the corresponding ProjectOperation for this node
+      const projectOperation = workflow.project?.projectOperations.find(
+        (po) => po.operationId === node.operation.id
+      );
+
+      // Calculate estimated hours using the time from ProjectOperation
+      if (projectOperation) {
+        totalEstimatedHours += (projectOperation.time * target) / 60;
+      }
 
       return {
         id: node.operation.id,

@@ -201,8 +201,8 @@ export async function getOperations() {
       code: true,
       description: true,
       isFinal: true,
-      estimatedTime: true,
-      icon: true,
+      // estimatedTime: true,
+      // icon: true,
     },
   });
 }

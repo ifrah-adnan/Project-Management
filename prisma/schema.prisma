@@ -69,6 +69,7 @@ model Project {
   updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at")
   commandProjects CommandProject[]
   workFlow        WorkFlow?        @relation(fields: [workFlowId], references: [id])
+  projectOperations ProjectOperation[]
 
   @@map("projects")
 }
@@ -167,18 +168,28 @@ model Sprint {
 
   @@map("sprints")
 }
+model ProjectOperation {
+  id          String   @id @default(uuid())
+  projectId   String
+  operationId String
+  time        Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  operation   Operation @relation(fields: [operationId], references: [id])
+
+  @@unique([projectId, operationId])
+  @@map("project_operations")
+}
 
 model Operation {
   id             String       @id
   name           String
   code           String       @unique
-  icon           String
+  icon           String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   description   String?
   isFinal       Boolean        @default(false) @map("is_final")
-  estimatedTime Int            @map("estimated_time")
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at")
   expertiseId   String?
@@ -186,6 +197,8 @@ model Operation {
   plannings     Planning[]
   posts         Post[]
   WorkflowNode  WorkFlowNode[]
+  projectOperations ProjectOperation[]
+
 
   @@map("operations")
 }

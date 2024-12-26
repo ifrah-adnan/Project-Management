@@ -505,7 +505,7 @@ export interface Operation {
   icon: string;
   description?: string;
   isFinal: boolean;
-  estimatedTime: number;
+  // estimatedTime: number;
 }
 
 export interface OperationsResponse {
@@ -543,7 +543,7 @@ export async function getOperationsForCommandProject(
               icon: op.icon,
               description: op.description ?? undefined,
               isFinal: op.isFinal,
-              estimatedTime: op.estimatedTime,
+              // estimatedTime: op.estimatedTime,
             });
           }
         });
@@ -847,7 +847,7 @@ export async function getOperationProgress2(
 
       workflow.WorkflowNode.forEach((node) => {
         const nodeTarget = calculateNodeTarget(node.id);
-        totalEstimatedHours += (node.operation.estimatedTime * nodeTarget) / 60;
+        // totalEstimatedHours += (node.operation.estimatedTime * nodeTarget) / 60;
       });
 
       return {

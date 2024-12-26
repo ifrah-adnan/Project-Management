@@ -28,7 +28,8 @@
     ".next/types/**/*.ts",
     "src/app/(protected)/settings/page.tsx",
     "src/app/(protected)/projects/_components/map-dialog/MapDialog.jsx",
-    "src/app/(protected)/projects/_components/map-dialog/MapDialog.jsx"
+    "src/app/(protected)/projects/_components/map-dialog/MapDialog.jsx",
+    "backup.js"
   ],
   "exclude": ["node_modules"]
 }
