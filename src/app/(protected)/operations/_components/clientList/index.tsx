@@ -9,8 +9,8 @@ interface Operation {
   code: string;
   description: any;
   isFinal: boolean;
-  estimatedTime: number;
-  icon: string;
+  // estimatedTime: number;
+  icon?: string;
 }
 
 interface ClientListProps {

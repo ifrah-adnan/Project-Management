@@ -1,16 +1,14 @@
 import { z } from "zod";
 
 export const createInputSchema = z.object({
-  name: z.string().min(2, {
-    message: "name must be at least 2 characters long",
-  }),
-  description: z
-    .string()
-    .min(2, {
-      message: "description must be at least 2 characters long",
-    })
-    .optional(),
-  workFlowId: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  operations: z.array(
+    z.object({
+      id: z.string().min(1, "Operation ID is required"),
+      time: z.number().min(1, "Time must be at least 1 minute"),
+    }),
+  ),
 });
 
 export type TCreateInput = z.infer<typeof createInputSchema>;

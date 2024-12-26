@@ -131,7 +131,7 @@ export const createOperation = async (data: any) => {
       icon: data.icon,
       description: data?.description || undefined,
       isFinal: data.isFinal,
-      estimatedTime: numberToStringReverse(data.estimatedTime) as number,
+      // estimatedTime: numberToStringReverse(data.estimatedTime) as number,
       organization: {
         connect: { id: organizationId },
       },
@@ -154,9 +154,9 @@ export const updateOperation = async (data: any) => {
       icon: data.icon || undefined,
       isFinal: data?.isFinal || undefined,
       description: data?.description || undefined,
-      estimatedTime:
-        data?.estimatedTime &&
-        (numberToStringReverse(data.estimatedTime) as number),
+      // estimatedTime:
+      //   data?.estimatedTime &&
+      //   (numberToStringReverse(data.estimatedTime) as number),
     },
   });
   return res;

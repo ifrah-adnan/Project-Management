@@ -81,3 +81,19 @@ export const updateDoneValueSchema = z.object({
   projectToUpdateId: z.string().uuid().optional(),
   done: z.number().int(),
 });
+
+export const operationSchema = z.object({
+  name: z
+    .string()
+    .min(3, "Name must be at least 3 characters long")
+    .max(255, "Name must be at most 255 characters long"),
+  code: z
+    .string()
+    .min(3, "Code must be at least 3 characters long")
+    .max(50, "Code must be at most 50 characters long"),
+  icon: z.string().optional(),
+  description: z.string().optional(),
+  isFinal: z.boolean().default(false),
+});
+
+export type OperationFormData = z.infer<typeof operationSchema>;

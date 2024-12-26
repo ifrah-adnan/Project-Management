@@ -31,7 +31,7 @@ interface TEditInput {
   code: string;
   description: string;
   isFinal: boolean;
-  estimatedTime: number;
+  // estimatedTime: number;
 }
 
 export interface EditOperationButtonProps extends ButtonProps {
@@ -41,8 +41,8 @@ export interface EditOperationButtonProps extends ButtonProps {
     code: string;
     description: string;
     isFinal: boolean;
-    estimatedTime: number;
-    icon: string; // Ajouté ici
+    // estimatedTime: number;
+    icon?: string;
   };
 }
 
@@ -69,8 +69,8 @@ export function EditOperationButton({
     const code = formData.get("code") as string;
     const description = formData.get("description") as string;
     const isFinal = formData.get("isFinal") === "on";
-    const estimatedTime = parseInt(formData.get("estimatedTime") as string, 10);
-    const icon = operation.icon; // Utilisation du champ `icon`
+    // const estimatedTime = parseInt(formData.get("estimatedTime") as string, 10);
+    const icon = operation.icon || ""; // Utilisation du champ `icon`
 
     const data: TEditInput = {
       operationId: operation.id,
@@ -80,7 +80,7 @@ export function EditOperationButton({
       code,
       description,
       isFinal,
-      estimatedTime,
+      // estimatedTime,
     };
 
     // const parsed = createInputSchema.safeParse(data);
@@ -154,13 +154,13 @@ export function EditOperationButton({
             defaultChecked={operation.isFinal}
             className="mt-2"
           />
-          <FormInput
+          {/* <FormInput
             name="estimatedTime"
             label="Estimated Time (minutes)"
             type="number"
             className="mt-2 sm:mt-4"
             defaultValue={operation.estimatedTime.toString()}
-          />
+          /> */}
           <FormErrors className="text-sm" />
           <div className="mt-auto flex items-center justify-end gap-2 sm:gap-4">
             <SheetClose ref={closeRef}></SheetClose>

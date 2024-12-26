@@ -17,6 +17,8 @@ import { ActionType, EntityType, Prisma, Role } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 import { logHistory } from "../../History/_utils/action";
+import { z } from "zod";
+import { v4 as uuidv4 } from "uuid";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -365,7 +367,7 @@ export async function updateOperation({
   code,
   description,
   isFinal,
-  estimatedTime,
+  // estimatedTime,
   user,
 }: {
   operationId: string;
@@ -373,7 +375,7 @@ export async function updateOperation({
   code: string;
   description: string;
   isFinal: boolean;
-  estimatedTime: number;
+  // estimatedTime: number;
   user: string;
 }): Promise<{
   result?: any;
@@ -388,7 +390,6 @@ export async function updateOperation({
         code,
         description,
         isFinal,
-        estimatedTime,
       },
     });
 
@@ -412,5 +413,53 @@ export async function updateOperation({
     }
 
     return { error: error.message, fieldErrors };
+  }
+}
+
+const operationSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  code: z.string().min(1, "Code is required"),
+  description: z.string().optional(),
+  isFinal: z.boolean().default(false),
+});
+
+type OperationInput = z.infer<typeof operationSchema>;
+
+export async function createOperation(data: OperationInput) {
+  const session = await getServerSession();
+  if (!session || !session.user) {
+    throw new Error("Unauthorized");
+  }
+
+  const organizationId = session.user.organizationId;
+  if (!organizationId) {
+    throw new Error("User is not associated with an organization");
+  }
+
+  const validatedFields = operationSchema.safeParse(data);
+
+  if (!validatedFields.success) {
+    return { error: "Invalid fields" };
+  }
+
+  const { name, code, description, isFinal } = validatedFields.data;
+
+  try {
+    await db.operation.create({
+      data: {
+        id: uuidv4(),
+        name,
+        code,
+        description,
+        isFinal,
+        organizationId,
+      },
+    });
+
+    revalidatePath("/operations");
+    return { success: true };
+  } catch (error) {
+    console.error("Error creating operation:", error);
+    return { error: "Failed to create operation" };
   }
 }

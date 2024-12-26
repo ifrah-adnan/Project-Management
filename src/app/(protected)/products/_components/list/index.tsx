@@ -34,7 +34,7 @@ export default function List({ data, total }: { data: TData; total: number }) {
                 </td>
                 <td className=" w-[15rem]">
                   <div className="flex items-center justify-between gap-4">
-                    <Link href={`/projects/workflow/${item.id}`}>
+                    <Link href={`/projects/workflow3/${item.id}`}>
                       <Button
                         variant="outline"
                         size="sm"

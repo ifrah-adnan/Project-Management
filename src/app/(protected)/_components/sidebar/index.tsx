@@ -16,6 +16,8 @@ import {
   XIcon,
   ChevronRightIcon,
   Activity,
+  Package,
+  PlusIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
@@ -89,6 +91,9 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
   const [organizationName, setOrganizationName] = React.useState<string | null>(
     null,
   );
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
+    {},
+  );
 
   React.useEffect(() => {
     const fetchOrganizationImage = async () => {
@@ -131,6 +136,10 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
     if (onToggle) {
       onToggle(!isCollapsed);
     }
+  };
+
+  const toggleMenu = (menu: string) => {
+    setExpandedMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
   };
 
   return (
@@ -199,14 +208,135 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
             >
               Commands (O F)
             </LinkItem>
-            <LinkItem
-              href="/projects"
-              icon={<ShoppingBasketIcon size={16} />}
-              onClick={() => navigateWithOrganization("/projects")}
-              isCollapsed={isCollapsed}
-            >
-              Projects
-            </LinkItem>
+            <div>
+              <button
+                onClick={() => toggleMenu("products")}
+                className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">
+                    <Package size={16} />
+                  </span>
+                  {!isCollapsed && <span>Products</span>}
+                </div>
+                {!isCollapsed && (
+                  <span className="text-gray-400">
+                    {expandedMenus["products"] ? (
+                      <ChevronDownIcon size={16} />
+                    ) : (
+                      <ChevronRightIcon size={16} />
+                    )}
+                  </span>
+                )}
+              </button>
+              {expandedMenus["products"] && !isCollapsed && (
+                <div className="ml-6 mt-1 space-y-1">
+                  <LinkItem
+                    href="/products"
+                    icon={<Package size={14} />}
+                    className="py-1 text-sm"
+                    onClick={() => navigateWithOrganization("/products")}
+                  >
+                    All Products
+                  </LinkItem>
+                  <LinkItem
+                    href="/products/add"
+                    icon={<PlusIcon size={14} />}
+                    className="py-1 text-sm"
+                    onClick={() => navigateWithOrganization("/products/add")}
+                  >
+                    Add Product
+                  </LinkItem>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <button
+                onClick={() => toggleMenu("projects")}
+                className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">
+                    <ShoppingBasketIcon size={16} />
+                  </span>
+                  {!isCollapsed && <span>Projects</span>}
+                </div>
+                {!isCollapsed && (
+                  <span className="text-gray-400">
+                    {expandedMenus["projects"] ? (
+                      <ChevronDownIcon size={16} />
+                    ) : (
+                      <ChevronRightIcon size={16} />
+                    )}
+                  </span>
+                )}
+              </button>
+              {expandedMenus["projects"] && !isCollapsed && (
+                <div className="ml-6 mt-1 space-y-1">
+                  <LinkItem
+                    href="/projects"
+                    icon={<ShoppingBasketIcon size={14} />}
+                    className="py-1 text-sm"
+                    onClick={() => navigateWithOrganization("/projects")}
+                  >
+                    All Projects
+                  </LinkItem>
+                  <LinkItem
+                    href="/projects/add"
+                    icon={<PlusIcon size={14} />}
+                    className="py-1 text-sm"
+                    onClick={() => navigateWithOrganization("/projects/add")}
+                  >
+                    Add Project
+                  </LinkItem>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <button
+                onClick={() => toggleMenu("operations")}
+                className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">
+                    <Activity size={16} />
+                  </span>
+                  {!isCollapsed && <span>Operations</span>}
+                </div>
+                {!isCollapsed && (
+                  <span className="text-gray-400">
+                    {expandedMenus["operations"] ? (
+                      <ChevronDownIcon size={16} />
+                    ) : (
+                      <ChevronRightIcon size={16} />
+                    )}
+                  </span>
+                )}
+              </button>
+              {expandedMenus["operations"] && !isCollapsed && (
+                <div className="ml-6 mt-1 space-y-1">
+                  <LinkItem
+                    href="/operations"
+                    icon={<Activity size={14} />}
+                    className="py-1 text-sm"
+                    onClick={() => navigateWithOrganization("/operations")}
+                  >
+                    All Operations
+                  </LinkItem>
+                  <LinkItem
+                    href="/operations/add"
+                    icon={<PlusIcon size={14} />}
+                    className="py-1 text-sm"
+                    onClick={() => navigateWithOrganization("/operations/add")}
+                  >
+                    Add Operation
+                  </LinkItem>
+                </div>
+              )}
+            </div>
+
             <LinkItem
               href="/posts"
               icon={<DockIcon size={16} />}
@@ -214,14 +344,6 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
               isCollapsed={isCollapsed}
             >
               Posts
-            </LinkItem>
-            <LinkItem
-              href="/operations"
-              icon={<Activity size={16} />}
-              onClick={() => navigateWithOrganization("/operations")}
-              isCollapsed={isCollapsed}
-            >
-              Operations
             </LinkItem>
             <LinkItem
               href="/expertise"
