@@ -86,20 +86,20 @@ async function importData() {
       console.log("Sprints imported successfully.");
     }
 
+    // Import Operations (moved before ProjectOperations)
+    if (data.operations) {
+      for (const operation of data.operations) {
+        await prisma.operation.create({ data: operation });
+      }
+      console.log("Operations imported successfully.");
+    }
+
     // Import ProjectOperations
     if (data.projectOperations) {
       for (const po of data.projectOperations) {
         await prisma.projectOperation.create({ data: po });
       }
       console.log("ProjectOperations imported successfully.");
-    }
-
-    // Import Operations
-    if (data.operations) {
-      for (const operation of data.operations) {
-        await prisma.operation.create({ data: operation });
-      }
-      console.log("Operations imported successfully.");
     }
 
     // Import WorkFlowNodes

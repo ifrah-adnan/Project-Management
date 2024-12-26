@@ -32,6 +32,7 @@ import { Clock, Plus, Save, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
+import { JsonValue } from "@prisma/client/runtime/library";
 
 interface Operation {
   id: string;
@@ -46,7 +47,11 @@ interface ProjectOperation {
 interface WorkflowNode {
   id: string;
   operationId: string;
-  data: any;
+  data: {
+    label: string;
+    time: number;
+    position: { x: number; y: number };
+  };
   operation: Operation;
 }
 
@@ -68,7 +73,7 @@ interface Project {
 }
 
 interface WorkflowDiagramProps {
-  project: Project;
+  project: any;
 }
 
 const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
@@ -81,30 +86,43 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
+  const handleEdgeChange = useCallback(
+    (edgeId: string, newCount: number) => {
+      setEdges((eds) =>
+        eds.map((edge) =>
+          edge.id === edgeId
+            ? { ...edge, data: { ...edge.data, count: newCount } }
+            : edge,
+        ),
+      );
+    },
+    [setEdges],
+  );
+
   useEffect(() => {
     if (project.workFlow) {
       const initialNodes: Node[] = project.workFlow.WorkflowNode.map(
-        (node) => ({
+        (node: any) => ({
           id: node.id,
           type: "custom",
           data: {
-            label: node.operation.name,
+            label: node.data.label,
             operationId: node.operationId,
-            time:
-              project.projectOperations.find(
-                (po) => po.operation.id === node.operationId,
-              )?.time || 0,
+            time: node.data.time,
           },
-          position: { x: Math.random() * 300, y: Math.random() * 300 },
+          position: node.data.position,
         }),
       );
 
       const initialEdges: Edge[] = project.workFlow.WorkFlowEdge.map(
-        (edge) => ({
+        (edge: any) => ({
           id: edge.id,
           source: edge.sourceId,
           target: edge.targetId,
-          data: { label: `${edge.count} times` },
+          data: {
+            count: edge.count,
+            onChange: handleEdgeChange,
+          },
           type: "custom",
         }),
       );
@@ -112,19 +130,22 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
       setNodes(initialNodes);
       setEdges(initialEdges);
     }
-  }, [project.workFlow, project.projectOperations, setNodes, setEdges]);
+  }, [project.workFlow, setNodes, setEdges, handleEdgeChange]);
 
   const onConnect = useCallback(
     (params: Edge | Connection) => {
       const newEdge = {
         ...params,
         id: uuidv4(),
-        data: { label: `${targetCount} times` },
+        data: {
+          count: targetCount,
+          onChange: handleEdgeChange,
+        },
         type: "custom",
       };
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [setEdges, targetCount],
+    [setEdges, targetCount, handleEdgeChange],
   );
 
   const onInit = (rfi: any) => setReactFlowInstance(rfi);
@@ -132,7 +153,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
   const addOperationToFlow = useCallback(() => {
     if (selectedOperation) {
       const operation = project.projectOperations.find(
-        (po) => po.operation.id === selectedOperation,
+        (po: any) => po.operation.id === selectedOperation,
       );
       if (operation) {
         const newNode: Node = {
@@ -158,13 +179,14 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
         label: node.data.label,
         time: node.data.time,
       },
+      position: node.position,
     }));
 
     const workflowEdges = edges.map((edge) => ({
       id: edge.id,
       sourceId: edge.source,
       targetId: edge.target,
-      count: parseInt(edge.data?.label?.split(" ")[0] || "1", 10),
+      count: edge.data.count,
     }));
 
     try {
@@ -207,7 +229,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                   <SelectValue placeholder="Select an operation" />
                 </SelectTrigger>
                 <SelectContent>
-                  {project.projectOperations.map((po) => (
+                  {project.projectOperations.map((po: any) => (
                     <SelectItem key={po.operation.id} value={po.operation.id}>
                       <div className="flex w-full items-center justify-between">
                         <span className="font-medium">{po.operation.name}</span>

@@ -320,12 +320,105 @@ export const create = createSafeAction({ scheme: createInputSchema, handler });
 //   });
 // }
 
+// export async function saveWorkflow(
+//   projectId: string,
+//   nodes: Array<{
+//     id: string;
+//     operationId: string;
+//     data: { label: string; time: number };
+//   }>,
+//   edges: Array<{
+//     id: string;
+//     sourceId: string;
+//     targetId: string;
+//     count: number;
+//   }>,
+// ) {
+//   console.log("saveWorkflow", nodes, edges);
+//   return db.$transaction(async (tx) => {
+//     // Create or update the workflow
+//     const workflow = await tx.workFlow.upsert({
+//       where: { id: projectId },
+//       update: {},
+//       create: { id: projectId },
+//     });
+
+//     // Upsert nodes
+//     const createdNodes = await Promise.all(
+//       nodes.map((node) =>
+//         tx.workFlowNode.upsert({
+//           where: { id: node.id },
+//           update: {
+//             data: node.data,
+//             operationId: node.operationId,
+//             workFlowId: workflow.id,
+//           },
+//           create: {
+//             id: node.id,
+//             data: node.data,
+//             operationId: node.operationId,
+//             workFlowId: workflow.id,
+//           },
+//         }),
+//       ),
+//     );
+
+//     // Delete nodes that are no longer in the workflow
+//     await tx.workFlowNode.deleteMany({
+//       where: {
+//         workFlowId: workflow.id,
+//         id: { notIn: nodes.map((n) => n.id) },
+//       },
+//     });
+
+//     // Upsert edges
+//     await Promise.all(
+//       edges.map((edge) =>
+//         tx.workFlowEdge.upsert({
+//           where: { id: edge.id },
+//           update: {
+//             sourceId: edge.sourceId,
+//             targetId: edge.targetId,
+//             count: edge.count,
+//             data: {},
+//           },
+//           create: {
+//             id: edge.id,
+//             sourceId: edge.sourceId,
+//             targetId: edge.targetId,
+//             count: edge.count,
+//             data: {},
+//             workFlowId: workflow.id,
+//           },
+//         }),
+//       ),
+//     );
+
+//     // Delete edges that are no longer in the workflow
+//     await tx.workFlowEdge.deleteMany({
+//       where: {
+//         workFlowId: workflow.id,
+//         id: { notIn: edges.map((e) => e.id) },
+//       },
+//     });
+
+//     // Update the project with the new workflow
+//     await tx.project.update({
+//       where: { id: projectId },
+//       data: { workFlowId: workflow.id },
+//     });
+
+//     return workflow;
+//   });
+// }
+
 export async function saveWorkflow(
   projectId: string,
   nodes: Array<{
     id: string;
     operationId: string;
     data: { label: string; time: number };
+    position: { x: number; y: number };
   }>,
   edges: Array<{
     id: string;
@@ -349,13 +442,13 @@ export async function saveWorkflow(
         tx.workFlowNode.upsert({
           where: { id: node.id },
           update: {
-            data: node.data,
+            data: { ...node.data, position: node.position },
             operationId: node.operationId,
             workFlowId: workflow.id,
           },
           create: {
             id: node.id,
-            data: node.data,
+            data: { ...node.data, position: node.position },
             operationId: node.operationId,
             workFlowId: workflow.id,
           },
@@ -372,7 +465,7 @@ export async function saveWorkflow(
     });
 
     // Upsert edges
-    await Promise.all(
+    const createdEdges = await Promise.all(
       edges.map((edge) =>
         tx.workFlowEdge.upsert({
           where: { id: edge.id },
