@@ -32,7 +32,7 @@ export interface Operation {
   id: string;
   name: string;
   code: string;
-  icon: string;
+  // icon: string;
   organizationId: string;
   description: string | null;
   isFinal: boolean;

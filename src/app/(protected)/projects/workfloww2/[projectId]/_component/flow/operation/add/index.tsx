@@ -13,7 +13,7 @@ interface Operation {
   id: string;
   name: string;
   code: string;
-  icon: string;
+  // icon: string;
   organizationId: string;
 }
 
@@ -100,7 +100,7 @@ function AddOperation() {
       </div>
       <div className="mx-auto h-[2px] w-[90%] bg-muted"></div>
       <h3 className="text-gray-400">Operations added</h3>
-      <div className="debug flex flex-1 flex-col items-center gap-2 overflow-y-auto">
+      {/* <div className="debug flex flex-1 flex-col items-center gap-2 overflow-y-auto">
         {operations.map((operation: Operation) => (
           <Button
             draggable
@@ -112,7 +112,7 @@ function AddOperation() {
             <span>{operation.name}</span>
           </Button>
         ))}
-      </div>
+      </div> */}
     </Card>
   );
 }

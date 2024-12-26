@@ -1,8 +1,17 @@
 "use client";
+
 import React, { useState } from "react";
-import { Bell, Search } from "lucide-react";
-import UserButton from "../userButton";
+import { Bell, Search, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "../ModeToggle/mode-toggle";
+import UserButton from "../userButton";
 import CreateNew from "../CreateNew";
 
 interface MainHeaderProps {
@@ -16,47 +25,36 @@ const MainHeader: React.FC<MainHeaderProps> = ({ name, onSearch }) => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
-    if (typeof onSearch === "function") {
-      onSearch(newSearchTerm);
-    }
+    onSearch(newSearchTerm);
   };
 
   return (
-    <header className="hidden items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900 md:flex">
-      <div className="flex items-center">
-        <span className="ml-2 hidden text-xl font-semibold sm:inline">
-          {name}
-        </span>
-      </div>
-
-      <div className="mx-4 max-w-2xl flex-grow">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Type / to search"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800"
-          />
-          <Search
-            className="absolute right-3 top-1/2 -translate-y-1/2 transform text-gray-400"
-            size={18}
-          />
+    <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        <div className="mr-4 hidden md:flex">
+          <h1 className="text-xl font-semibold">{name}</h1>
         </div>
-      </div>
-
-      <div className="flex items-center">
-        <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <CreateNew />
-        </button>
-        <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-          <Bell size={20} />
-        </button>
-        <div className="ml-2">
-          <UserButton />
-        </div>
-        <div className="ml-2">
-          <ModeToggle />
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          <div className="w-full max-w-xl flex-1 md:w-auto md:flex-none">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Type / to search..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="pl-8"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <CreateNew></CreateNew>
+            <Button variant="ghost" size="icon">
+              <Bell className="h-4 w-4" />
+              <span className="sr-only">Notifications</span>
+            </Button>
+            <ModeToggle />
+            <UserButton />
+          </div>
         </div>
       </div>
     </header>

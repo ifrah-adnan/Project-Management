@@ -426,7 +426,7 @@ export const ListView: React.FC<{ data: TData; searchTerm: string }> = ({
                       className="h-fit gap-2 bg-card py-1 font-normal"
                       onClick={(e) => {
                         e.stopPropagation();
-                        router.push(`/projects/workflow/${item.project.id}`);
+                        router.push(`/projects/workflow3/${item.project.id}`);
                       }}
                     >
                       <GitBranchPlusIcon size={16} />

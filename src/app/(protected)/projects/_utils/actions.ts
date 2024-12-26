@@ -502,7 +502,7 @@ export interface Operation {
   id: string;
   name: string;
   code: string;
-  icon: string;
+  // icon: string;
   description?: string;
   isFinal: boolean;
   // estimatedTime: number;
@@ -540,7 +540,7 @@ export async function getOperationsForCommandProject(
               id: op.id,
               name: op.name,
               code: op.code,
-              icon: op.icon,
+              // icon: op.icon,
               description: op.description ?? undefined,
               isFinal: op.isFinal,
               // estimatedTime: op.estimatedTime,

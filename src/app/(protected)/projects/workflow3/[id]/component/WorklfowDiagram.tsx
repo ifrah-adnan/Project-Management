@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import ReactFlow, {
   Node,
   Edge,
@@ -11,6 +11,7 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   Connection,
+  ReactFlowProvider,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import { saveWorkflow } from "@/app/(protected)/products/_utils/actions";
 import { v4 as uuidv4 } from "uuid";
 import CustomNode from "./CustomNode";
 import CustomEdge from "./CustomEdge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -27,8 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Clock, Plus, Save } from "lucide-react";
+import { Clock, Plus, Save, Camera } from "lucide-react";
 import { motion } from "framer-motion";
+import html2canvas from "html2canvas";
+import { toast } from "sonner";
 
 interface Operation {
   id: string;
@@ -75,6 +78,8 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
     null,
   );
   const [targetCount, setTargetCount] = useState<number>(1);
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
   useEffect(() => {
     if (project.workFlow) {
@@ -90,7 +95,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                 (po) => po.operation.id === node.operationId,
               )?.time || 0,
           },
-          position: { x: Math.random() * 500, y: Math.random() * 500 },
+          position: { x: Math.random() * 300, y: Math.random() * 300 },
         }),
       );
 
@@ -99,7 +104,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
           id: edge.id,
           source: edge.sourceId,
           target: edge.targetId,
-          data: { label: `${edge.count} fois` },
+          data: { label: `${edge.count} times` },
           type: "custom",
         }),
       );
@@ -114,13 +119,15 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
       const newEdge = {
         ...params,
         id: uuidv4(),
-        data: { label: `${targetCount} fois` },
+        data: { label: `${targetCount} times` },
         type: "custom",
       };
       setEdges((eds) => addEdge(newEdge, eds));
     },
     [setEdges, targetCount],
   );
+
+  const onInit = (rfi: any) => setReactFlowInstance(rfi);
 
   const addOperationToFlow = useCallback(() => {
     if (selectedOperation) {
@@ -136,7 +143,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
             operationId: operation.operation.id,
             time: operation.time,
           },
-          position: { x: Math.random() * 500, y: Math.random() * 500 },
+          position: { x: Math.random() * 300, y: Math.random() * 300 },
         };
         setNodes((nds) => nds.concat(newNode));
       }
@@ -162,21 +169,33 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
 
     try {
       await saveWorkflow(project.id, workflowNodes, workflowEdges);
-      alert("Workflow enregistré avec succès !");
+      toast.success("Workflow saved successfully!", {
+        duration: 3000,
+        position: "top-right",
+      });
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement du workflow:", error);
-      alert("Échec de l'enregistrement du workflow. Veuillez réessayer.");
+      console.error("Error saving workflow:", error);
+      toast.error("Failed to save workflow. Please try again.", {
+        duration: 3000,
+        position: "top-right",
+      });
     }
   }, [nodes, edges, project.id]);
+
+  const takeScreenshot = useCallback(() => {
+    if (reactFlowWrapper.current) {
+      html2canvas(reactFlowWrapper.current).then((canvas) => {
+        const link = document.createElement("a");
+        link.download = `${project.name}-workflow.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+  }, [project.name]);
 
   return (
     <div className="space-y-6">
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            Workflow Diagram
-          </CardTitle>
-        </CardHeader>
         <CardContent className="p-6">
           <div className="flex flex-wrap items-end gap-4">
             <div className="flex-grow">
@@ -185,7 +204,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                 onValueChange={(value) => setSelectedOperation(value)}
               >
                 <SelectTrigger className="w-full border-gray-300 bg-white focus:border-indigo-500 focus:ring-indigo-500">
-                  <SelectValue placeholder="Sélectionner une opération" />
+                  <SelectValue placeholder="Select an operation" />
                 </SelectTrigger>
                 <SelectContent>
                   {project.projectOperations.map((po) => (
@@ -209,7 +228,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                 className="bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500"
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Ajouter l opération
+                Add Operation
               </Button>
             </motion.div>
             <Input
@@ -217,7 +236,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
               min="1"
               value={targetCount}
               onChange={(e) => setTargetCount(parseInt(e.target.value, 10))}
-              placeholder="Nombre cible"
+              placeholder="Target count"
               className="w-32 border-gray-300 bg-white focus:border-indigo-500 focus:ring-indigo-500"
             />
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -226,28 +245,42 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                 className="bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
               >
                 <Save className="mr-2 h-4 w-4" />
-                Enregistrer
+                Save
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                onClick={takeScreenshot}
+                className="bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500"
+              >
+                <Camera className="mr-2 h-4 w-4" />
+                Screenshot
               </Button>
             </motion.div>
           </div>
         </CardContent>
       </Card>
-      <Card className="h-[600px] overflow-hidden shadow-xl">
+      <Card className="mx-auto h-[600px] w-full max-w-[1400px] overflow-hidden shadow-xl">
         <CardContent className="h-full p-0">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={{ custom: CustomNode }}
-            edgeTypes={{ custom: CustomEdge }}
-            fitView
-          >
-            <Background color="#f0f0f0" />
-            <Controls />
-            <MiniMap style={{ height: 120 }} zoomable pannable />
-          </ReactFlow>
+          <ReactFlowProvider>
+            <div ref={reactFlowWrapper} className="h-full">
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onInit={onInit}
+                nodeTypes={{ custom: CustomNode }}
+                edgeTypes={{ custom: CustomEdge }}
+                fitView
+              >
+                <Background color="#f0f0f0" />
+                <Controls />
+                <MiniMap style={{ height: 100 }} zoomable pannable />
+              </ReactFlow>
+            </div>
+          </ReactFlowProvider>
         </CardContent>
       </Card>
     </div>
