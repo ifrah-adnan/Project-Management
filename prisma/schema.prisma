@@ -61,6 +61,7 @@ model Project {
   id              String           @id @default(uuid())
   name            String
   description     String?
+  code            String?            @unique
   status          Boolean          @default(true)
   organizationId  String
   organization    Organization     @relation(fields: [organizationId], references: [id])
@@ -173,6 +174,7 @@ model ProjectOperation {
   projectId   String
   operationId String
   time        Int
+  description String?
   project     Project  @relation(fields: [projectId], references: [id])
   operation   Operation @relation(fields: [operationId], references: [id])
 

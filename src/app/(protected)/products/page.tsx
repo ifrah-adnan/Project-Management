@@ -1,8 +1,9 @@
 import React from "react";
-import Header from "./_components/header";
 import { findMany } from "./_utils/actions";
 import List from "./_components/list";
 import { getOperations } from "../expertise/_utils/actions";
+import Header from "./_components/header";
+import ClientList from "./_components/ClientList";
 
 export default async function Page({
   searchParams,
@@ -14,8 +15,7 @@ export default async function Page({
 
   return (
     <main className="flex flex-col">
-      <Header operations={operations} />
-      <List {...result} />
+      <ClientList {...result} />
     </main>
   );
 }

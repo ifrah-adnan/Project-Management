@@ -2,9 +2,16 @@
 
 import { createSafeAction } from "@/actions/utils";
 import { db } from "@/lib/db";
-import { TData, TCreateInput, createInputSchema } from "./schemas";
+import {
+  TData,
+  TCreateInput,
+  createInputSchema,
+  TUpdateInput,
+} from "./schemas";
 import { Prisma } from "@prisma/client";
 import { getServerSession } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
+import { log } from "console";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -70,6 +77,9 @@ export async function deleteById(id: string) {
       id,
       organizationId: organizationId,
     },
+    include: {
+      projectOperations: true,
+    },
   });
 
   if (!project) {
@@ -77,8 +87,17 @@ export async function deleteById(id: string) {
       "Project not found or you don't have permission to delete it",
     );
   }
+  await db.projectOperation.deleteMany({
+    where: {
+      projectId: id,
+    },
+  });
 
   return await db.project.delete({ where: { id } });
+}
+export async function deleteProductAndRevalidate(id: string) {
+  await deleteById(id);
+  revalidatePath("/projects");
 }
 
 // const handler = async (data: TCreateInput) => {
@@ -102,6 +121,7 @@ export async function deleteById(id: string) {
 // export const create = createSafeAction({ scheme: createInputSchema, handler });
 
 const handler = async (data: TCreateInput) => {
+  console.log("data", data);
   const session = await getServerSession();
   const organizationId =
     session?.user.organizationId || session?.user.organization?.id;
@@ -116,6 +136,7 @@ const handler = async (data: TCreateInput) => {
       data: {
         name: data.name,
         description: data.description,
+        code: data.code,
         organizationId,
       },
     });
@@ -147,6 +168,7 @@ const handler = async (data: TCreateInput) => {
           data: {
             projectId: project.id,
             operationId: operation.id,
+            description: operation.description,
             time: operation.time,
           },
         });
@@ -526,4 +548,62 @@ export async function getProjectWithOperations(id: string) {
       },
     },
   });
+}
+
+export async function update(data: TUpdateInput) {
+  try {
+    const product = await db.project.update({
+      where: { id: data.id },
+      data: {
+        name: data.name,
+        description: data.description,
+        projectOperations: {
+          deleteMany: {},
+          create: data.operations.map((op) => ({
+            operation: { connect: { id: op.id } },
+            time: op.time,
+          })),
+        },
+      },
+    });
+
+    revalidatePath("/products");
+    return { result: product };
+  } catch (error) {
+    console.error("Error updating product:", error);
+    return { error: "Failed to update product" };
+  }
+}
+
+export async function getProductById(id: string): Promise<TUpdateInput | null> {
+  try {
+    const product = await db.project.findUnique({
+      where: { id },
+      include: {
+        projectOperations: {
+          select: {
+            operation: { select: { id: true } },
+            time: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      return null;
+    }
+
+    return {
+      id: product.id,
+      name: product.name,
+      description: product.description || undefined,
+      operations: product.projectOperations.map((po) => ({
+        id: po.operation.id,
+        time: po.time,
+      })),
+    };
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return null;
+  }
 }
