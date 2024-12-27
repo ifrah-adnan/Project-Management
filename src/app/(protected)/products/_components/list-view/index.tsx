@@ -44,8 +44,23 @@ export default function ListView({
           <tbody>
             {data.map((item) => (
               <tr key={item.id}>
-                <td>{item.name}</td>
-                <td>{item.status ? "Active" : "Inactive"}</td>
+                <Link
+                  href={`/products/${item.id}`}
+                  className="font-medium text-blue-600 hover:underline"
+                >
+                  <td>{item.name}</td>
+                </Link>
+                <td>
+                  <span
+                    className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                      item.status
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {item.status ? "Active" : "Inactive"}
+                  </span>
+                </td>
                 <td>
                   <span>{format(new Date(item.createdAt), "PP")}</span>
                 </td>
@@ -67,7 +82,11 @@ export default function ListView({
                           <MoreHorizontalIcon size={18} />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-40 p-0">
+                      <PopoverContent
+                        align="end"
+                        className="flex w-fit flex-col gap-2"
+                      >
+                        {" "}
                         <Link
                           href={`/products/edit/${item.id}`}
                           className="flex items-center px-3 py-2 hover:bg-muted"

@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ onSearch }) => {
       <MainHeader name="My Products" onSearch={onSearch}></MainHeader>
 
       <div className="font-sm flex h-page-header shrink-0 items-center justify-end gap-2 bg-card px-6 text-sm shadow">
-        <h3 className="mr-auto font-medium capitalize">products</h3>
+        <h3 className="mr-auto font-medium capitalize"></h3>
         <div className="mr-auto flex ">
           {views.map((v) => (
             <button

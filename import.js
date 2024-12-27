@@ -1,7 +1,15 @@
 const { PrismaClient } = require("@prisma/client");
 const fs = require("fs/promises");
+const crypto = require("crypto");
 
 const prisma = new PrismaClient();
+function generateRandomCode(length = 8) {
+  return crypto
+    .randomBytes(Math.ceil(length / 2))
+    .toString("hex")
+    .slice(0, length)
+    .toUpperCase();
+}
 
 async function importData() {
   try {
@@ -40,6 +48,10 @@ async function importData() {
       for (const project of data.projects) {
         if (project.workFlowId === null || project.workFlowId === undefined) {
           delete project.workFlowId;
+        }
+        // Generate a random code if it doesn't exist
+        if (!project.code) {
+          project.code = generateRandomCode();
         }
         await prisma.project.create({ data: project });
       }

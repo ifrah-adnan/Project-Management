@@ -11,6 +11,7 @@ import {
 import { Prisma } from "@prisma/client";
 import { getServerSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { log } from "console";
 
 const defaultParams: Record<string, string> = {
   page: "1",
@@ -120,6 +121,7 @@ export async function deleteProductAndRevalidate(id: string) {
 // export const create = createSafeAction({ scheme: createInputSchema, handler });
 
 const handler = async (data: TCreateInput) => {
+  console.log("data", data);
   const session = await getServerSession();
   const organizationId =
     session?.user.organizationId || session?.user.organization?.id;
@@ -134,6 +136,7 @@ const handler = async (data: TCreateInput) => {
       data: {
         name: data.name,
         description: data.description,
+        code: data.code,
         organizationId,
       },
     });
@@ -165,6 +168,7 @@ const handler = async (data: TCreateInput) => {
           data: {
             projectId: project.id,
             operationId: operation.id,
+            description: operation.description,
             time: operation.time,
           },
         });
