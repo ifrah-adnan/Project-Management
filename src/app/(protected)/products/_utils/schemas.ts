@@ -10,8 +10,12 @@ export const createInputSchema = z.object({
     }),
   ),
 });
+export const updateInputSchema = createInputSchema.extend({
+  id: z.string(),
+});
 
 export type TCreateInput = z.infer<typeof createInputSchema>;
+export type TUpdateInput = z.infer<typeof updateInputSchema>;
 
 export type TData = {
   createdAt: Date;

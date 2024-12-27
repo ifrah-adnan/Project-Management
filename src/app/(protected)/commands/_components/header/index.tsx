@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LayoutGridIcon, ListIcon, PlusIcon } from "lucide-react";
 import { useSession } from "@/components/session-provider";
 import MainHeader from "@/app/(protected)/_components/Header";
-import { AddCommandButton } from "../add-command-button";
+import { Button } from "@/components/ui/button";
 import { useStore } from "../../_utils/store";
 
 const views = [
@@ -57,10 +58,12 @@ const Header: React.FC<HeaderProps> = ({ onSearch }) => {
           ))}
         </div>
         {(user?.role === "ADMIN" || user?.role === "SYS_ADMIN") && (
-          <AddCommandButton className="gap-2 uppercase">
-            <PlusIcon size={16} />
-            <span className="hidden md:flex">add new Command</span>
-          </AddCommandButton>
+          <Link href="/commands/add">
+            <Button className="gap-2 uppercase">
+              <PlusIcon size={16} />
+              <span className="hidden md:flex">add new Command</span>
+            </Button>
+          </Link>
         )}
       </div>
     </div>

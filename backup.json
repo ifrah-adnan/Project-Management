@@ -105,78 +105,44 @@
     {
       "id": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
       "name": "product temperature",
-      "description": "temperatur",
+      "description": "temperature",
+      "code": null,
       "status": true,
       "organizationId": "0420edf9-f9b2-4e8e-843e-d66e1ad13e0a",
-      "workFlowId": "98f14251-dda7-4e7c-8bfd-90662f1f453e",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
       "createdAt": "2024-12-26T10:03:53.044Z",
-      "updatedAt": "2024-12-26T10:03:53.044Z"
-    },
-    {
-      "id": "1328aa88-d0a9-40a8-a112-c708b69fddb0",
-      "name": "carte gps",
-      "description": "gps carte",
-      "status": true,
-      "organizationId": "0420edf9-f9b2-4e8e-843e-d66e1ad13e0a",
-      "workFlowId": "1328aa88-d0a9-40a8-a112-c708b69fddb0",
-      "createdAt": "2024-12-26T09:51:20.643Z",
-      "updatedAt": "2024-12-26T10:52:49.718Z"
+      "updatedAt": "2024-12-27T10:40:51.096Z"
     }
   ],
   "commands": [
     {
       "id": "465a96de-cb0b-4ecf-942c-9caa98d9c360",
       "userId": "0d31930f-516f-4620-9c4c-38b75b91417e",
-      "reference": "44322",
+      "reference": "443223",
       "clientId": "ed450957-b94f-4e33-85ed-fd736fdb82c2",
       "organizationId": "0420edf9-f9b2-4e8e-843e-d66e1ad13e0a",
       "createdAt": "2024-12-26T10:24:26.671Z",
-      "updatedAt": "2024-12-26T10:24:26.671Z"
+      "updatedAt": "2024-12-27T10:01:53.929Z"
     }
   ],
-  "commandProjects": [
-    {
-      "id": "6e83bd55-cdf2-4304-8d20-3dd8cd07c33b",
-      "userId": "0d31930f-516f-4620-9c4c-38b75b91417e",
-      "commandId": "465a96de-cb0b-4ecf-942c-9caa98d9c360",
-      "projectId": "1328aa88-d0a9-40a8-a112-c708b69fddb0",
-      "organizationId": "0420edf9-f9b2-4e8e-843e-d66e1ad13e0a",
-      "target": 1000,
-      "done": 0,
-      "startDate": null,
-      "endDate": "2024-12-27T00:00:00.000Z",
-      "status": "ACTIVE",
-      "createdAt": "2024-12-26T10:24:49.719Z",
-      "updatedAt": "2024-12-26T10:24:49.719Z"
-    }
-  ],
+  "commandProjects": [],
   "posts": [],
   "plannings": [],
   "sprints": [],
   "projectOperations": [
     {
-      "id": "c81ba458-963f-481b-a5ff-3e6e3f6672c3",
-      "projectId": "1328aa88-d0a9-40a8-a112-c708b69fddb0",
-      "operationId": "b651f73a-8a3f-4e37-92a0-0ad7e6e7ff24",
-      "time": 5
-    },
-    {
-      "id": "13d910b6-d2f2-4f36-8fb2-84f008421fef",
-      "projectId": "1328aa88-d0a9-40a8-a112-c708b69fddb0",
-      "operationId": "ef4b794f-fc3c-42a0-a193-f40ea7e7368f",
-      "time": 4
-    },
-    {
-      "id": "2568ff95-4996-46fd-bfc2-f934460d985d",
-      "projectId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
-      "operationId": "b651f73a-8a3f-4e37-92a0-0ad7e6e7ff24",
-      "time": 33
-    },
-    {
-      "id": "38f47165-d619-4e4f-a0e1-f0fd3a909b7f",
+      "id": "b59e8be7-f39e-4258-ae6e-23febd4194c8",
       "projectId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
       "operationId": "ef4b794f-fc3c-42a0-a193-f40ea7e7368f",
-      "time": 3
+      "time": 3,
+      "description": null
+    },
+    {
+      "id": "fa53cf5a-2896-4b33-88c8-0bd86fda3711",
+      "projectId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "b651f73a-8a3f-4e37-92a0-0ad7e6e7ff24",
+      "time": 33,
+      "description": null
     }
   ],
   "operations": [
@@ -207,6 +173,36 @@
   ],
   "workFlowNodes": [
     {
+      "id": "346727da-b17b-4312-b550-6bd0e09506ee",
+      "createdAt": "2024-12-26T19:06:40.329Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "b651f73a-8a3f-4e37-92a0-0ad7e6e7ff24",
+      "data": {
+        "time": 33,
+        "label": "operation sodage ",
+        "position": {
+          "x": 493.687445940681,
+          "y": 45.52728026023181
+        }
+      }
+    },
+    {
+      "id": "440fd06b-cb9c-4121-806e-a9a1cb6b8a24",
+      "createdAt": "2024-12-26T15:03:05.891Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "b651f73a-8a3f-4e37-92a0-0ad7e6e7ff24",
+      "data": {
+        "time": 33,
+        "label": "operation sodage ",
+        "position": {
+          "x": 355.3868644080109,
+          "y": 210.6930027475526
+        }
+      }
+    },
+    {
       "id": "63d73168-95ee-4029-a1a3-349597834b6e",
       "createdAt": "2024-12-26T09:51:20.643Z",
       "updatedAt": "2024-12-26T09:51:20.643Z",
@@ -228,34 +224,6 @@
       "operationId": "ef4b794f-fc3c-42a0-a193-f40ea7e7368f",
       "data": {
         "time": 4,
-        "position": {
-          "x": 200,
-          "y": 100
-        }
-      }
-    },
-    {
-      "id": "2cdcadaf-5ff7-49f5-b905-8b1df8bd7c23",
-      "createdAt": "2024-12-26T10:03:53.044Z",
-      "updatedAt": "2024-12-26T10:03:53.044Z",
-      "workFlowId": "98f14251-dda7-4e7c-8bfd-90662f1f453e",
-      "operationId": "b651f73a-8a3f-4e37-92a0-0ad7e6e7ff24",
-      "data": {
-        "time": 33,
-        "position": {
-          "x": 0,
-          "y": 100
-        }
-      }
-    },
-    {
-      "id": "c2864f6f-22ed-465e-891e-cdfd3e045b77",
-      "createdAt": "2024-12-26T10:03:53.044Z",
-      "updatedAt": "2024-12-26T10:03:53.044Z",
-      "workFlowId": "98f14251-dda7-4e7c-8bfd-90662f1f453e",
-      "operationId": "ef4b794f-fc3c-42a0-a193-f40ea7e7368f",
-      "data": {
-        "time": 3,
         "position": {
           "x": 200,
           "y": 100
@@ -294,6 +262,111 @@
         "time": 4,
         "label": "sortie usine"
       }
+    },
+    {
+      "id": "545723b6-0c86-4db6-9e93-68312641e8ef",
+      "createdAt": "2024-12-26T19:51:21.433Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "b651f73a-8a3f-4e37-92a0-0ad7e6e7ff24",
+      "data": {
+        "time": 33,
+        "label": "operation sodage ",
+        "position": {
+          "x": 231.2118163817045,
+          "y": -246.9988680824666
+        }
+      }
+    },
+    {
+      "id": "b1c4cb6b-418d-465e-bbe6-e33162b9b3fe",
+      "createdAt": "2024-12-26T15:03:05.891Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "ef4b794f-fc3c-42a0-a193-f40ea7e7368f",
+      "data": {
+        "time": 3,
+        "label": "sortie usine",
+        "position": {
+          "x": 110.4730079045547,
+          "y": 395.2568579823335
+        }
+      }
+    },
+    {
+      "id": "83a1c180-a117-404a-825d-8b481794c830",
+      "createdAt": "2024-12-26T15:55:43.167Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "ef4b794f-fc3c-42a0-a193-f40ea7e7368f",
+      "data": {
+        "time": 3,
+        "label": "sortie usine",
+        "position": {
+          "x": -118.9100741982522,
+          "y": 177.1316044589351
+        }
+      }
+    },
+    {
+      "id": "24ad9bcf-c9ed-4dd5-a0aa-ba2fa7a06034",
+      "createdAt": "2024-12-27T08:24:21.843Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "ef4b794f-fc3c-42a0-a193-f40ea7e7368f",
+      "data": {
+        "time": 3,
+        "label": "sortie usine",
+        "position": {
+          "x": 588.7950865030743,
+          "y": -287.0997140957681
+        }
+      }
+    },
+    {
+      "id": "0ad95718-1bde-4730-8fad-f3de64b70507",
+      "createdAt": "2024-12-26T18:54:22.606Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "b651f73a-8a3f-4e37-92a0-0ad7e6e7ff24",
+      "data": {
+        "time": 33,
+        "label": "operation sodage ",
+        "position": {
+          "x": 89.3596153209217,
+          "y": 152.8134678798438
+        }
+      }
+    },
+    {
+      "id": "24b52a73-1adf-4d68-a827-234df632aec2",
+      "createdAt": "2024-12-26T19:42:11.153Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "ef4b794f-fc3c-42a0-a193-f40ea7e7368f",
+      "data": {
+        "time": 3,
+        "label": "sortie usine",
+        "position": {
+          "x": -38.5664067400387,
+          "y": -129.7203679755923
+        }
+      }
+    },
+    {
+      "id": "be716d6f-c057-420d-864a-40f3de2424bb",
+      "createdAt": "2024-12-26T18:59:00.291Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "operationId": "ef4b794f-fc3c-42a0-a193-f40ea7e7368f",
+      "data": {
+        "time": 3,
+        "label": "sortie usine",
+        "position": {
+          "x": 167.7527330707655,
+          "y": 15.43474510123623
+        }
+      }
     }
   ],
   "workFlowEdges": [
@@ -304,16 +377,6 @@
       "createdAt": "2024-12-26T09:51:20.643Z",
       "updatedAt": "2024-12-26T09:51:20.643Z",
       "workFlowId": "4befc4bf-7053-47cf-b482-ae76811e34b2",
-      "data": {},
-      "count": 1
-    },
-    {
-      "id": "ae8d3b80-f33d-4791-b4cd-63f0b23a7b53",
-      "sourceId": "2cdcadaf-5ff7-49f5-b905-8b1df8bd7c23",
-      "targetId": "c2864f6f-22ed-465e-891e-cdfd3e045b77",
-      "createdAt": "2024-12-26T10:03:53.044Z",
-      "updatedAt": "2024-12-26T10:03:53.044Z",
-      "workFlowId": "98f14251-dda7-4e7c-8bfd-90662f1f453e",
       "data": {},
       "count": 1
     },
@@ -336,6 +399,86 @@
       "workFlowId": "1328aa88-d0a9-40a8-a112-c708b69fddb0",
       "data": {},
       "count": 3
+    },
+    {
+      "id": "0a87d8ee-3175-45be-9467-4042bee649ed",
+      "sourceId": "be716d6f-c057-420d-864a-40f3de2424bb",
+      "targetId": "0ad95718-1bde-4730-8fad-f3de64b70507",
+      "createdAt": "2024-12-26T18:59:00.291Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "data": {},
+      "count": 12
+    },
+    {
+      "id": "5d4855bb-345d-48bf-9ce8-e8bc3cd101fb",
+      "sourceId": "346727da-b17b-4312-b550-6bd0e09506ee",
+      "targetId": "440fd06b-cb9c-4121-806e-a9a1cb6b8a24",
+      "createdAt": "2024-12-26T19:06:40.329Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "data": {},
+      "count": 6
+    },
+    {
+      "id": "reactflow__edge-24b52a73-1adf-4d68-a827-234df632aec2-83a1c180-a117-404a-825d-8b481794c830",
+      "sourceId": "24b52a73-1adf-4d68-a827-234df632aec2",
+      "targetId": "83a1c180-a117-404a-825d-8b481794c830",
+      "createdAt": "2024-12-26T19:42:11.153Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "data": {},
+      "count": 14
+    },
+    {
+      "id": "fbacf660-83e4-4b46-8769-8b78a818e01d",
+      "sourceId": "440fd06b-cb9c-4121-806e-a9a1cb6b8a24",
+      "targetId": "b1c4cb6b-418d-465e-bbe6-e33162b9b3fe",
+      "createdAt": "2024-12-26T15:03:05.891Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "data": {},
+      "count": 1
+    },
+    {
+      "id": "7c9e728c-ad2c-4c0c-9a5f-cbe8d931489b",
+      "sourceId": "83a1c180-a117-404a-825d-8b481794c830",
+      "targetId": "b1c4cb6b-418d-465e-bbe6-e33162b9b3fe",
+      "createdAt": "2024-12-26T15:55:43.167Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "data": {},
+      "count": 3
+    },
+    {
+      "id": "df970542-5084-4ff0-908e-e4cc33beb62b",
+      "sourceId": "0ad95718-1bde-4730-8fad-f3de64b70507",
+      "targetId": "b1c4cb6b-418d-465e-bbe6-e33162b9b3fe",
+      "createdAt": "2024-12-26T18:54:22.606Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "data": {},
+      "count": 9
+    },
+    {
+      "id": "reactflow__edge-545723b6-0c86-4db6-9e93-68312641e8ef-be716d6f-c057-420d-864a-40f3de2424bb",
+      "sourceId": "545723b6-0c86-4db6-9e93-68312641e8ef",
+      "targetId": "be716d6f-c057-420d-864a-40f3de2424bb",
+      "createdAt": "2024-12-26T19:51:21.433Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "data": {},
+      "count": 1
+    },
+    {
+      "id": "reactflow__edge-24ad9bcf-c9ed-4dd5-a0aa-ba2fa7a06034-346727da-b17b-4312-b550-6bd0e09506ee",
+      "sourceId": "24ad9bcf-c9ed-4dd5-a0aa-ba2fa7a06034",
+      "targetId": "346727da-b17b-4312-b550-6bd0e09506ee",
+      "createdAt": "2024-12-27T08:24:21.843Z",
+      "updatedAt": "2024-12-27T08:24:21.843Z",
+      "workFlowId": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "data": {},
+      "count": 3
     }
   ],
   "workFlows": [
@@ -353,6 +496,11 @@
       "id": "98f14251-dda7-4e7c-8bfd-90662f1f453e",
       "createdAt": "2024-12-26T10:03:53.044Z",
       "updatedAt": "2024-12-26T10:03:53.044Z"
+    },
+    {
+      "id": "a8401c8d-b68d-4084-81e9-fa0b347fc02a",
+      "createdAt": "2024-12-26T14:01:45.757Z",
+      "updatedAt": "2024-12-26T14:01:45.757Z"
     }
   ],
   "operationHistories": [],
