@@ -21,8 +21,10 @@ export type TData = {
     name: string;
   }[];
   users: {
-    id: string;
-    name: string;
+    user: {
+      id: string;
+      name: string;
+    };
   }[];
   organizationId: string;
 }[];

@@ -552,6 +552,7 @@ export async function getProjectWithOperations(id: string) {
 
 export async function update(data: TUpdateInput) {
   try {
+    console.log("dat eeeeeeeeeeea", data);
     const product = await db.project.update({
       where: { id: data.id },
       data: {
@@ -561,6 +562,7 @@ export async function update(data: TUpdateInput) {
           deleteMany: {},
           create: data.operations.map((op) => ({
             operation: { connect: { id: op.id } },
+            description: op.description,
             time: op.time,
           })),
         },
@@ -584,6 +586,7 @@ export async function getProductById(id: string): Promise<TUpdateInput | null> {
           select: {
             operation: { select: { id: true } },
             time: true,
+            description: true,
           },
         },
       },
@@ -600,6 +603,7 @@ export async function getProductById(id: string): Promise<TUpdateInput | null> {
       operations: product.projectOperations.map((po) => ({
         id: po.operation.id,
         time: po.time,
+        description: po.description || "",
       })),
     };
   } catch (error) {

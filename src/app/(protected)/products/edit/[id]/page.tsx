@@ -14,6 +14,9 @@ export default async function EditProductPage({
   if (!product) {
     return <div>Product not found</div>;
   }
+  console.log(product);
+  console.log("operations", operations);
+  console.log(operations);
 
   return (
     <main className="container mx-auto p-6">

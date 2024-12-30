@@ -11,7 +11,6 @@ export default async function Page({
   searchParams: Record<string, string>;
 }) {
   const result = await findMany(searchParams);
-  const operations = await getOperations();
 
   return (
     <main className="flex flex-col">

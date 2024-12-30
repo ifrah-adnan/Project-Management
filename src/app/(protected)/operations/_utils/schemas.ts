@@ -25,8 +25,10 @@ export type TData = {
   email: string;
   name: string;
   expertises: {
-    name: string;
-    id: string;
+    expertise: {
+      name: string;
+      id: string;
+    };
   }[];
   id: string;
   image: string | null;

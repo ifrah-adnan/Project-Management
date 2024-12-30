@@ -66,7 +66,7 @@ export async function findMany(params = defaultParams): Promise<{
         code: true,
         organizationId: true,
         operations: { select: { id: true, name: true } },
-        users: { select: { id: true, name: true } },
+        users: { select: { user: { select: { id: true, name: true } } } },
       },
     }),
     db.expertise.count({ where }),
@@ -130,6 +130,7 @@ interface CreateExpertiseInput {
   operations: string[];
   userId: string;
 }
+
 export async function createExpertise({
   name,
   code,
@@ -151,13 +152,22 @@ export async function createExpertise({
 
     const expertise = await db.expertise.create({
       data: {
-        users: { connect: { id: userId } },
         name,
         code,
         organization: { connect: { id: organizationId } },
         operations: {
           connect: operations.map((id) => ({ id })),
         },
+        users: {
+          create: [
+            {
+              user: { connect: { id: userId } },
+            },
+          ],
+        },
+      },
+      include: {
+        users: true,
       },
     });
 
@@ -171,6 +181,7 @@ export async function createExpertise({
 
     return { result: expertise };
   } catch (error: any) {
+    console.error("Error creating expertise:", error);
     const fieldErrors: Record<string, string> = {};
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -183,6 +194,7 @@ export async function createExpertise({
     return { error: error.message, fieldErrors };
   }
 }
+
 export async function getOperations() {
   const serverSession = await getServerSession();
   const organizationId =
