@@ -65,9 +65,11 @@ export async function findMany(params = defaultParams): Promise<{
           {
             expertises: {
               some: {
-                name: {
-                  contains: params.search,
-                  mode: "insensitive",
+                expertise: {
+                  name: {
+                    contains: params.search,
+                    mode: "insensitive",
+                  },
                 },
               },
             },
@@ -89,7 +91,16 @@ export async function findMany(params = defaultParams): Promise<{
         name: true,
         email: true,
         image: true,
-        expertises: { select: { name: true, id: true } },
+        expertises: {
+          select: {
+            expertise: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
         createdAt: true,
       },
     }),
@@ -331,7 +342,16 @@ export async function findUserById(id: string): Promise<any> {
       name: true,
       email: true,
       image: true,
-      expertises: { select: { name: true, id: true } },
+      expertises: {
+        select: {
+          expertise: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
       createdAt: true,
     },
   });

@@ -63,9 +63,11 @@ export async function findMany(params = defaultParams): Promise<{
           {
             expertises: {
               some: {
-                name: {
-                  contains: params.search,
-                  mode: "insensitive",
+                expertise: {
+                  name: {
+                    contains: params.search,
+                    mode: "insensitive",
+                  },
                 },
               },
             },
@@ -87,14 +89,23 @@ export async function findMany(params = defaultParams): Promise<{
         name: true,
         email: true,
         image: true,
-        expertises: { select: { name: true, id: true } },
+        expertises: {
+          select: {
+            expertise: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
         createdAt: true,
       },
     }),
     db.user.count({ where }),
   ]);
 
-  // Transformer et filtrer les résultats pour correspondre à TData
+  // Transform and filter the results to match TData
   const transformedData: TData = result
     .filter(
       (user): user is typeof user & { organizationId: string } =>
@@ -107,7 +118,10 @@ export async function findMany(params = defaultParams): Promise<{
       name: user.name,
       email: user.email,
       image: user.image,
-      expertises: user.expertises,
+      expertises: user.expertises.map((ue) => ({
+        id: ue.expertise.id,
+        name: ue.expertise.name,
+      })),
       createdAt: user.createdAt,
     }));
 
@@ -190,6 +204,7 @@ interface CreateUser {
   role: Role;
   expertise?: string[];
 }
+
 export async function create({
   name,
   email,
@@ -223,11 +238,18 @@ export async function create({
         password: hashed,
         role,
         organization: { connect: { id: organizationId } },
-        expertises: expertise?.length
-          ? { connect: expertise.map((id) => ({ id })) }
-          : undefined,
       },
     });
+
+    // Create UserExpertise entries if expertise is provided
+    if (expertise && expertise.length > 0) {
+      await db.userExpertise.createMany({
+        data: expertise.map((expertiseId) => ({
+          userId: user.id,
+          expertiseId,
+        })),
+      });
+    }
 
     // Optionally log the creation
     // await logHistory(
@@ -278,7 +300,7 @@ export interface TEditInput extends TCreateInput {
 const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
   const session = await getServerSession();
   const organizationId = await checkUserPermissions(session);
-  console.log("this is oooo", organizationId);
+  console.log("Organization ID:", organizationId);
 
   if (data.role === "SYS_ADMIN") {
     throw new Error("Cannot create SYS_ADMIN users");
@@ -287,7 +309,7 @@ const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
   const { password, ...rest } = data;
   const hashed = password ? await bcrypt.hash(password, 12) : undefined;
 
-  // Créer l'objet 'where' conditionnellement
+  // Create the 'where' clause conditionally
   const whereClause: any = { id: userId };
   if (organizationId) {
     whereClause.organizationId = organizationId;
@@ -298,11 +320,27 @@ const editHandler = async ({ userId, expertise, ...data }: TUpdateInput) => {
     data: {
       ...rest,
       password: hashed,
-      expertises: expertise?.length
-        ? { connect: expertise.map((id) => ({ id })) }
-        : undefined,
+    },
+    include: {
+      expertises: true,
     },
   });
+
+  // Update user expertises
+  if (expertise) {
+    // Remove all existing expertises
+    await db.userExpertise.deleteMany({
+      where: { userId: user.id },
+    });
+
+    // Add new expertises
+    await db.userExpertise.createMany({
+      data: expertise.map((expertiseId) => ({
+        userId: user.id,
+        expertiseId,
+      })),
+    });
+  }
 
   await logHistory(
     ActionType.UPDATE,
@@ -329,7 +367,16 @@ export async function findUserById(id: string): Promise<any> {
       name: true,
       email: true,
       image: true,
-      expertises: { select: { name: true, id: true } },
+      expertises: {
+        select: {
+          expertise: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
       createdAt: true,
     },
   });

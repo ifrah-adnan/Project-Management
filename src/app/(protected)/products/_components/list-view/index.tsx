@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { TData } from "../../_utils/schemas";
 import { Table } from "@/components/table";

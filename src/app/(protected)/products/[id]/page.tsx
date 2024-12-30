@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { updateProject } from "./utils/action";
+import { Activity, Clock, FileText, Share2 } from "lucide-react";
 
 // Define types for the project and its related data
 type ProjectOperation = {
@@ -102,137 +103,223 @@ export default async function ProductPage({
   const project = await getProject(params.id);
 
   return (
-    <div className="container mx-auto py-10">
-      <Tabs defaultValue="details" className="w-full">
-        <TabsList>
-          <TabsTrigger value="details">Project Details</TabsTrigger>
-          <TabsTrigger value="operations">Operations</TabsTrigger>
-          <TabsTrigger value="workflow">Workflow</TabsTrigger>
+    <div className="container mx-auto max-w-7xl py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+        <p className="mt-2 text-gray-500">Project Code: {project.code}</p>
+      </div>
+
+      <Tabs defaultValue="details" className="w-full space-y-6">
+        <TabsList className="grid w-full grid-cols-4 lg:w-1/2">
+          <TabsTrigger value="details" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Details
+          </TabsTrigger>
+          <TabsTrigger value="operations" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Operations
+          </TabsTrigger>
+          <TabsTrigger value="workflow" className="flex items-center gap-2">
+            <Share2 className="h-4 w-4" />
+            Workflow
+          </TabsTrigger>
         </TabsList>
+
         <TabsContent value="details">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Details</CardTitle>
+          <Card className="border-none shadow-md">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl">Project Details</CardTitle>
               <CardDescription>
-                View and edit project information
+                Update your project information and settings
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={updateProject.bind(null, project.id)}>
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" name="name" defaultValue={project.name} />
+              <form
+                action={updateProject.bind(null, project.id)}
+                className="space-y-6"
+              >
+                <div className="grid gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm font-medium">
+                      Project Name
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      defaultValue={project.name}
+                      className="w-full lg:w-2/3"
+                    />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="code">Code</Label>
-                    <Input id="code" name="code" defaultValue={project.code} />
+                  <div className="space-y-2">
+                    <Label htmlFor="code" className="text-sm font-medium">
+                      Project Code
+                    </Label>
+                    <Input
+                      id="code"
+                      name="code"
+                      defaultValue={project.code}
+                      className="w-full lg:w-1/3"
+                    />
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="description"
+                      className="text-sm font-medium"
+                    >
+                      Description
+                    </Label>
                     <Textarea
                       id="description"
                       name="description"
                       defaultValue={project.description || ""}
+                      className="min-h-[100px]"
                     />
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Switch
                       id="status"
                       name="status"
                       defaultChecked={project.status}
                     />
-                    <Label htmlFor="status">Active</Label>
-                  </div>
-                  <div>
-                    <Button type="submit">Update Project</Button>
+                    <Label htmlFor="status" className="font-medium">
+                      Project Active
+                    </Label>
                   </div>
                 </div>
+                <Button type="submit" className="w-full lg:w-auto">
+                  Save Changes
+                </Button>
               </form>
             </CardContent>
           </Card>
         </TabsContent>
+
         <TabsContent value="operations">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Operations</CardTitle>
+          <Card className="border-none shadow-md">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl">Operations Overview</CardTitle>
               <CardDescription>
-                View all operations associated with this project
+                Manage and track all operations associated with this project
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Operation</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Time (minutes)</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {project.projectOperations.map((po) => (
-                    <TableRow key={po.id}>
-                      <TableCell>{po.operation.name}</TableCell>
-                      <TableCell>{po.description || "N/A"}</TableCell>
-                      <TableCell>{po.time}</TableCell>
+              <div className="rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold">
+                        Operation Name
+                      </TableHead>
+                      <TableHead className="font-semibold">
+                        Description
+                      </TableHead>
+                      <TableHead className="text-right font-semibold">
+                        <span className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Duration
+                        </span>
+                      </TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {project.projectOperations.map((po) => (
+                      <TableRow key={po.id} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">
+                          {po.operation.name}
+                        </TableCell>
+                        <TableCell className="text-gray-600">
+                          {po.description || "—"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {po.time} min
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
+
         <TabsContent value="workflow">
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Workflow</CardTitle>
+          <Card className="border-none shadow-md">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl">Workflow Diagram</CardTitle>
               <CardDescription>
-                View the workflow for this project
+                Visual representation of the project workflow and dependencies
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold">Nodes</h3>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Operation</TableHead>
-                        <TableHead>Time (minutes)</TableHead>
-                        <TableHead>Position</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {project.workFlow?.WorkflowNode.map((node) => (
-                        <TableRow key={node.id}>
-                          <TableCell>{node.operation.name}</TableCell>
-                          <TableCell>{node.data.time}</TableCell>
-                          <TableCell>
-                            x: {node.data.position.x}, y: {node.data.position.y}
-                          </TableCell>
+              <div className="grid gap-8">
+                <div className="space-y-4">
+                  <h3 className="flex items-center gap-2 text-lg font-semibold">
+                    <Activity className="h-4 w-4" />
+                    Workflow Nodes
+                  </h3>
+                  <div className="rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="font-semibold">
+                            Operation
+                          </TableHead>
+                          <TableHead className="font-semibold">
+                            Duration
+                          </TableHead>
+                          <TableHead className="font-semibold">
+                            Position
+                          </TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {project.workFlow?.WorkflowNode.map((node) => (
+                          <TableRow key={node.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">
+                              {node.operation.name}
+                            </TableCell>
+                            <TableCell>{node.data.time} min</TableCell>
+                            <TableCell>
+                              ({node.data.position.x}, {node.data.position.y})
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Edges</h3>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>From</TableHead>
-                        <TableHead>To</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {project.workFlow?.WorkFlowEdge.map((edge) => (
-                        <TableRow key={edge.id}>
-                          <TableCell>{edge.sourceId}</TableCell>
-                          <TableCell>{edge.targetId}</TableCell>
+
+                <div className="space-y-4">
+                  <h3 className="flex items-center gap-2 text-lg font-semibold">
+                    <Share2 className="h-4 w-4" />
+                    Connections
+                  </h3>
+                  <div className="rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="font-semibold">
+                            Source Node
+                          </TableHead>
+                          <TableHead className="font-semibold">
+                            Target Node
+                          </TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {project.workFlow?.WorkFlowEdge.map((edge) => (
+                          <TableRow key={edge.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium">
+                              {edge.sourceId}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {edge.targetId}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </div>
             </CardContent>
