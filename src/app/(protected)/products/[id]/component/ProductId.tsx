@@ -116,9 +116,9 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
               <CardHeader className="space-y-1 border-b bg-gray-50/50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-2xl">Project Details</CardTitle>
+                    <CardTitle className="text-2xl">Product Details</CardTitle>
                     <CardDescription>
-                      View and edit project information
+                      View and edit product information
                     </CardDescription>
                   </div>
                 </div>
@@ -131,7 +131,7 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
                   <div className="grid gap-6">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
-                        Project Name
+                        Product Name
                       </Label>
                       <Input
                         name="name"
@@ -142,7 +142,7 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
 
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
-                        Project Code
+                        Product Code
                       </Label>
                       <Input
                         name="code"
@@ -166,7 +166,7 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
                         defaultChecked={project.status}
                         className="data-[state=checked]:bg-green-500"
                       />
-                      <Label className="font-medium">Project Status</Label>
+                      <Label className="font-medium">Product Status</Label>
                     </div>
 
                     <div>
@@ -189,7 +189,7 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
               <CardHeader className="space-y-1 border-b bg-gray-50/50">
                 <CardTitle className="text-2xl">Operations Overview</CardTitle>
                 <CardDescription>
-                  Track and manage project operations
+                  Track and manage product operations
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6">
@@ -240,7 +240,7 @@ export function ProjectDetails({ project }: ProjectDetailsProps) {
               <CardHeader className="space-y-1 border-b bg-gray-50/50">
                 <CardTitle className="text-2xl">Workflow Diagram</CardTitle>
                 <CardDescription>
-                  Visual representation of project dependencies
+                  Visual representation of product dependencies
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6">

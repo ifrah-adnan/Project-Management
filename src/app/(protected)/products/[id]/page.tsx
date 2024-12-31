@@ -106,7 +106,7 @@ export default async function ProductPage({
     <div className="container mx-auto max-w-7xl py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-        <p className="mt-2 text-gray-500">Project Code: {project.code}</p>
+        <p className="mt-2 text-gray-500">Product Code: {project.code}</p>
       </div>
 
       <Tabs defaultValue="details" className="w-full space-y-6">
@@ -128,9 +128,9 @@ export default async function ProductPage({
         <TabsContent value="details">
           <Card className="border-none shadow-md">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Project Details</CardTitle>
+              <CardTitle className="text-2xl">Products Details</CardTitle>
               <CardDescription>
-                Update your project information and settings
+                Update your product information and settings
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -141,7 +141,7 @@ export default async function ProductPage({
                 <div className="grid gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-sm font-medium">
-                      Project Name
+                      Product Name
                     </Label>
                     <Input
                       id="name"
@@ -152,7 +152,7 @@ export default async function ProductPage({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="code" className="text-sm font-medium">
-                      Project Code
+                      Product Code
                     </Label>
                     <Input
                       id="code"
@@ -182,7 +182,7 @@ export default async function ProductPage({
                       defaultChecked={project.status}
                     />
                     <Label htmlFor="status" className="font-medium">
-                      Project Active
+                      Product Active
                     </Label>
                   </div>
                 </div>
@@ -199,7 +199,7 @@ export default async function ProductPage({
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">Operations Overview</CardTitle>
               <CardDescription>
-                Manage and track all operations associated with this project
+                Manage and track all operations associated with this product
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -247,7 +247,7 @@ export default async function ProductPage({
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl">Workflow Diagram</CardTitle>
               <CardDescription>
-                Visual representation of the project workflow and dependencies
+                Visual representation of the product workflow and dependencies
               </CardDescription>
             </CardHeader>
             <CardContent>
