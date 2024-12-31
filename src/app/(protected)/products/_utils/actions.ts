@@ -52,6 +52,7 @@ export async function findMany(params = defaultParams): Promise<{
       id: true,
       name: true,
       workFlowId: true,
+      code: true,
       status: true,
       // commandProjects: true,
       createdAt: true,

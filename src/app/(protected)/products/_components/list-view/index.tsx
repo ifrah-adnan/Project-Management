@@ -36,6 +36,8 @@ export default function ListView({
         <Table>
           <thead>
             <tr>
+              <th>code</th>
+
               <th>name</th>
               <th>status</th>
               <th>created at</th>
@@ -49,8 +51,12 @@ export default function ListView({
                   href={`/products/${item.id}`}
                   className="font-medium text-blue-600 hover:underline"
                 >
-                  <td>{item.name}</td>
+                  <td>{item.code}</td>
                 </Link>
+
+                <td>
+                  <span>{item.name}</span>
+                </td>
                 <td>
                   <span
                     className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
