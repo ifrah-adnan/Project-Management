@@ -1,10 +1,10 @@
 # nixpacks.toml
 
 [phases.setup]
-cmds = ["mkdir -p web/static","npm i","npx prisma generate"]
+cmds = ["npm i"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = ["npx prisma generate","npm run build","node create-sys-admin.js"]
 
 [start]
 cmd = "npm run start"
