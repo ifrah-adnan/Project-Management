@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { updateProject } from "./utils/action";
 import { Activity, Clock, FileText, Share2 } from "lucide-react";
+import Link from "next/link";
 
 // Define types for the project and its related data
 type ProjectOperation = {
@@ -128,7 +129,7 @@ export default async function ProductPage({
         <TabsContent value="details">
           <Card className="border-none shadow-md">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Products Details</CardTitle>
+              <CardTitle className="text-2xl">Product Details</CardTitle>
               <CardDescription>
                 Update your product information and settings
               </CardDescription>
@@ -182,7 +183,7 @@ export default async function ProductPage({
                       defaultChecked={project.status}
                     />
                     <Label htmlFor="status" className="font-medium">
-                      Product Active
+                      Project Active
                     </Label>
                   </div>
                 </div>
@@ -219,6 +220,9 @@ export default async function ProductPage({
                           Duration
                         </span>
                       </TableHead>
+                      <TableHead className="text-right font-semibold">
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -232,6 +236,13 @@ export default async function ProductPage({
                         </TableCell>
                         <TableCell className="text-right">
                           {po.time} min
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm" asChild>
+                            <Link href={`/products/edit/${params.id}`}>
+                              Update
+                            </Link>
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

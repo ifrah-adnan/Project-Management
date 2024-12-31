@@ -1,28 +1,27 @@
-version: "3.8"
-
 services:
   db:
     image: postgres:latest
-    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: project-management
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - 5433:5432
+      - "5433:5432"
 
-  # app:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - 3000:3000
-  #   depends_on:
-  #     - db
-  #   environment:
-  #     DATABASE_URL: "postgresql://postgres:postgres@db:5432/tmp-project-management?schema=public"
-  #     JWT_SECRET: "secret"
-  #     EXPIRY_TIME: "3600"
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
+      JWT_SECRET: "secret"
+      EXPIRY_TIME: "3600"
+    depends_on:
+      - db
 
 volumes:
   postgres_data:
