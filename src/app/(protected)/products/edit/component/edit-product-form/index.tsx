@@ -92,6 +92,8 @@ export default function EditProductForm({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <label className="text-sm font-medium">Code #</label>
+              <Input name="code" disabled defaultValue={product.code} />
               <label className="text-sm font-medium">Name *</label>
               <Input
                 name="name"

@@ -18,7 +18,8 @@ export default function Grid({ data, total }: { data: TData; total: number }) {
         {data.map((item) => (
           <Card key={item.id} className="flex flex-col">
             <CardContent className="flex-grow p-4">
-              <h3 className="text-lg font-semibold">{item.name}</h3>
+              <h3 className="text-lg font-semibold">{item.code}</h3>
+              <p className="text-sm text-gray-500">name: {item.name}</p>
               <p className="text-sm text-gray-500">
                 Status: {item.status ? "Active" : "Inactive"}
               </p>

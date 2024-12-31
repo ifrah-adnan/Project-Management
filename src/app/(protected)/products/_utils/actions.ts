@@ -52,6 +52,7 @@ export async function findMany(params = defaultParams): Promise<{
       id: true,
       name: true,
       workFlowId: true,
+      code: true,
       status: true,
       // commandProjects: true,
       createdAt: true,
@@ -599,6 +600,7 @@ export async function getProductById(id: string): Promise<TUpdateInput | null> {
     return {
       id: product.id,
       name: product.name,
+      code: product.code || "",
       description: product.description || undefined,
       operations: product.projectOperations.map((po) => ({
         id: po.operation.id,
