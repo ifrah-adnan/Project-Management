@@ -10,18 +10,18 @@ services:
     ports:
       - "5433:5432"
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
-      JWT_SECRET: "secret"
-      EXPIRY_TIME: "3600"
-    depends_on:
-      - db
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     DATABASE_URL: "postgresql://postgres:postgres@db:5432/project-management?schema=public"
+  #     JWT_SECRET: "secret"
+  #     EXPIRY_TIME: "3600"
+  #   depends_on:
+  #     - db
 
 volumes:
   postgres_data:
