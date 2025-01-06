@@ -32,7 +32,11 @@ export default function SignInForm() {
         toast.success("Signed In");
         if (result.role === "SYS_ADMIN") {
           router.push("/organizations");
-        } else router.push("/projects");
+        } else if (result.role === "OPERATOR") {
+          router.push("/commitement");
+        } else {
+          router.push("/projects");
+        }
       }
     } catch (error) {
       console.error(error);

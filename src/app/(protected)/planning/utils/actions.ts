@@ -102,6 +102,7 @@ export async function createPlanning(data: {
         postId: data.postId,
         operatorId: data.operatorId,
         operationId: data.operationId,
+
         commandProjectId: data.commandProjectId,
         startDate: data.startDate,
         endDate: data.endDate,

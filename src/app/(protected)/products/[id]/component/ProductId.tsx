@@ -1,12 +1,27 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -15,95 +30,103 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { updateProject, updateProjectOperation } from "../utils/action";
-import { Activity, Clock, FileText, Share2 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { updateProject, updateOperations } from "../utils/action";
+import { Activity, Clock, FileText, Share2, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { Project, ProjectOperation } from "../page";
+import { getOperations } from "@/app/(protected)/expertise/_utils/actions";
 
-type ProjectOperation = {
-  id: string;
-  description: string | null;
-  time: number;
-  operation: {
-    name: string;
-  };
-};
-
-type WorkflowNode = {
-  id: string;
-  data: {
-    time: number;
-    position: {
-      x: number;
-      y: number;
-    };
-  };
-  operation: {
-    name: string;
-  };
-};
-
-type WorkflowEdge = {
-  id: string;
-  sourceId: string;
-  targetId: string;
-};
-
-type Project = {
+interface Operation {
   id: string;
   name: string;
-  code: string;
-  description: string | null;
-  status: boolean;
-  projectOperations: ProjectOperation[];
-  workFlow: {
-    WorkflowNode: WorkflowNode[];
-    WorkFlowEdge: WorkflowEdge[];
-  } | null;
-};
+}
 
-export default function ProductPageClient({ project }: { project: Project }) {
-  const [isPending, startTransition] = useTransition();
+export default function ProductDetails({
+  project: initialProject,
+}: {
+  project: Project;
+}) {
+  const router = useRouter();
+  const [project, setProject] = useState<Project>(initialProject);
+  const [operations, setOperations] = useState<ProjectOperation[]>(
+    initialProject.projectOperations,
+  );
+  const [availableOperations, setAvailableOperations] = useState<Operation[]>(
+    [],
+  );
 
-  const handleOperationUpdate = async (
-    event: React.FormEvent<HTMLFormElement>,
+  useEffect(() => {
+    const fetchOperations = async () => {
+      const ops = await getOperations();
+      setAvailableOperations(ops);
+    };
+    fetchOperations();
+  }, []);
+
+  const handleUpdateProject = async (formData: FormData) => {
+    const result = await updateProject(project.id, formData);
+    if (result.error) {
+      toast.error(result.error);
+    } else if (result.result) {
+      toast.success("Project updated successfully");
+      setProject((prevProject) => ({
+        ...prevProject,
+        ...result.result,
+        projectOperations: prevProject.projectOperations,
+      }));
+      router.refresh();
+    }
+  };
+
+  const handleUpdateOperations = async () => {
+    const result = await updateOperations(project.id, operations);
+    if (result.error) {
+      toast.error(result.error);
+    } else if (result.result) {
+      toast.success("Operations updated successfully");
+      setProject((prevProject) => ({
+        ...prevProject,
+        projectOperations:
+          result.result?.projectOperations || prevProject.projectOperations,
+      }));
+      router.refresh();
+    }
+  };
+
+  const addOperation = () => {
+    setOperations([
+      ...operations,
+      { id: "", description: "", time: 0, operation: { id: "", name: "" } },
+    ]);
+  };
+
+  const removeOperation = (index: number) => {
+    setOperations(operations.filter((_, i) => i !== index));
+  };
+
+  const updateOperation = (
+    index: number,
+    field: string,
+    value: string | number,
   ) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-
-    // Assurez-vous que la description est une chaîne vide si elle est null
-    const description = formData.get("description");
-    if (description === null) {
-      formData.set("description", "");
-    }
-
-    // Assurez-vous que le temps est un nombre et au moins 1
-    const time = formData.get("time");
-    if (time !== null) {
-      const timeValue = Math.max(1, parseInt(time as string, 10) || 1);
-      formData.set("time", timeValue.toString());
-    }
-
-    // Log des données du formulaire pour le débogage
-    console.log("Form data:", Object.fromEntries(formData));
-
-    startTransition(async () => {
-      const result = await updateProjectOperation(formData);
-      if (result.error) {
-        console.error(result.error);
-        console.error("Validation details:", result.details);
-        // Vous pouvez afficher un message d'erreur à l'utilisateur ici
-      } else {
-        console.log("Operation updated successfully");
-        // Vous pouvez afficher un message de succès à l'utilisateur ici
+    const updatedOperations = [...operations];
+    if (field === "operation") {
+      const selectedOperation = availableOperations.find(
+        (op) => op.id === value,
+      );
+      if (selectedOperation) {
+        updatedOperations[index] = {
+          ...updatedOperations[index],
+          operation: { id: selectedOperation.id, name: selectedOperation.name },
+        };
       }
-    });
+    } else {
+      updatedOperations[index] = {
+        ...updatedOperations[index],
+        [field]: value,
+      };
+    }
+    setOperations(updatedOperations);
   };
 
   return (
@@ -114,7 +137,7 @@ export default function ProductPageClient({ project }: { project: Project }) {
       </div>
 
       <Tabs defaultValue="details" className="w-full space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-1/2">
+        <TabsList className="grid w-full grid-cols-3 lg:w-1/2">
           <TabsTrigger value="details" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Details
@@ -132,16 +155,13 @@ export default function ProductPageClient({ project }: { project: Project }) {
         <TabsContent value="details">
           <Card className="border-none shadow-md">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Products Details</CardTitle>
+              <CardTitle className="text-2xl">Product Details</CardTitle>
               <CardDescription>
                 Update your product information and settings
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form
-                action={updateProject.bind(null, project.id)}
-                className="space-y-6"
-              >
+              <form action={handleUpdateProject} className="space-y-6">
                 <div className="grid gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-sm font-medium">
@@ -161,7 +181,7 @@ export default function ProductPageClient({ project }: { project: Project }) {
                     <Input
                       id="code"
                       name="code"
-                      defaultValue={project.code}
+                      defaultValue={project.code || ""}
                       className="w-full lg:w-1/3"
                     />
                   </div>
@@ -186,7 +206,7 @@ export default function ProductPageClient({ project }: { project: Project }) {
                       defaultChecked={project.status}
                     />
                     <Label htmlFor="status" className="font-medium">
-                      Product Active
+                      Project Active
                     </Label>
                   </div>
                 </div>
@@ -229,43 +249,72 @@ export default function ProductPageClient({ project }: { project: Project }) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {project.projectOperations.map((po) => (
-                      <TableRow key={po.id} className="hover:bg-gray-50">
+                    {operations.map((po, index) => (
+                      <TableRow key={index} className="hover:bg-gray-50">
                         <TableCell className="font-medium">
-                          {po.operation.name}
+                          <Select
+                            value={po.operation.id}
+                            onValueChange={(value) =>
+                              updateOperation(index, "operation", value)
+                            }
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Select operation" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableOperations.map((op) => (
+                                <SelectItem key={op.id} value={op.id}>
+                                  {op.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
-                        <TableCell className="text-gray-600">
+                        <TableCell>
                           <Input
-                            name="description"
-                            defaultValue={po.description || ""}
-                            className="w-full"
+                            value={po.description || ""}
+                            onChange={(e) =>
+                              updateOperation(
+                                index,
+                                "description",
+                                e.target.value,
+                              )
+                            }
                           />
                         </TableCell>
                         <TableCell className="text-right">
                           <Input
-                            name="time"
                             type="number"
-                            defaultValue={po.time}
-                            min={1}
-                            className="w-20 text-right"
+                            value={po.time}
+                            onChange={(e) =>
+                              updateOperation(
+                                index,
+                                "time",
+                                parseInt(e.target.value),
+                              )
+                            }
                           />
                         </TableCell>
                         <TableCell className="text-right">
-                          <form onSubmit={handleOperationUpdate}>
-                            <input type="hidden" name="id" value={po.id} />
-                            <Button
-                              type="submit"
-                              size="sm"
-                              disabled={isPending}
-                            >
-                              {isPending ? "Updating..." : "Update"}
-                            </Button>
-                          </form>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeOperation(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+              <div className="mt-4 flex justify-between">
+                <Button onClick={addOperation}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Operation
+                </Button>
+                <Button onClick={handleUpdateOperations}>Save Changes</Button>
               </div>
             </CardContent>
           </Card>
@@ -274,84 +323,12 @@ export default function ProductPageClient({ project }: { project: Project }) {
         <TabsContent value="workflow">
           <Card className="border-none shadow-md">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl">Workflow Diagram</CardTitle>
+              <CardTitle className="text-2xl">Workflow</CardTitle>
               <CardDescription>
-                Visual representation of the product workflow and dependencies
+                Workflow information will be displayed here
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-8">
-                <div className="space-y-4">
-                  <h3 className="flex items-center gap-2 text-lg font-semibold">
-                    <Activity className="h-4 w-4" />
-                    Workflow Nodes
-                  </h3>
-                  <div className="rounded-lg border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="font-semibold">
-                            Operation
-                          </TableHead>
-                          <TableHead className="font-semibold">
-                            Duration
-                          </TableHead>
-                          <TableHead className="font-semibold">
-                            Position
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {project.workFlow?.WorkflowNode.map((node) => (
-                          <TableRow key={node.id} className="hover:bg-gray-50">
-                            <TableCell className="font-medium">
-                              {node.operation.name}
-                            </TableCell>
-                            <TableCell>{node.data.time} min</TableCell>
-                            <TableCell>
-                              ({node.data.position.x}, {node.data.position.y})
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="flex items-center gap-2 text-lg font-semibold">
-                    <Share2 className="h-4 w-4" />
-                    Connections
-                  </h3>
-                  <div className="rounded-lg border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="font-semibold">
-                            Source Node
-                          </TableHead>
-                          <TableHead className="font-semibold">
-                            Target Node
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {project.workFlow?.WorkFlowEdge.map((edge) => (
-                          <TableRow key={edge.id} className="hover:bg-gray-50">
-                            <TableCell className="font-medium">
-                              {edge.sourceId}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {edge.targetId}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
+            <CardContent>{/* Add workflow content here */}</CardContent>
           </Card>
         </TabsContent>
       </Tabs>
