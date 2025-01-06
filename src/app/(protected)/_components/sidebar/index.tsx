@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -18,12 +18,11 @@ import {
   Activity,
   Package,
   PlusIcon,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/components/session-provider";
-import UserButton from "../userButton";
-import { ModeToggle } from "../ModeToggle/mode-toggle";
 import { getServerSession } from "@/lib/auth";
 import { getOrganizationId } from "../../organizations/_utils/action";
 
@@ -84,18 +83,17 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
   const user = session?.user;
   const isAdmin = user?.role === "ADMIN";
   const isSysAdmin = user?.role === "SYS_ADMIN";
+  const isOperator = user?.role === "OPERATOR";
   const router = useRouter();
-  const [organizationImage, setOrganizationImage] = React.useState<
-    string | null
-  >(null);
-  const [organizationName, setOrganizationName] = React.useState<string | null>(
+  const [organizationImage, setOrganizationImage] = useState<string | null>(
     null,
   );
+  const [organizationName, setOrganizationName] = useState<string | null>(null);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
     {},
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchOrganizationImage = async () => {
       if (isSysAdmin) {
         setOrganizationImage("/sys-admin.svg");
@@ -124,6 +122,7 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
       router.push(path);
     }
   };
+
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const toggleUserMenu = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
@@ -198,6 +197,15 @@ const SideBar: React.FC<SideBarProps> = ({ className, onToggle }) => {
               Settings
             </LinkItem>
           </>
+        ) : isOperator ? (
+          <LinkItem
+            href="/commitement"
+            icon={<Briefcase size={16} />}
+            onClick={() => navigateWithOrganization("/commitement")}
+            isCollapsed={isCollapsed}
+          >
+            Commitement
+          </LinkItem>
         ) : (
           <>
             <LinkItem

@@ -45,6 +45,7 @@ export default function Page({
   useEffect(() => {
     const fetchData = async () => {
       const data = await findMany(searchParams);
+      console.log("this is data ", data);
       setResult(data);
       const dataO = await OrganizationfindMany(searchParams);
       setResultO(dataO);

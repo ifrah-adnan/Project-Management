@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { Project, ProjectOperation } from "../page";
 
 const updateProjectSchema = z.object({
   name: z.string().min(1),
@@ -12,31 +13,59 @@ const updateProjectSchema = z.object({
 });
 
 export async function updateProject(id: string, formData: FormData) {
-  const validatedFields = updateProjectSchema.safeParse({
-    name: formData.get("name"),
-    description: formData.get("description"),
-    code: formData.get("code"),
-    status: formData.get("status") === "on",
-  });
-
-  if (!validatedFields.success) {
-    return { error: "Invalid fields" };
-  }
-
-  const { name, description, code, status } = validatedFields.data;
-
   try {
-    await db.project.update({
+    const name = formData.get("name") as string;
+    const code = formData.get("code") as string;
+    const description = formData.get("description") as string;
+    const status = formData.get("status") === "on";
+
+    const product = await db.project.update({
       where: { id },
-      data: { name, description, code, status },
+      data: { name, code, description, status },
+    });
+
+    revalidatePath("/products");
+    return { result: product };
+  } catch (error) {
+    console.error("Error updating product:", error);
+    return { error: "Failed to update product" };
+  }
+}
+
+export async function updateOperations(
+  id: string,
+  operations: ProjectOperation[],
+): Promise<{ result?: Project; error?: string }> {
+  try {
+    const product = await db.project.update({
+      where: { id },
+      data: {
+        projectOperations: {
+          deleteMany: {},
+          create: operations.map((op) => ({
+            operation: { connect: { id: op.operation.id } },
+            description: op.description,
+            time: op.time,
+          })),
+        },
+      },
+      include: {
+        projectOperations: {
+          include: {
+            operation: true,
+          },
+        },
+      },
     });
 
     revalidatePath(`/products/${id}`);
-    return { success: true };
+    return { result: product as Project };
   } catch (error) {
-    return { error: "Failed to update project" };
+    console.error("Error updating operations:", error);
+    return { error: "Failed to update operations" };
   }
 }
+
 // const updateProjectOperationSchema = z.object({
 //   name: z.string().min(1),
 //   description: z.string().optional(),

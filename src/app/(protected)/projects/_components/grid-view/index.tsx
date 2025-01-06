@@ -24,14 +24,14 @@ import { ConfirmButton } from "@/components/confirm-button";
 import { handleDeleteCommandProject } from "../../_utils/actions";
 import ConfigureSprintButton from "../configure-sprint-button";
 import { getServerSession } from "@/lib/auth";
-
-export function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1) + min);
-}
+import { getOperationHistorySum } from "../../_utils/actions";
 
 export const GridView: React.FC<{ data: TData }> = ({ data }) => {
   const [filteredData, setFilteredData] = useState<TData>([]);
   const [organizationId, setOrganizationId] = useState<any>(null);
+  const [operationHistorySums, setOperationHistorySums] = useState<
+    Record<string, number>
+  >({});
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -51,20 +51,35 @@ export const GridView: React.FC<{ data: TData }> = ({ data }) => {
         (item) => item.organizationId === organizationId,
       );
       setFilteredData(filtered);
+
+      const fetchOperationHistorySums = async () => {
+        const sums: Record<string, number> = {};
+        for (const item of filtered) {
+          const sum = await getOperationHistorySum(item.id);
+          sums[item.id] = sum;
+        }
+        setOperationHistorySums(sums);
+      };
+
+      fetchOperationHistorySums();
     }
   }, [data, organizationId]);
+
   return (
     <main>
       <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-4 text-sm sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {filteredData.map((item) => {
           const client = item.command.client;
-          const value = (item.done / item.target) * 100;
+          const operationHistorySum = operationHistorySums[item.id] || 0;
+          const value = (operationHistorySum / item.target) * 100;
           let totalSprints: number | undefined = undefined;
           let completedSprints: number | undefined = undefined;
           let sprints: undefined | string = undefined;
           if (item.sprint) {
             totalSprints = Math.ceil(item.target / item.sprint.target);
-            completedSprints = Math.floor(item.done / item.sprint.target);
+            completedSprints = Math.floor(
+              operationHistorySum / item.sprint.target,
+            );
             sprints = `${completedSprints}/${totalSprints}`;
           }
           return (
@@ -133,7 +148,7 @@ export const GridView: React.FC<{ data: TData }> = ({ data }) => {
                   <div className="flex items-center gap-1">
                     <span className="size-5 rounded bg-gradient-to-r from-[#2196F3] to-[#0c4a6e]"></span>
                     <span className="font-medium text-gray-500">Done:</span>
-                    <span className="font-medium">{item.done}</span>
+                    <span className="font-medium">{operationHistorySum}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="size-5 rounded bg-muted"></span>
@@ -163,10 +178,6 @@ export const GridView: React.FC<{ data: TData }> = ({ data }) => {
                     <ListChecksIcon size={16} />
                   </ConfigureSprintButton>
                   <span>{sprints || "N/A"}</span>
-                  {/* <ListChecksIcon size={16} /> */}
-                  {/* {<span>
-                    {Math.floor(value)}/{item.sprint?.target}
-                  </span>} */}
                   <CalendarDays size={16} className="ml-auto" />
                   <span className="text-gray-500">
                     {format(new Date(item.endDate), "PP")}

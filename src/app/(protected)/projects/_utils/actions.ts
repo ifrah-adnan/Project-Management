@@ -1019,3 +1019,20 @@ export async function getProjectDetails(commandProjectId: string) {
     throw new Error("Failed to fetch command project details");
   }
 }
+
+export async function getOperationHistorySum(
+  commandProjectId: string,
+): Promise<number> {
+  const result = await db.operationHistory.aggregate({
+    where: {
+      planning: {
+        commandProjectId: commandProjectId,
+      },
+    },
+    _sum: {
+      count: true,
+    },
+  });
+
+  return result._sum.count || 0;
+}
