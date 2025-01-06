@@ -7,4 +7,4 @@ cmds = ["npm i"]
 cmds = ["npx prisma generate","npx prisma db push","node create-sys-admin.js"]
 
 [start]
-cmd = "npm run dev"
+cmd = "npm run dev -- -H 0.0.0.0"
