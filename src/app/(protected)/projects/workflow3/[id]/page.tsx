@@ -1,6 +1,6 @@
 import { getProjectWithOperations } from "@/app/(protected)/products/_utils/actions";
 import React from "react";
-import WorkflowDiagram from "./component/WorklfowDiagram";
+import { WorkflowDiagram } from "./component/WorklfowDiagram";
 
 export default async function WorkflowPage({
   params,

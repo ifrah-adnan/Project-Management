@@ -1,16 +1,17 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { TData } from "../../_utils/schemas";
 import { Table } from "@/components/table";
 import { Card } from "@/components/ui/card";
 import { ConfirmButton } from "@/components/confirm-button";
 import { Ellipsis, PencilIcon, Trash2Icon } from "lucide-react";
-import { revalidatePath } from "next/cache";
 import ParamsPagination from "@/components/params-pagination";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { deleteById, handleDelete } from "../../_utils/actions";
+import { handleDelete } from "../../_utils/actions";
 import { EditUserButton } from "../edit-user-button";
+import Link from "next/link";
 import {
   Popover,
   PopoverContent,
@@ -94,7 +95,16 @@ export default function List({
                         {`${item.name.charAt(0).toUpperCase()}`}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="capitalize">{item.name}</span>
+                    {item.role === "OPERATOR" ? (
+                      <Link
+                        href={`/operator-history/${item.id}`}
+                        className="capitalize hover:underline"
+                      >
+                        {item.name}
+                      </Link>
+                    ) : (
+                      <span className="capitalize">{item.name}</span>
+                    )}
                   </div>
                 </td>
                 <td>{item.role}</td>

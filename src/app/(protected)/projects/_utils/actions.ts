@@ -1020,7 +1020,88 @@ export async function getProjectDetails(commandProjectId: string) {
   }
 }
 
-export async function getOperationHistorySum(
+function isValidOperation(operation: any): operation is { id: string } {
+  return operation && typeof operation === "object" && "id" in operation;
+}
+
+export async function calculateCommandProjectProgress(
+  commandProjectId: string,
+): Promise<number> {
+  try {
+    // Fetch the command project with its target and associated operations
+    const commandProject = await db.commandProject.findUnique({
+      where: { id: commandProjectId },
+      include: {
+        project: {
+          include: {
+            projectOperations: {
+              include: {
+                operation: true,
+              },
+            },
+          },
+        },
+        planings: {
+          include: {
+            operationHistory: true,
+            operation: true,
+          },
+        },
+      },
+    });
+
+    if (!commandProject) {
+      console.error("Command project not found");
+      return 0;
+    }
+
+    const target = commandProject.target;
+    const operations = commandProject.project.projectOperations.map(
+      (po) => po.operation.id,
+    );
+
+    // Calculate progress for each operation
+    const operationProgress = new Map<string, number>();
+
+    commandProject.planings.forEach((planning) => {
+      if (isValidOperation(planning.operation)) {
+        const operationId = planning.operation.id;
+        const totalCount = planning.operationHistory.reduce(
+          (sum, history) => sum + history.count,
+          0,
+        );
+        operationProgress.set(
+          operationId,
+          (operationProgress.get(operationId) || 0) + totalCount,
+        );
+      } else {
+        console.error("Invalid operation in planning:", planning);
+      }
+    });
+
+    // Calculate overall progress
+    let totalProgress = 0;
+    operations.forEach((operationId) => {
+      const operationCount = operationProgress.get(operationId) || 0;
+      totalProgress += Math.min(operationCount, target);
+    });
+
+    const maxPossibleProgress = target * operations.length;
+    const progressPercentage = (totalProgress / maxPossibleProgress) * 100;
+
+    console.log("Total Progress:", totalProgress);
+    console.log("Max Possible Progress:", maxPossibleProgress);
+    console.log("Target:", target);
+    console.log("Progress Percentage:", progressPercentage);
+
+    return Math.min(100, Math.max(0, progressPercentage));
+  } catch (error) {
+    console.error("Error calculating command project progress:", error);
+    return 0;
+  }
+}
+
+export async function getOperationHistorySum2(
   commandProjectId: string,
 ): Promise<number> {
   const result = await db.operationHistory.aggregate({
@@ -1035,4 +1116,103 @@ export async function getOperationHistorySum(
   });
 
   return result._sum.count || 0;
+}
+// export async function getOperationHistorySum(
+//   commandProjectId: string,
+// ): Promise<number> {
+//   return calculateCommandProjectProgress(commandProjectId);
+// }
+
+export async function getOperationHistorySum(
+  commandProjectId: string,
+): Promise<number> {
+  try {
+    // Calculer la somme en utilisant une seule requête aggregate
+    const result = await db.operationHistory.aggregate({
+      where: {
+        planning: {
+          commandProjectId: commandProjectId,
+        },
+      },
+      _sum: {
+        count: true,
+      },
+    });
+
+    // Si le résultat est null, retourner 0
+    const total = result._sum.count || 0;
+
+    // Pour le debugging
+    console.log(`Operation History Sum for ${commandProjectId}:`, total);
+
+    return total;
+  } catch (error) {
+    console.error("Error calculating operation history sum:", error);
+    return 0;
+  }
+}
+
+/**
+ * Version alternative qui récupère tous les détails
+ * Utile pour le debugging ou si vous avez besoin des détails
+ */
+export async function getOperationHistoryDetails(commandProjectId: string) {
+  try {
+    const commandProject = await db.commandProject.findUnique({
+      where: {
+        id: commandProjectId,
+      },
+      include: {
+        planings: {
+          include: {
+            operationHistory: true,
+            operation: true,
+          },
+        },
+        project: {
+          include: {
+            projectOperations: {
+              include: {
+                operation: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!commandProject) {
+      console.log("Command project not found:", commandProjectId);
+      return {
+        total: 0,
+        target: 0,
+        details: [],
+      };
+    }
+
+    const operations = commandProject.planings.map((planning) => ({
+      planningId: planning.id,
+      operationId: planning.operation?.[0]?.id,
+      operationName: planning.operation?.[0]?.name,
+      sum: planning.operationHistory.reduce(
+        (sum, history) => sum + history.count,
+        0,
+      ),
+    }));
+
+    const total = operations.reduce((sum, op) => sum + op.sum, 0);
+
+    return {
+      total,
+      target: commandProject.target,
+      details: operations,
+    };
+  } catch (error) {
+    console.error("Error getting operation history details:", error);
+    return {
+      total: 0,
+      target: 0,
+      details: [],
+    };
+  }
 }
