@@ -26,6 +26,7 @@ export default async function PlanningPage({ searchParams }: PageProps) {
     data: existingPlanning,
     error,
   } = await getPostPlanning(postId);
+  console.log(success, existingPlanning, error);
 
   if (!success) {
     return (
