@@ -1,181 +1,243 @@
 const { PrismaClient } = require("@prisma/client");
 const fs = require("fs/promises");
-const crypto = require("crypto");
 
 const prisma = new PrismaClient();
-function generateRandomCode(length = 8) {
-  return crypto
-    .randomBytes(Math.ceil(length / 2))
-    .toString("hex")
-    .slice(0, length)
-    .toUpperCase();
-}
 
-async function importData() {
+const fileName = process.argv[2] || "backup.json";
+
+async function importData(filename) {
   try {
-    console.log("Reading JSON file...");
-    const jsonData = await fs.readFile("backup.json", "utf8");
-    const data = JSON.parse(jsonData);
+    console.log(`Starting data import from ${filename}...`);
 
-    console.log("Importing data into the database...");
-
-    // Import Organizations
-    if (data.organizations) {
-      for (const org of data.organizations) {
-        await prisma.organization.create({ data: org });
-      }
-      console.log("Organizations imported successfully.");
+    // Check if file exists
+    try {
+      await fs.access(filename);
+    } catch (error) {
+      console.error(`Error: File ${filename} not found`);
+      process.exit(1);
     }
 
-    // Import Users
-    if (data.users) {
-      for (const user of data.users) {
-        await prisma.user.create({ data: user });
-      }
-      console.log("Users imported successfully.");
+    // Read the backup file
+    const data = JSON.parse(await fs.readFile(filename, "utf8"));
+    // Import data in the correct order to respect foreign key constraints
+    console.log("Importing organizations...");
+    for (const org of data.organizations) {
+      await prisma.organization.create({
+        data: {
+          id: org.id,
+          name: org.name,
+          description: org.description,
+          imagePath: org.imagePath,
+          address: org.address,
+          latitude: org.latitude,
+          longitude: org.longitude,
+          createdAt: new Date(org.createdAt),
+          updatedAt: new Date(org.updatedAt),
+        },
+      });
     }
 
-    // Import WorkFlows (before Projects)
-    if (data.workFlows) {
-      for (const workflow of data.workFlows) {
-        await prisma.workFlow.create({ data: workflow });
-      }
-      console.log("WorkFlows imported successfully.");
+    console.log("Importing users...");
+    for (const user of data.users) {
+      await prisma.user.create({
+        data: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          password: user.password,
+          image: user.image,
+          phone: user.phone,
+          attributes: user.attributes,
+          organizationId: user.organizationId,
+          createdAt: new Date(user.createdAt),
+          updatedAt: new Date(user.updatedAt),
+        },
+      });
     }
 
-    // Import Projects
-    if (data.projects) {
-      for (const project of data.projects) {
-        if (project.workFlowId === null || project.workFlowId === undefined) {
-          delete project.workFlowId;
-        }
-        // Generate a random code if it doesn't exist
-        if (!project.code) {
-          project.code = generateRandomCode();
-        }
-        await prisma.project.create({ data: project });
-      }
-      console.log("Projects imported successfully.");
+    console.log("Importing expertises...");
+    for (const expertise of data.expertises) {
+      await prisma.expertise.create({
+        data: {
+          id: expertise.id,
+          name: expertise.name,
+          description: expertise.description,
+          code: expertise.code,
+          organizationId: expertise.organizationId,
+          createdAt: new Date(expertise.createdAt),
+          updatedAt: new Date(expertise.updatedAt),
+        },
+      });
     }
 
-    // Import Commands
-    if (data.commands) {
-      for (const command of data.commands) {
-        await prisma.command.create({ data: command });
-      }
-      console.log("Commands imported successfully.");
+    console.log("Importing operations...");
+    for (const operation of data.operations) {
+      await prisma.operation.create({
+        data: {
+          id: operation.id,
+          name: operation.name,
+          code: operation.code,
+          icon: operation.icon,
+          organizationId: operation.organizationId,
+          description: operation.description,
+          isFinal: operation.isFinal,
+          expertiseId: operation.expertiseId,
+          createdAt: new Date(operation.createdAt),
+          updatedAt: new Date(operation.updatedAt),
+        },
+      });
     }
 
-    // Import CommandProjects
-    if (data.commandProjects) {
-      for (const cp of data.commandProjects) {
-        await prisma.commandProject.create({ data: cp });
-      }
-      console.log("CommandProjects imported successfully.");
+    console.log("Importing workflows...");
+    for (const workflow of data.workFlows) {
+      await prisma.workFlow.create({
+        data: {
+          id: workflow.id,
+          createdAt: new Date(workflow.createdAt),
+          updatedAt: new Date(workflow.updatedAt),
+        },
+      });
     }
 
-    // Import Posts
-    if (data.posts) {
-      for (const post of data.posts) {
-        await prisma.post.create({ data: post });
-      }
-      console.log("Posts imported successfully.");
+    console.log("Importing projects...");
+    for (const project of data.projects) {
+      await prisma.project.create({
+        data: {
+          id: project.id,
+          name: project.name,
+          description: project.description,
+          code: project.code,
+          status: project.status,
+          organizationId: project.organizationId,
+          workFlowId: project.workFlowId,
+          createdAt: new Date(project.createdAt),
+          updatedAt: new Date(project.updatedAt),
+        },
+      });
     }
 
-    // Import Plannings
-    if (data.plannings) {
-      for (const planning of data.plannings) {
-        await prisma.planning.create({ data: planning });
-      }
-      console.log("Plannings imported successfully.");
+    console.log("Importing workflow nodes...");
+    for (const node of data.workFlowNodes) {
+      await prisma.workFlowNode.create({
+        data: {
+          id: node.id,
+          workFlowId: node.workFlowId,
+          operationId: node.operationId,
+          data: node.data,
+          createdAt: new Date(node.createdAt),
+          updatedAt: new Date(node.updatedAt),
+        },
+      });
     }
 
-    // Import Sprints
-    if (data.sprints) {
-      for (const sprint of data.sprints) {
-        await prisma.sprint.create({ data: sprint });
-      }
-      console.log("Sprints imported successfully.");
+    console.log("Importing workflow edges...");
+    for (const edge of data.workFlowEdges) {
+      await prisma.workFlowEdge.create({
+        data: {
+          id: edge.id,
+          sourceId: edge.sourceId,
+          targetId: edge.targetId,
+          workFlowId: edge.workFlowId,
+          data: edge.data,
+          count: edge.count,
+          createdAt: new Date(edge.createdAt),
+          updatedAt: new Date(edge.updatedAt),
+        },
+      });
     }
 
-    // Import Operations (moved before ProjectOperations)
-    if (data.operations) {
-      for (const operation of data.operations) {
-        await prisma.operation.create({ data: operation });
-      }
-      console.log("Operations imported successfully.");
+    console.log("Importing commands...");
+    for (const command of data.commands) {
+      await prisma.command.create({
+        data: {
+          id: command.id,
+          userId: command.userId,
+          reference: command.reference,
+          clientId: command.clientId,
+          organizationId: command.organizationId,
+          createdAt: new Date(command.createdAt),
+          updatedAt: new Date(command.updatedAt),
+        },
+      });
     }
 
-    // Import ProjectOperations
-    if (data.projectOperations) {
-      for (const po of data.projectOperations) {
-        await prisma.projectOperation.create({ data: po });
-      }
-      console.log("ProjectOperations imported successfully.");
+    console.log("Importing command projects...");
+    for (const cp of data.commandProjects) {
+      await prisma.commandProject.create({
+        data: {
+          id: cp.id,
+          userId: cp.userId,
+          commandId: cp.commandId,
+          projectId: cp.projectId,
+          organizationId: cp.organizationId,
+          target: cp.target,
+          done: cp.done,
+          startDate: cp.startDate ? new Date(cp.startDate) : null,
+          endDate: new Date(cp.endDate),
+          status: cp.status,
+          createdAt: new Date(cp.createdAt),
+          updatedAt: new Date(cp.updatedAt),
+        },
+      });
     }
 
-    // Import WorkFlowNodes
-    if (data.workFlowNodes) {
-      for (const node of data.workFlowNodes) {
-        await prisma.workFlowNode.create({ data: node });
-      }
-      console.log("WorkFlowNodes imported successfully.");
+    console.log("Importing posts...");
+    for (const post of data.posts) {
+      await prisma.post.create({
+        data: {
+          id: post.id,
+          userId: post.userId,
+          name: post.name,
+          description: post.description,
+          operationId: post.operationId,
+          organizationId: post.organizationId,
+          createdAt: new Date(post.createdAt),
+          updatedAt: new Date(post.updatedAt),
+        },
+      });
     }
 
-    // Import WorkFlowEdges
-    if (data.workFlowEdges) {
-      for (const edge of data.workFlowEdges) {
-        await prisma.workFlowEdge.create({ data: edge });
-      }
-      console.log("WorkFlowEdges imported successfully.");
+    console.log("Importing plannings...");
+    for (const planning of data.plannings) {
+      await prisma.planning.create({
+        data: {
+          id: planning.id,
+          operatorId: planning.operatorId,
+          postId: planning.postId,
+          operationId: planning.operationId,
+          commandProjectId: planning.commandProjectId,
+          startDate: new Date(planning.startDate),
+          endDate: new Date(planning.endDate),
+          createdAt: new Date(planning.createdAt),
+          updatedAt: new Date(planning.updatedAt),
+        },
+      });
     }
 
-    // Import OperationHistories
-    if (data.operationHistories) {
-      for (const history of data.operationHistories) {
-        await prisma.operationHistory.create({ data: history });
-      }
-      console.log("OperationHistories imported successfully.");
+    console.log("Importing remaining data...");
+    // Import the rest of the data in the correct order
+    for (const device of data.devices) {
+      await prisma.device.create({
+        data: {
+          id: device.id,
+          userId: device.userId,
+          deviceId: device.deviceId,
+          planningId: device.planningId,
+          postId: device.postId,
+          count: device.count,
+          organizationId: device.organizationId,
+          createdAt: new Date(device.createdAt),
+        },
+      });
     }
 
-    // Import Expertises
-    if (data.expertises) {
-      for (const expertise of data.expertises) {
-        await prisma.expertise.create({ data: expertise });
-      }
-      console.log("Expertises imported successfully.");
-    }
-
-    // Import Histories
-    if (data.histories) {
-      for (const history of data.histories) {
-        await prisma.history.create({ data: history });
-      }
-      console.log("Histories imported successfully.");
-    }
-
-    // Import Devices
-    if (data.devices) {
-      for (const device of data.devices) {
-        await prisma.device.create({ data: device });
-      }
-      console.log("Devices imported successfully.");
-    }
-
-    // Import OperationRecords
-    if (data.operationRecords) {
-      for (const record of data.operationRecords) {
-        await prisma.operationRecord.create({ data: record });
-      }
-      console.log("OperationRecords imported successfully.");
-    }
-
-    console.log("Data import completed successfully.");
+    console.log("Import completed successfully!");
   } catch (error) {
-    console.error("Error importing data:", error);
+    console.error("Error during import:", error);
   } finally {
     await prisma.$disconnect();
   }
 }
 
-importData();
+importData(fileName);
