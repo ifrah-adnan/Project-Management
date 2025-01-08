@@ -49,10 +49,14 @@ async function backupData() {
       operationRecords,
     };
 
-    // Write data to a JSON file
-    await fs.writeFile("backup.json", JSON.stringify(backupData, null, 2));
+    // Create timestamp for filename
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const fileName = `backup-${timestamp}.json`;
 
-    console.log("Backup completed successfully. Data saved to backup.json");
+    // Write data to a JSON file with timestamp
+    await fs.writeFile(fileName, JSON.stringify(backupData, null, 2));
+
+    console.log(`Backup completed successfully. Data saved to ${fileName}`);
   } catch (error) {
     console.error("Error during backup:", error);
   } finally {

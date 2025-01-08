@@ -3,13 +3,22 @@ const fs = require("fs/promises");
 
 const prisma = new PrismaClient();
 
-async function importData() {
+const fileName = process.argv[2] || "backup.json";
+
+async function importData(filename) {
   try {
-    console.log("Starting data import...");
+    console.log(`Starting data import from ${filename}...`);
+
+    // Check if file exists
+    try {
+      await fs.access(filename);
+    } catch (error) {
+      console.error(`Error: File ${filename} not found`);
+      process.exit(1);
+    }
 
     // Read the backup file
-    const data = JSON.parse(await fs.readFile("backup.json", "utf8"));
-
+    const data = JSON.parse(await fs.readFile(filename, "utf8"));
     // Import data in the correct order to respect foreign key constraints
     console.log("Importing organizations...");
     for (const org of data.organizations) {
@@ -231,4 +240,4 @@ async function importData() {
   }
 }
 
-importData();
+importData(fileName);
