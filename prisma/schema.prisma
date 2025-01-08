@@ -235,6 +235,20 @@ model WorkFlowEdge {
 
   @@map("workflow_edges")
 }
+model WorkFlowGroup {
+  id          String    @id @default(uuid())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
+  workFlowId  String
+  color       String
+  note        String?
+  nodeIds     String[]
+  position    Json     
+  dimensions  Json      
+  WorkFlow    WorkFlow  @relation(fields: [workFlowId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_groups")
+}
 
 model WorkFlow {
   id           String         @id @default(uuid())
@@ -243,6 +257,8 @@ model WorkFlow {
   project      Project?
   WorkFlowEdge WorkFlowEdge[]
   WorkflowNode WorkFlowNode[]
+  WorkflowGroup WorkFlowGroup[]
+
 
   @@map("workflows")
 }

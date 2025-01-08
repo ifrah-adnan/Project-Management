@@ -18,6 +18,9 @@ import ReactFlow, {
   useEdgesState,
   Connection,
   ReactFlowProvider,
+  SelectionMode,
+  NodeResizer,
+  ConnectionMode,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Button } from "@/components/ui/button";
@@ -37,6 +40,7 @@ import { Clock, Plus, Save, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
+import { GroupNode } from "./GroupNode";
 
 interface Operation {
   id: string;
@@ -66,6 +70,15 @@ interface WorkflowEdge {
   count: number;
 }
 
+interface WorkflowGroup {
+  id: string;
+  nodeIds: string[];
+  color: string;
+  note: string;
+  position: { x: number; y: number };
+  dimensions: { width: number; height: number };
+}
+
 interface Project {
   id: string;
   name: string;
@@ -73,6 +86,7 @@ interface Project {
   workFlow: {
     WorkflowNode: WorkflowNode[];
     WorkFlowEdge: WorkflowEdge[];
+    WorkflowGroup?: WorkflowGroup[];
   } | null;
 }
 
@@ -80,16 +94,41 @@ interface WorkflowDiagramProps {
   project: any;
 }
 
-const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
+export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
+  project,
+}) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedOperation, setSelectedOperation] = useState<string | null>(
     null,
   );
+  const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
+  const [groupColor, setGroupColor] = useState("#6366F1");
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
-  const nodeTypes = useMemo(() => ({ custom: CustomNode }), []);
-  const edgeTypes = useMemo(() => ({ custom: CustomEdge }), []);
+
+  const colors = [
+    { value: "#6366F1", label: "Indigo" },
+    { value: "#10B981", label: "Emerald" },
+    { value: "#EC4899", label: "Pink" },
+    { value: "#F59E0B", label: "Amber" },
+    { value: "#6B7280", label: "Gray" },
+  ];
+
+  const nodeTypes = useMemo(
+    () => ({
+      custom: CustomNode,
+      group: GroupNode,
+    }),
+    [],
+  );
+
+  const edgeTypes = useMemo(
+    () => ({
+      custom: CustomEdge,
+    }),
+    [],
+  );
 
   const handleEdgeChange = useCallback(
     (edgeId: string, newCount: number, newTarget: string) => {
@@ -107,26 +146,11 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
     },
     [setEdges],
   );
-  const onEdgeUpdate = useCallback(
-    (oldEdge: Edge, newConnection: Connection) => {
-      setEdges((els) => {
-        const updatedEdge = {
-          ...oldEdge,
-          source: newConnection.source || oldEdge.source,
-          target: newConnection.target || oldEdge.target,
-          sourceHandle: newConnection.sourceHandle,
-          targetHandle: newConnection.targetHandle,
-        };
-        return els.map((el) => (el.id === oldEdge.id ? updatedEdge : el));
-      });
-    },
-    [setEdges],
-  );
-
   useEffect(() => {
     if (project.workFlow) {
-      const initialNodes: Node[] = project.workFlow.WorkflowNode.map(
-        (node: WorkflowNode) => ({
+      // Initialize nodes
+      const initialNodes: Node[] = [
+        ...project.workFlow.WorkflowNode.map((node: WorkflowNode) => ({
           id: node.id,
           type: "custom",
           data: {
@@ -135,9 +159,31 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
             time: node.data.time,
           },
           position: node.data.position,
-        }),
-      );
-
+        })),
+        ...(project.workFlow.WorkflowGroup || []).map(
+          (group: WorkflowGroup) => ({
+            id: group.id,
+            type: "group",
+            position: group.position,
+            style: {
+              width: group.dimensions.width,
+              height: group.dimensions.height,
+            },
+            data: {
+              color: group.color,
+              note: group.note,
+              nodeIds: group.nodeIds,
+              onChange: (newData: any) => {
+                setNodes((nds) =>
+                  nds.map((node) =>
+                    node.id === group.id ? { ...node, data: newData } : node,
+                  ),
+                );
+              },
+            },
+          }),
+        ),
+      ];
       const initialEdges: Edge[] = project.workFlow.WorkFlowEdge.map(
         (edge: WorkflowEdge) => ({
           id: edge.id,
@@ -156,35 +202,6 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
     }
   }, [project.workFlow, setNodes, setEdges, handleEdgeChange]);
 
-  // const onConnect = useCallback(
-  //   (params: Edge | Connection) => {
-  //     const newEdge = {
-  //       ...params,
-  //       id: uuidv4(),
-  //       data: {
-  //         count: 0,
-  //         onChange: handleEdgeChange,
-  //       },
-  //       type: "custom",
-  //     };
-  //     setEdges((eds) => addEdge(newEdge, eds));
-  //   },
-  //   [setEdges, handleEdgeChange],
-  // );
-  // const onConnect = useCallback(
-  //   (params: Edge | Connection) => {
-  //     setEdges((eds) =>
-  //       addEdge(
-  //         {
-  //           ...params,
-  //           type: "custom",
-  //         },
-  //         eds,
-  //       ),
-  //     );
-  //   },
-  //   [setEdges],
-  // );
   const onConnect = useCallback(
     (params: Edge | Connection) => {
       const newEdge = {
@@ -192,14 +209,97 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
         type: "custom",
         data: {
           count: 0,
+          onChange: handleEdgeChange,
         },
       };
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [setEdges],
+    [setEdges, handleEdgeChange],
   );
 
-  const onInit = (rfi: any) => setReactFlowInstance(rfi);
+  // const createGroup = useCallback(() => {
+  //   if (selectedNodes.length < 2) return;
+
+  //   const nodePositions = selectedNodes.map((id) => {
+  //     const node = nodes.find((n) => n.id === id);
+  //     return node?.position;
+  //   });
+
+  //   const minX = Math.min(...nodePositions.map((pos) => pos?.x || 0));
+  //   const minY = Math.min(...nodePositions.map((pos) => pos?.y || 0));
+  //   const maxX = Math.max(...nodePositions.map((pos) => (pos?.x || 0) + 200));
+  //   const maxY = Math.max(...nodePositions.map((pos) => (pos?.y || 0) + 100));
+
+  //   const groupNode = {
+  //     id: `group-${uuidv4()}`,
+  //     type: "group",
+  //     position: { x: minX - 20, y: minY - 40 },
+  //     style: { width: maxX - minX + 40, height: maxY - minY + 80 },
+  //     data: {
+  //       color: groupColor,
+  //       note: "",
+  //       nodeIds: selectedNodes,
+  //       onChange: (newData: any) => {
+  //         setNodes((nds) =>
+  //           nds.map((node) =>
+  //             node.id === groupNode.id ? { ...node, data: newData } : node,
+  //           ),
+  //         );
+  //       },
+  //     },
+  //   };
+
+  //   setNodes((nds) => [...nds, groupNode]);
+  // }, [selectedNodes, nodes, groupColor, setNodes]);
+  const createGroup = useCallback(() => {
+    if (selectedNodes.length < 2) return;
+
+    const nodePositions = selectedNodes.map((id) => {
+      const node = nodes.find((n) => n.id === id);
+      return node?.position;
+    });
+
+    const minX = Math.min(...nodePositions.map((pos) => pos?.x || 0));
+    const minY = Math.min(...nodePositions.map((pos) => pos?.y || 0));
+    const maxX = Math.max(...nodePositions.map((pos) => (pos?.x || 0) + 200));
+    const maxY = Math.max(...nodePositions.map((pos) => (pos?.y || 0) + 100));
+
+    const groupNode = {
+      id: `group-${uuidv4()}`,
+      type: "group",
+      position: { x: minX - 20, y: minY - 40 },
+      style: {
+        width: maxX - minX + 40,
+        height: maxY - minY + 80,
+      },
+      data: {
+        color: groupColor,
+        note: "",
+        nodeIds: selectedNodes, // Important: Initialize nodeIds with selected nodes
+        onChange: (newData: any) => {
+          setNodes((nds) =>
+            nds.map((node) =>
+              node.id === groupNode.id
+                ? {
+                    ...node,
+                    data: {
+                      ...newData,
+                      nodeIds: selectedNodes, // Preserve nodeIds during updates
+                    },
+                  }
+                : node,
+            ),
+          );
+        },
+      },
+    };
+
+    console.log("Creating new group with nodeIds:", selectedNodes);
+    setNodes((nds) => [...nds, groupNode]);
+  }, [selectedNodes, nodes, groupColor, setNodes]);
+  const onSelectionChange = useCallback((params: any) => {
+    setSelectedNodes(params.nodes.map((node: any) => node.id));
+  }, []);
 
   const addOperationToFlow = useCallback(() => {
     if (selectedOperation) {
@@ -223,25 +323,59 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
   }, [selectedOperation, project.projectOperations, setNodes]);
 
   const saveCurrentWorkflow = useCallback(async () => {
-    const workflowNodes = nodes.map((node) => ({
-      id: node.id,
-      operationId: node.data.operationId,
-      data: {
-        label: node.data.label,
-        time: node.data.time,
-      },
-      position: node.position,
-    }));
+    // Extract standard nodes (excluding groups)
+    const workflowNodes = nodes
+      .filter((node) => node.type === "custom")
+      .map((node) => ({
+        id: node.id,
+        operationId: node.data.operationId,
+        data: {
+          label: node.data.label,
+          time: node.data.time,
+          position: node.position,
+        },
+      }));
 
+    // Extract groups with all required information
+    const workflowGroups = nodes
+      .filter((node) => node.type === "group")
+      .map((node) => {
+        console.log("Processing group node:", node); // Debug log
+        return {
+          id: node.id,
+          nodeIds: node.data.nodeIds || [], // Ensure nodeIds is extracted
+          color: node.data.color || "#6366F1", // Default color if not set
+          note: node.data.note || "",
+          position: {
+            x: node.position.x,
+            y: node.position.y,
+          },
+          dimensions: {
+            width: node.style?.width || 200, // Default width if not set
+            height: node.style?.height || 100, // Default height if not set
+          },
+        };
+      });
+
+    // Debug logs
+    console.log("Groups to save:", workflowGroups);
+
+    // Extract edges
     const workflowEdges = edges.map((edge) => ({
       id: edge.id,
       sourceId: edge.source,
       targetId: edge.target,
-      count: edge.data.count,
+      count: edge.data?.count || 0,
     }));
 
     try {
-      await saveWorkflow(project.id, workflowNodes, workflowEdges);
+      const result = await saveWorkflow(
+        project.id,
+        workflowNodes,
+        workflowEdges,
+        workflowGroups, // Make sure this is passed
+      );
+      console.log("Workflow saved with groups:", result); // Debug log
       toast.success("Workflow saved successfully!", {
         duration: 3000,
         position: "top-right",
@@ -254,7 +388,6 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
       });
     }
   }, [nodes, edges, project.id]);
-
   const takeScreenshot = useCallback(() => {
     if (reactFlowWrapper.current) {
       html2canvas(reactFlowWrapper.current).then((canvas) => {
@@ -265,6 +398,20 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
       });
     }
   }, [project.name]);
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Delete" || event.key === "Backspace") {
+        setNodes((nodes) => nodes.filter((node) => !node.selected));
+        setEdges((edges) => edges.filter((edge) => !edge.selected));
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [setNodes, setEdges]);
 
   return (
     <div className="space-y-6">
@@ -294,6 +441,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                 </SelectContent>
               </Select>
             </div>
+
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={addOperationToFlow}
@@ -304,6 +452,36 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                 Add Operation
               </Button>
             </motion.div>
+
+            {selectedNodes.length >= 2 && (
+              <div className="flex items-center gap-2">
+                <Select value={groupColor} onValueChange={setGroupColor}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {colors.map((color) => (
+                      <SelectItem key={color.value} value={color.value}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-4 w-4 rounded-full"
+                            style={{ backgroundColor: color.value }}
+                          />
+                          {color.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={createGroup}
+                  className="bg-indigo-600 text-white hover:bg-indigo-700"
+                >
+                  Group Selected
+                </Button>
+              </div>
+            )}
+
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={saveCurrentWorkflow}
@@ -313,6 +491,7 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
                 Save
               </Button>
             </motion.div>
+
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={takeScreenshot}
@@ -325,31 +504,27 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
           </div>
         </CardContent>
       </Card>
+
       <Card className="mx-auto h-[600px] w-full max-w-[1400px] overflow-hidden shadow-xl">
         <CardContent className="h-full p-0">
           <ReactFlowProvider>
             <div ref={reactFlowWrapper} className="h-full">
-              {/* <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onInit={onInit}
-                nodeTypes={{ custom: CustomNode }}
-                edgeTypes={{ custom: CustomEdge }}
-                // onEdgeUpdate={onEdgeUpdate}
-                fitView
-              > */}
               <ReactFlow
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onSelectionChange={onSelectionChange}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 fitView
+                selectionMode={SelectionMode.Full}
+                panOnDrag={[1, 2]}
+                selectionOnDrag={true}
+                connectionMode={ConnectionMode.Loose}
+                deleteKeyCode={"Delete"}
+                selectionKeyCode={"Shift"}
               >
                 <Background color="#f0f0f0" />
                 <Controls />
@@ -362,5 +537,3 @@ const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({ project }) => {
     </div>
   );
 };
-
-export default WorkflowDiagram;
