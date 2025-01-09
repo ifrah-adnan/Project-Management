@@ -1123,11 +1123,122 @@ export async function getOperationHistorySum2(
 //   return calculateCommandProjectProgress(commandProjectId);
 // }
 
+// export async function getOperationHistorySum(
+//   commandProjectId: string,
+// ): Promise<number> {
+//   try {
+//     // Calculer la somme en utilisant une seule requête aggregate
+//     const result = await db.operationHistory.aggregate({
+//       where: {
+//         planning: {
+//           commandProjectId: commandProjectId,
+//         },
+//       },
+//       _sum: {
+//         count: true,
+//       },
+//     });
+
+//     // Si le résultat est null, retourner 0
+//     const total = result._sum.count || 0;
+
+//     // Pour le debugging
+//     console.log(`Operation History Sum for ${commandProjectId}:`, total);
+
+//     return total;
+//   } catch (error) {
+//     console.error("Error calculating operation history sum:", error);
+//     return 0;
+//   }
+// }
+
+// export async function getOperationHistorySum(
+//   commandProjectId: string,
+// ): Promise<{ percentage: number; completedCount: number }> {
+//   try {
+//     // Fetch the command project to get the target
+//     const commandProject = await db.commandProject.findUnique({
+//       where: { id: commandProjectId },
+//       include: {
+//         project: {
+//           include: {
+//             projectOperations: true,
+//           },
+//         },
+//       },
+//     });
+
+//     if (!commandProject) {
+//       throw new Error("Command project not found");
+//     }
+
+//     const target = commandProject.target;
+//     const numberOfOperations = commandProject.project.projectOperations.length;
+
+//     // Calculate the sum of operation history counts
+//     const result = await db.operationHistory.aggregate({
+//       where: {
+//         planning: {
+//           commandProjectId: commandProjectId,
+//         },
+//       },
+//       _sum: {
+//         count: true,
+//       },
+//     });
+
+//     const totalCompleted = result._sum.count || 0;
+
+//     // Calculate the percentage
+//     const totalRequired = target * numberOfOperations;
+//     const percentage = (totalCompleted / totalRequired) * 100;
+
+//     // For debugging
+//     console.log(`Operation History for ${commandProjectId}:`, {
+//       totalCompleted,
+//       totalRequired,
+//       percentage: percentage.toFixed(2),
+//     });
+
+//     return {
+//       percentage: Math.min(percentage, 100), // Ensure percentage doesn't exceed 100%
+//       completedCount: totalCompleted,
+//     };
+//   } catch (error) {
+//     console.error("Error calculating operation history sum:", error);
+//     return { percentage: 0, completedCount: 0 };
+//   }
+// }
+
 export async function getOperationHistorySum(
   commandProjectId: string,
-): Promise<number> {
+): Promise<{ percentage: number; completedCount: number }> {
   try {
-    // Calculer la somme en utilisant une seule requête aggregate
+    // Fetch the command project to get the target
+    const commandProject = await db.commandProject.findUnique({
+      where: { id: commandProjectId },
+      include: {
+        project: {
+          include: {
+            projectOperations: true,
+          },
+        },
+      },
+    });
+
+    if (!commandProject) {
+      return { percentage: 0, completedCount: 0 };
+    }
+
+    const target = commandProject.target;
+    const numberOfOperations = commandProject.project.projectOperations.length;
+
+    // If there are no operations or target is 0, return 0 to avoid NaN
+    if (numberOfOperations === 0 || target === 0) {
+      return { percentage: 0, completedCount: 0 };
+    }
+
+    // Calculate the sum of operation history counts
     const result = await db.operationHistory.aggregate({
       where: {
         planning: {
@@ -1139,16 +1250,19 @@ export async function getOperationHistorySum(
       },
     });
 
-    // Si le résultat est null, retourner 0
-    const total = result._sum.count || 0;
+    const totalCompleted = result._sum.count || 0;
 
-    // Pour le debugging
-    console.log(`Operation History Sum for ${commandProjectId}:`, total);
+    // Calculate the percentage
+    const totalRequired = target * numberOfOperations;
+    const percentage = (totalCompleted / totalRequired) * 100;
 
-    return total;
+    return {
+      percentage: Number.isFinite(percentage) ? Math.min(percentage, 100) : 0,
+      completedCount: totalCompleted,
+    };
   } catch (error) {
     console.error("Error calculating operation history sum:", error);
-    return 0;
+    return { percentage: 0, completedCount: 0 };
   }
 }
 
