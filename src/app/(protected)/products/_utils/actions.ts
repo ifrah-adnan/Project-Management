@@ -73,6 +73,7 @@ export async function deleteById(id: string) {
   const session = await getServerSession();
   const organizationId =
     session?.user.organizationId || session?.user.organization?.id;
+
   const project = await db.project.findFirst({
     where: {
       id,
@@ -80,6 +81,7 @@ export async function deleteById(id: string) {
     },
     include: {
       projectOperations: true,
+      commandProjects: true,
     },
   });
 
@@ -88,14 +90,20 @@ export async function deleteById(id: string) {
       "Project not found or you don't have permission to delete it",
     );
   }
-  await db.projectOperation.deleteMany({
-    where: {
-      projectId: id,
-    },
-  });
 
-  return await db.project.delete({ where: { id } });
+  await db.$transaction([
+    db.projectOperation.deleteMany({
+      where: { projectId: id },
+    }),
+    db.commandProject.deleteMany({
+      where: { projectId: id },
+    }),
+    db.project.delete({ where: { id } }),
+  ]);
+
+  return project;
 }
+
 export async function deleteProductAndRevalidate(id: string) {
   await deleteById(id);
   revalidatePath("/projects");
