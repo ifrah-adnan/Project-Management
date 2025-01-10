@@ -1,59 +1,59 @@
-import { motion } from "framer-motion";
-import React from "react";
-
-interface CircularProgressProps
-  extends Omit<React.SVGProps<SVGSVGElement>, "viewBox"> {
+interface CircularProgressProps {
   value: number;
+  className?: string;
   gradient?: {
     startColor: string;
     endColor: string;
   };
 }
-export function CircularProgress({
+
+export const CircularProgress: React.FC<CircularProgressProps> = ({
   value,
-  fill = "none",
+  className,
   gradient,
-  ...props
-}: CircularProgressProps) {
+}) => {
+  const radius = 40;
+  const circumference = 2 * Math.PI * radius;
+  const progressValue = Math.min(Math.max(value, 0), 100);
+  const dashOffset = circumference - (progressValue / 100) * circumference;
+
   return (
-    <svg viewBox="0 0 100 100" fill={fill} {...props}>
-      <circle
-        cx="50"
-        cy="50"
-        r="45%"
-        fill="transparent"
-        className="stroke-muted"
-        strokeWidth="10"
-      />
-      <motion.circle
-        cx="50"
-        cy="50"
-        r="45%"
-        fill="transparent"
-        stroke="url(#paint0_linear_62_1156)"
-        strokeWidth="10"
-        strokeDasharray="100"
-        pathLength={100}
-        strokeLinecap="round"
-        initial={{ strokeDashoffset: 100 }}
-        animate={{ strokeDashoffset: 100 - Math.min(value, 100) }}
-        strokeDashoffset={100 - value}
-      ></motion.circle>
-      {gradient && (
-        <defs>
-          <linearGradient
-            id="paint0_linear_62_1156"
-            x2="100"
-            y2="50"
-            x1="0"
-            y1="50"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor={gradient.startColor} />
-            <stop offset="1" stopColor={gradient.endColor} />
-          </linearGradient>
-        </defs>
-      )}
-    </svg>
+    <div className={className}>
+      <svg viewBox="0 0 100 100" className="transform -rotate-90">
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          className="fill-none stroke-current stroke-[5] opacity-10"
+        />
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          className="fill-none stroke-[5]"
+          strokeLinecap="round"
+          style={{
+            strokeDasharray: circumference,
+            strokeDashoffset: dashOffset,
+            stroke: gradient ? `url(#gradient-${value})` : "currentColor",
+            transition: "stroke-dashoffset 0.5s ease-in-out",
+          }}
+        />
+        {gradient && (
+          <defs>
+            <linearGradient
+              id={`gradient-${value}`}
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="0%"
+            >
+              <stop offset="0%" stopColor={gradient.startColor} />
+              <stop offset="100%" stopColor={gradient.endColor} />
+            </linearGradient>
+          </defs>
+        )}
+      </svg>
+    </div>
   );
-}
+};
