@@ -41,6 +41,9 @@ import { motion } from "framer-motion";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
 import { GroupNode } from "./GroupNode";
+import CustomNode1 from "./CustomeNode1";
+import CustomNode2 from "./CustomeNode2";
+import CustomNode3 from "./CustomeNode3";
 
 interface Operation {
   id: string;
@@ -58,6 +61,7 @@ interface WorkflowNode {
   data: {
     label: string;
     time: number;
+    code: string;
     position: { x: number; y: number };
   };
   operation: Operation;
@@ -94,6 +98,12 @@ interface WorkflowDiagramProps {
   project: any;
 }
 
+const nodeDesigns = [
+  { value: "default", label: "Default Design", component: CustomNode },
+  { value: "design1", label: "Design 1", component: CustomNode1 },
+  { value: "design2", label: "Design 2", component: CustomNode2 },
+  { value: "design3", label: "Design 3", component: CustomNode3 },
+];
 export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
   project,
 }) => {
@@ -106,6 +116,7 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
   const [groupColor, setGroupColor] = useState("#6366F1");
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+  const [selectedNodeDesign, setSelectedNodeDesign] = useState("default");
 
   const colors = [
     { value: "#6366F1", label: "Indigo" },
@@ -115,12 +126,21 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
     { value: "#6B7280", label: "Gray" },
   ];
 
+  // const nodeTypes = useMemo(
+  //   () => ({
+  //     custom: CustomNode,
+  //     group: GroupNode,
+  //   }),
+  //   [],
+  // );
   const nodeTypes = useMemo(
     () => ({
-      custom: CustomNode,
+      custom:
+        nodeDesigns.find((design) => design.value === selectedNodeDesign)
+          ?.component || CustomNode,
       group: GroupNode,
     }),
-    [],
+    [selectedNodeDesign],
   );
 
   const edgeTypes = useMemo(
@@ -129,6 +149,14 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
     }),
     [],
   );
+  useEffect(() => {
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        type: node.type === "custom" ? "custom" : node.type,
+      })),
+    );
+  }, [selectedNodeDesign, setNodes]);
 
   const handleEdgeChange = useCallback(
     (edgeId: string, newCount: number, newTarget: string) => {
@@ -157,6 +185,7 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
             label: node.data.label,
             operationId: node.operationId,
             time: node.data.time,
+            code: node.data.code,
           },
           position: node.data.position,
         })),
@@ -314,6 +343,7 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
             label: operation.operation.name,
             operationId: operation.operation.id,
             time: operation.time,
+            code: operation.operation.code,
           },
           position: { x: Math.random() * 300, y: Math.random() * 300 },
         };
@@ -332,6 +362,7 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
         data: {
           label: node.data.label,
           time: node.data.time,
+          code: node.data.code,
           position: node.position,
         },
       }));
@@ -418,6 +449,25 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
         <CardContent className="p-6">
           <div className="flex flex-wrap items-end gap-4">
+            {/* Add Node Design Selection */}
+            <div className="flex-grow">
+              <Select
+                value={selectedNodeDesign}
+                onValueChange={setSelectedNodeDesign}
+              >
+                <SelectTrigger className="w-full border-gray-300 bg-white focus:border-indigo-500 focus:ring-indigo-500">
+                  <SelectValue placeholder="Select node design" />
+                </SelectTrigger>
+                <SelectContent>
+                  {nodeDesigns.map((design) => (
+                    <SelectItem key={design.value} value={design.value}>
+                      {design.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex-grow">
               <Select
                 value={selectedOperation || ""}
