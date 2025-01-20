@@ -31,7 +31,7 @@ export interface AddOperatorButtonProps extends ButtonProps {
     id: string;
     name: string;
     code: string;
-    operations: { id: string; name: string }[];
+    operations: { operation: { id: string; name: string } }[];
   };
 }
 
@@ -46,7 +46,12 @@ export function EditExpertiseButton({
 
   const [operations, setOperations] = React.useState<
     { name: string; id: string }[]
-  >(expertise.operations);
+  >(
+    expertise.operations.map((operations) => ({
+      name: operations.operation.name,
+      id: operations.operation.id,
+    })),
+  );
   const router = useRouter();
 
   const { data, isLoading, error } = useSWR("addUserData", async () => {

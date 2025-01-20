@@ -72,8 +72,12 @@ export async function findMany(params = defaultParams): Promise<{
             name: true,
             operations: {
               select: {
-                id: true,
-                name: true,
+                operation: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
               },
             },
           },

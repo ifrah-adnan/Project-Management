@@ -144,7 +144,7 @@ export function PlanningForm({
       if (result.success && result.data) {
         setOperations((prev) => ({
           ...prev,
-          [commandProjectId]: result.data,
+          [commandProjectId]: result.data as any[],
         }));
       }
     } catch (error) {

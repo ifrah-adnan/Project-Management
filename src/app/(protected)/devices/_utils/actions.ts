@@ -84,8 +84,9 @@ export async function findMany(params = defaultParams): Promise<{
                 name: true,
                 operations: {
                   select: {
-                    id: true,
-                    name: true,
+                    operation: {
+                      select: { id: true, name: true },
+                    },
                   },
                 },
               },
@@ -222,7 +223,13 @@ export async function getPosts() {
         select: {
           id: true,
           name: true,
-          operations: { select: { name: true, id: true } },
+          operations: {
+            select: {
+              operation: {
+                select: { id: true, name: true },
+              },
+            },
+          },
         },
       },
       plannings: {

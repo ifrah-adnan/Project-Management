@@ -12,11 +12,6 @@ import { ActionType, EntityType, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { Session, getServerSession } from "@/lib/auth";
 import { logHistory } from "../../History/_utils/action";
-import { connect } from "http2";
-const defaultParams: Record<string, string> = {
-  page: "1",
-  perPage: "10",
-};
 
 const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   const order: "asc" | "desc" = or === "desc" ? "desc" : "asc";
@@ -27,7 +22,24 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   return { createdAt: "desc" as "desc" };
 };
 
-export async function findMany(params = defaultParams): Promise<{
+interface FindManyParams {
+  page?: string;
+  perPage?: string;
+  search?: string;
+  orderBy?: string;
+  order?: "asc" | "desc";
+}
+
+const defaultParams: FindManyParams = {
+  page: "1",
+  perPage: "10",
+  orderBy: "createdAt",
+  order: "desc",
+};
+
+export async function findMany(
+  params: FindManyParams = defaultParams,
+): Promise<{
   data: TData;
   total: number;
 }> {
@@ -35,8 +47,8 @@ export async function findMany(params = defaultParams): Promise<{
   const organizationId =
     serverSession?.user.organizationId || serverSession?.user.organization?.id;
 
-  const page = parseInt(params.page) || 1;
-  const perPage = parseInt(params.perPage) || 10;
+  const page = Number.parseInt(params.page || "1");
+  const perPage = Number.parseInt(params.perPage || "10");
   const skip = (page - 1) * perPage;
   const take = perPage;
 
@@ -44,12 +56,8 @@ export async function findMany(params = defaultParams): Promise<{
     organizationId: organizationId,
     OR: params.search
       ? [
-          {
-            name: { contains: params.search, mode: "insensitive" },
-          },
-          {
-            code: { contains: params.search, mode: "insensitive" },
-          },
+          { name: { contains: params.search, mode: "insensitive" } },
+          { code: { contains: params.search, mode: "insensitive" } },
         ]
       : undefined,
   };
@@ -65,17 +73,28 @@ export async function findMany(params = defaultParams): Promise<{
         name: true,
         code: true,
         organizationId: true,
-        operations: { select: { id: true, name: true } },
-        users: { select: { user: { select: { id: true, name: true } } } },
+        operations: {
+          select: {
+            operation: {
+              select: { id: true, name: true },
+            },
+          },
+        },
+        users: {
+          select: {
+            user: { select: { id: true, name: true } },
+          },
+        },
       },
     }),
     db.expertise.count({ where }),
   ]);
 
   return {
-    data: result.map((item) => ({
+    data: result.map((item): TData[number] => ({
       ...item,
-      users: Array.isArray(item.users) ? item.users : [item.users],
+      operations: item.operations,
+      users: item.users,
     })),
     total,
   };
@@ -137,12 +156,12 @@ export async function createExpertise({
   operations,
   userId,
 }: CreateExpertiseInput): Promise<{
+  success: boolean;
   result?: any;
   error?: string;
   fieldErrors?: Record<string, string>;
 }> {
   try {
-    console.log(userId, "tttttttt");
     const sessionUser = await getServerSession();
     const organizationId = sessionUser?.user.organizationId;
 
@@ -156,7 +175,9 @@ export async function createExpertise({
         code,
         organization: { connect: { id: organizationId } },
         operations: {
-          connect: operations.map((id) => ({ id })),
+          create: operations.map((operationId) => ({
+            operation: { connect: { id: operationId } },
+          })),
         },
         users: {
           create: [
@@ -167,7 +188,16 @@ export async function createExpertise({
         },
       },
       include: {
-        users: true,
+        operations: {
+          include: {
+            operation: true,
+          },
+        },
+        users: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -179,19 +209,25 @@ export async function createExpertise({
       userId,
     );
 
-    return { result: expertise };
+    // Revalidate the expertise list page
+    revalidatePath("/expertises");
+
+    return { success: true, result: expertise };
   } catch (error: any) {
     console.error("Error creating expertise:", error);
     const fieldErrors: Record<string, string> = {};
 
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
-        fieldErrors[error.meta?.target as string] =
-          "This value is already taken.";
+        fieldErrors.code = "This code is already taken.";
       }
     }
 
-    return { error: error.message, fieldErrors };
+    return {
+      success: false,
+      error: "An error occurred while creating the expertise",
+      fieldErrors,
+    };
   }
 }
 
@@ -260,7 +296,19 @@ export async function updateExpertise({
       data: {
         name,
         code,
-        operations: { connect: operations.map((id) => ({ id })) },
+        operations: {
+          deleteMany: {},
+          create: operations.map((operationId) => ({
+            operation: { connect: { id: operationId } },
+          })),
+        },
+      },
+      include: {
+        operations: {
+          include: {
+            operation: true,
+          },
+        },
       },
     });
 
