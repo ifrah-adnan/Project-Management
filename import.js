@@ -71,6 +71,23 @@ async function importData(filename) {
       });
     }
 
+    // console.log("Importing operations...");
+    // for (const operation of data.operations) {
+    //   await prisma.operation.create({
+    //     data: {
+    //       id: operation.id,
+    //       name: operation.name,
+    //       code: operation.code,
+    //       icon: operation.icon,
+    //       organizationId: operation.organizationId,
+    //       description: operation.description,
+    //       isFinal: operation.isFinal,
+    //       expertiseId: operation.expertiseId,
+    //       createdAt: new Date(operation.createdAt),
+    //       updatedAt: new Date(operation.updatedAt),
+    //     },
+    //   });
+    // }
     console.log("Importing operations...");
     for (const operation of data.operations) {
       await prisma.operation.create({
@@ -82,12 +99,28 @@ async function importData(filename) {
           organizationId: operation.organizationId,
           description: operation.description,
           isFinal: operation.isFinal,
-          expertiseId: operation.expertiseId,
           createdAt: new Date(operation.createdAt),
           updatedAt: new Date(operation.updatedAt),
+          // If you need to connect expertises, use the following:
+          // expertises: {
+          //   create: operation.expertises.map((expertiseId) => ({
+          //     expertise: { connect: { id: expertiseId } },
+          //   })),
+          // },
         },
       });
     }
+
+    // After importing operations, you may need to create OperationExpertise records
+    // console.log("Importing operation expertises...");
+    // for (const operationExpertise of data.operationExpertises) {
+    //   await prisma.operationExpertise.create({
+    //     data: {
+    //       operationId: operationExpertise.operationId,
+    //       expertiseId: operationExpertise.expertiseId,
+    //     },
+    //   });
+    // }
 
     console.log("Importing workflows...");
     for (const workflow of data.workFlows) {
