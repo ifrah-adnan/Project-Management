@@ -3,7 +3,7 @@
 import { createSafeAction } from "@/actions/utils";
 import { db } from "@/lib/db";
 import {
-  TData,
+  // TData,
   // TPost,
   TCreateInput,
   createInputSchema,
@@ -25,8 +25,41 @@ const getOrderBy = (orderBy = "createdAt", or = "desc") => {
   const order: "asc" | "desc" = or === "desc" ? "desc" : "asc";
   if (orderBy === "createdAt") return { createdAt: order };
   if (orderBy === "name") return { name: order };
-  return { createdAt: "desc" as "desc" };
+  return { createdAt: "desc" as const };
 };
+
+export type TData = {
+  id: string;
+  deviceId: string;
+  count: number | null;
+  createdAt: Date;
+  post: {
+    id: string;
+    name: string;
+    plannings: {
+      id: string;
+      startDate: Date;
+      endDate: Date;
+      operation: { id: string; name: string }[];
+    }[];
+    expertises: {
+      id: string;
+      name: string;
+      operations: { id: string; name: string }[];
+    }[];
+  } | null;
+  planning: {
+    commandProject: { id: string; project: { name: string } }[];
+    startDate: Date;
+    endDate: Date;
+    operation: { id: string; name: string }[];
+    operator: { id: string; name: string; image: string | null };
+  } | null;
+  user: {
+    id: string;
+    name: string;
+  };
+}[];
 
 export async function findMany(params = defaultParams): Promise<{
   data: TData;
@@ -35,12 +68,9 @@ export async function findMany(params = defaultParams): Promise<{
   const session = await getServerSession();
   const organizationId =
     session?.user.organizationId || session?.user.organization?.id;
-  // if (!organizationId) {
-  //   throw new Error("Organization ID not found");
-  // }
 
-  const page = parseInt(params.page) || 1;
-  const perPage = parseInt(params.perPage) || 10;
+  const page = Number.parseInt(params.page) || 1;
+  const perPage = Number.parseInt(params.perPage) || 10;
   const skip = (page - 1) * perPage;
   const take = perPage;
 
@@ -72,10 +102,12 @@ export async function findMany(params = defaultParams): Promise<{
             name: true,
             plannings: {
               select: {
-                operation: { select: { id: true, name: true } },
+                id: true,
                 startDate: true,
                 endDate: true,
-                id: true,
+                operation: {
+                  select: { id: true, name: true },
+                },
               },
             },
             expertises: {
@@ -98,10 +130,12 @@ export async function findMany(params = defaultParams): Promise<{
             commandProject: {
               select: { id: true, project: { select: { name: true } } },
             },
-            operation: { select: { id: true, name: true } },
-            operator: { select: { id: true, name: true, image: true } },
             startDate: true,
             endDate: true,
+            operation: {
+              select: { id: true, name: true },
+            },
+            operator: { select: { id: true, name: true, image: true } },
           },
         },
         user: {
@@ -115,7 +149,29 @@ export async function findMany(params = defaultParams): Promise<{
     db.device.count({ where }),
   ]);
 
-  const data = result;
+  const data: any = result.map((device) => ({
+    ...device,
+    post: device.post
+      ? {
+          ...device.post,
+          plannings: device.post.plannings.map((planning) => ({
+            ...planning,
+            operation: [planning.operation],
+          })),
+          expertises: device.post.expertises.map((expertise) => ({
+            ...expertise,
+            operations: expertise.operations.map((op) => op.operation),
+          })),
+        }
+      : null,
+    planning: device.planning
+      ? {
+          ...device.planning,
+          commandProject: [device.planning.commandProject],
+          operation: [device.planning.operation],
+        }
+      : null,
+  }));
 
   return { data, total };
 }
