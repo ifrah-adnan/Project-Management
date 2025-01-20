@@ -17,8 +17,10 @@ export type TData = {
   name: string;
   code: string;
   operations: {
-    id: string;
-    name: string;
+    operation: {
+      id: string;
+      name: string;
+    };
   }[];
   users: {
     user: {

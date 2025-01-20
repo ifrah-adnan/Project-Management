@@ -182,6 +182,22 @@ model ProjectOperation {
   @@map("project_operations")
 }
 
+model Expertise {
+  id             String          @id @default(uuid())
+  name           String
+  description    String?
+  code           String          @unique
+  organizationId String
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  operations     OperationExpertise[]
+  posts          Post[]          @relation("ExpertiseToPost")
+  users          UserExpertise[]
+
+  @@map("expertises")
+}
+
 model Operation {
   id             String       @id
   name           String
@@ -190,19 +206,27 @@ model Operation {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
-  description   String?
-  isFinal       Boolean        @default(false) @map("is_final")
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at")
-  expertiseId   String?
-  Expertise     Expertise?     @relation(fields: [expertiseId], references: [id])
-  plannings     Planning[]
-  posts         Post[]
-  WorkflowNode  WorkFlowNode[]
+  description       String?
+  isFinal           Boolean            @default(false) @map("is_final")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @default(now()) @updatedAt @map("updated_at")
+  expertises        OperationExpertise[]
+  plannings         Planning[]
+  posts             Post[]
+  WorkflowNode      WorkFlowNode[]
   projectOperations ProjectOperation[]
 
-
   @@map("operations")
+}
+
+model OperationExpertise {
+  operationId String
+  expertiseId String
+  operation   Operation @relation(fields: [operationId], references: [id])
+  expertise   Expertise @relation(fields: [expertiseId], references: [id])
+
+  @@id([operationId, expertiseId])
+  @@map("operation_expertise")
 }
 
 model WorkFlowNode {
@@ -273,21 +297,6 @@ model OperationHistory {
   @@map("operation_histories")
 }
 
-model Expertise {
-  id             String   @id @default(uuid())
-  name           String
-  description    String?
-  code           String   @unique
-  organizationId String
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  operations     Operation[]
-  posts          Post[]   @relation("ExpertiseToPost")
-  users          UserExpertise[]
-
-  @@map("expertises")
-}
 
 model UserExpertise {
   id          String   @id @default(uuid())

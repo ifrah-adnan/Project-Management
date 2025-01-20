@@ -84,7 +84,9 @@ export default function List({
                   <td className="p-2 sm:p-3">
                     <div className="flex items-center justify-between gap-2 sm:gap-4">
                       <div className="max-w-[8rem] truncate sm:max-w-[20rem]">
-                        {item.operations.map((op) => op.name).join(", ")}
+                        {item.operations
+                          .map((op) => op.operation.name)
+                          .join(", ")}
                       </div>
                       {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
                         <Popover>
