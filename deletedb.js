@@ -55,6 +55,9 @@ async function cleanDatabase() {
     await prisma.project.deleteMany({});
     console.log("Deleted projects");
 
+    await prisma.operationExpertise.deleteMany({});
+    console.log("Deleted operationExpertises");
+
     await prisma.operation.deleteMany({});
     console.log("Deleted operations");
 
@@ -76,7 +79,6 @@ async function cleanDatabase() {
   }
 }
 
-// Execute the cleanup
 cleanDatabase().catch((error) => {
   console.error(error);
   process.exit(1);

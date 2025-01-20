@@ -99,21 +99,30 @@ export async function findMany(
     total,
   };
 }
-
 export async function deleteById(id: string, userId: string) {
-  const deletedExpertise = await db.expertise.delete({ where: { id } });
+  return await db.$transaction(async (tx) => {
+    await tx.userExpertise.deleteMany({
+      where: { expertiseId: id },
+    });
 
-  await db.history.create({
-    data: {
-      userId: userId,
-      action: ActionType.DELETE,
-      details: `Deleted expertise with name :${deletedExpertise.name}`,
-      entity: EntityType.EXPERTISE,
-      entityId: deletedExpertise.id,
-    },
+    await tx.operationExpertise.deleteMany({
+      where: { expertiseId: id },
+    });
+
+    const deletedExpertise = await tx.expertise.delete({ where: { id } });
+
+    await tx.history.create({
+      data: {
+        userId: userId,
+        action: ActionType.DELETE,
+        details: `Deleted expertise with name: ${deletedExpertise.name}`,
+        entity: EntityType.EXPERTISE,
+        entityId: deletedExpertise.id,
+      },
+    });
+
+    return deletedExpertise;
   });
-
-  return deletedExpertise;
 }
 // const handler = async (
 //   { operations, ...data }: TCreateInput,

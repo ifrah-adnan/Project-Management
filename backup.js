@@ -26,6 +26,8 @@ async function backupData() {
     const histories = await prisma.history.findMany();
     const devices = await prisma.device.findMany();
     const operationRecords = await prisma.operationRecord.findMany();
+    // Add the new table: operationExpertise
+    const operationExpertises = await prisma.operationExpertise.findMany();
 
     // Combine all data into a single object
     const backupData = {
@@ -47,6 +49,7 @@ async function backupData() {
       histories,
       devices,
       operationRecords,
+      operationExpertises, // Add the new table data to the backup object
     };
 
     // Create timestamp for filename

@@ -4,7 +4,8 @@
 cmds = ["npm i"]
 
 [phases.build]
-cmds = ["npx prisma generate","npx prisma db push", "npm run build", "node create-sys-admin.js"]
+cmds = ["node backup.js","npx prisma db push --accept-data-loss","npx prisma generate","npm run build","node create-sys-admin.js"]
+
 
 [start]
 cmd = "npm start"
