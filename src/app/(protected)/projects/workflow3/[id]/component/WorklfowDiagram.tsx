@@ -133,6 +133,7 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
   //   }),
   //   [],
   // );
+  console.log("information about projects", project);
   const nodeTypes = useMemo(
     () => ({
       custom:
@@ -330,20 +331,44 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
     setSelectedNodes(params.nodes.map((node: any) => node.id));
   }, []);
 
+  // const addOperationToFlow = useCallback(() => {
+  //   if (selectedOperation) {
+  //     const operation = project.projectOperations.find(
+  //       (po: ProjectOperation) => po.operation.id === selectedOperation,
+  //     );
+  //     if (operation) {
+  //       const newNode: Node = {
+  //         id: uuidv4(),
+  //         type: "custom",
+  //         data: {
+  //           label: operation.operation.name,
+  //           operationId: operation.operation.id,
+  //           time: operation.time,
+  //           code: operation.operation.code,
+  //         },
+  //         position: { x: Math.random() * 300, y: Math.random() * 300 },
+  //       };
+  //       setNodes((nds) => nds.concat(newNode));
+  //     }
+  //   }
+  // }, [selectedOperation, project.projectOperations, setNodes]);
+
   const addOperationToFlow = useCallback(() => {
     if (selectedOperation) {
-      const operation = project.projectOperations.find(
-        (po: ProjectOperation) => po.operation.id === selectedOperation,
+      const projectOperation = project.projectOperations.find(
+        (po: any) => po.id === selectedOperation,
       );
-      if (operation) {
+
+      if (projectOperation) {
         const newNode: Node = {
           id: uuidv4(),
           type: "custom",
           data: {
-            label: operation.operation.name,
-            operationId: operation.operation.id,
-            time: operation.time,
-            code: operation.operation.code,
+            label: `${projectOperation.operation.name} (${projectOperation.description})`,
+            operationId: projectOperation.operation.id,
+            time: projectOperation.time,
+            code: projectOperation.operation.code,
+            description: projectOperation.description,
           },
           position: { x: Math.random() * 300, y: Math.random() * 300 },
         };
@@ -351,7 +376,6 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
       }
     }
   }, [selectedOperation, project.projectOperations, setNodes]);
-
   const saveCurrentWorkflow = useCallback(async () => {
     // Extract standard nodes (excluding groups)
     const workflowNodes = nodes
@@ -468,7 +492,7 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
               </Select>
             </div>
 
-            <div className="flex-grow">
+            <div className="flex-grow space-y-2">
               <Select
                 value={selectedOperation || ""}
                 onValueChange={(value) => setSelectedOperation(value)}
@@ -477,19 +501,37 @@ export const WorkflowDiagram: React.FC<WorkflowDiagramProps> = ({
                   <SelectValue placeholder="Select an operation" />
                 </SelectTrigger>
                 <SelectContent>
-                  {project.projectOperations.map((po: ProjectOperation) => (
-                    <SelectItem key={po.operation.id} value={po.operation.id}>
-                      <div className="flex w-full items-center justify-between">
-                        <span className="font-medium">{po.operation.name}</span>
-                        <span className="flex items-center text-sm text-gray-500">
-                          <Clock className="mr-1 h-4 w-4" />
-                          {po.time} min
-                        </span>
+                  {project.projectOperations.map((po: any) => (
+                    <SelectItem key={po.id} value={po.id}>
+                      <div className="flex w-full flex-col space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">
+                            {po.operation.name}
+                          </span>
+                          <span className="flex items-center text-sm text-gray-500">
+                            <Clock className="mr-1 h-4 w-4" />
+                            {po.time} min
+                          </span>
+                        </div>
+                        {po.description && (
+                          <span className="text-sm text-gray-600">
+                            Description: {po.description}
+                          </span>
+                        )}
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {selectedOperation && (
+                <div className="text-sm text-gray-600">
+                  {
+                    project.projectOperations.find(
+                      (po: any) => po.id === selectedOperation,
+                    )?.description
+                  }
+                </div>
+              )}
             </div>
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

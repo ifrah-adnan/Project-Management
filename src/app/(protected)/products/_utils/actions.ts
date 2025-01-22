@@ -129,6 +129,103 @@ export async function deleteProductAndRevalidate(id: string) {
 
 // export const create = createSafeAction({ scheme: createInputSchema, handler });
 
+// const handler = async (data: TCreateInput) => {
+//   console.log("data", data);
+//   const session = await getServerSession();
+//   const organizationId =
+//     session?.user.organizationId || session?.user.organization?.id;
+
+//   if (!organizationId) {
+//     throw new Error("Organization ID is not available");
+//   }
+
+//   const result = await db.$transaction(async (prisma) => {
+//     // Create the project
+//     const project = await prisma.project.create({
+//       data: {
+//         name: data.name,
+//         description: data.description,
+//         code: data.code,
+//         version: data?.version,
+//         organizationId,
+//       },
+//     });
+
+//     // Create the workflow
+//     const workflow = await prisma.workFlow.create({
+//       data: {
+//         project: {
+//           connect: { id: project.id },
+//         },
+//       },
+//     });
+
+//     // Create workflow nodes and project operations
+//     const createdNodes = await Promise.all(
+//       data.operations.map(async (operation, index) => {
+//         const node = await prisma.workFlowNode.create({
+//           data: {
+//             workFlowId: workflow.id,
+//             operationId: operation.id,
+//             data: {
+//               time: operation.time,
+//               position: { x: index * 200, y: 100 }, // Add default position
+//             },
+//           },
+//         });
+
+//         await prisma.projectOperation.create({
+//           data: {
+//             projectId: project.id,
+//             operationId: operation.id,
+//             description: operation.description,
+//             time: operation.time,
+//           },
+//         });
+
+//         return node;
+//       }),
+//     );
+
+//     // Create workflow edges
+//     if (createdNodes.length > 1) {
+//       for (let i = 0; i < createdNodes.length - 1; i++) {
+//         await prisma.workFlowEdge.create({
+//           data: {
+//             workFlowId: workflow.id,
+//             sourceId: createdNodes[i].id,
+//             targetId: createdNodes[i + 1].id,
+//             data: {},
+//           },
+//         });
+//       }
+//     }
+
+//     // Fetch the created project with all related data
+//     return await prisma.project.findUnique({
+//       where: { id: project.id },
+//       include: {
+//         workFlow: {
+//           include: {
+//             WorkflowNode: {
+//               include: {
+//                 operation: true,
+//               },
+//             },
+//             WorkFlowEdge: true,
+//           },
+//         },
+//         projectOperations: {
+//           include: {
+//             operation: true,
+//           },
+//         },
+//       },
+//     });
+//   });
+
+//   return result;
+// };
 const handler = async (data: TCreateInput) => {
   console.log("data", data);
   const session = await getServerSession();
@@ -146,6 +243,7 @@ const handler = async (data: TCreateInput) => {
         name: data.name,
         description: data.description,
         code: data.code,
+        version: data.version,
         organizationId,
       },
     });
@@ -168,7 +266,7 @@ const handler = async (data: TCreateInput) => {
             operationId: operation.id,
             data: {
               time: operation.time,
-              position: { x: index * 200, y: 100 }, // Add default position
+              position: { x: index * 200, y: 100 },
             },
           },
         });
@@ -179,6 +277,7 @@ const handler = async (data: TCreateInput) => {
             operationId: operation.id,
             description: operation.description,
             time: operation.time,
+            order: index,
           },
         });
 
@@ -218,6 +317,9 @@ const handler = async (data: TCreateInput) => {
           include: {
             operation: true,
           },
+          orderBy: {
+            order: "asc",
+          },
         },
       },
     });
@@ -225,7 +327,6 @@ const handler = async (data: TCreateInput) => {
 
   return result;
 };
-
 export const create = createSafeAction({ scheme: createInputSchema, handler });
 
 // export async function getProjectWithOperations(id: string) {
@@ -872,7 +973,9 @@ export async function getProductById(id: string): Promise<TUpdateInput | null> {
     return {
       id: product.id,
       name: product.name,
+      version: product.version || "",
       code: product.code || "",
+
       description: product.description || undefined,
       operations: product.projectOperations.map((po) => ({
         id: po.operation.id,

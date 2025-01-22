@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Plus, Trash2 } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   getCommandProjects,
@@ -24,22 +23,23 @@ import {
 import { User, Planning } from "@prisma/client";
 
 interface PlanningItem {
+  id?: string;
   commandProjectId: string;
-  operationIds: string[];
+  operationNodeIds: string[];
+  isExisting: boolean;
 }
 
-export interface Operation {
+interface Operation {
   id: string;
   name: string;
   code: string;
-  // icon: string;
   organizationId: string;
   description: string | null;
   isFinal: boolean;
-  // estimatedTime: number;
   createdAt: Date;
   updatedAt: Date;
   expertiseId: string | null;
+  nodeId: string;
 }
 
 type CommandProject = {
@@ -72,14 +72,7 @@ export function PlanningForm({
   allExistingPlannings,
 }: PlanningFormProps) {
   const [loading, setLoading] = useState(false);
-  const [planningItems, setPlanningItems] = useState<PlanningItem[]>(
-    allExistingPlannings && allExistingPlannings.length > 0
-      ? allExistingPlannings.map((planning) => ({
-          commandProjectId: planning.commandProjectId,
-          operationIds: [planning.operationId],
-        }))
-      : [{ commandProjectId: "", operationIds: [] }],
-  );
+  const [planningItems, setPlanningItems] = useState<PlanningItem[]>([]);
   const [commandProjects, setCommandProjects] = useState<CommandProject[]>([]);
   const [operations, setOperations] = useState<Record<string, Operation[]>>({});
   const [operators, setOperators] = useState<User[]>([]);
@@ -118,26 +111,77 @@ export function PlanningForm({
     setLoading(false);
   };
 
+  const initializeExistingPlannings = useCallback(async () => {
+    if (!allExistingPlannings || allExistingPlannings.length === 0) {
+      setPlanningItems([
+        { commandProjectId: "", operationNodeIds: [], isExisting: false },
+      ]);
+      return;
+    }
+
+    try {
+      // Group plannings by commandProjectId
+      const planningsByCommandProject: { [key: string]: Planning[] } = {};
+      allExistingPlannings.forEach((planning) => {
+        if (!planningsByCommandProject[planning.commandProjectId]) {
+          planningsByCommandProject[planning.commandProjectId] = [];
+        }
+        planningsByCommandProject[planning.commandProjectId].push(planning);
+      });
+
+      const initializedItems: PlanningItem[] = [];
+
+      for (const commandProjectId of Object.keys(planningsByCommandProject)) {
+        const operationsResult = await getOperations(commandProjectId);
+
+        if (operationsResult.success && operationsResult.data) {
+          setOperations((prev) => ({
+            ...prev,
+            [commandProjectId]: operationsResult.data as any[],
+          }));
+
+          const planningsForProject =
+            planningsByCommandProject[commandProjectId];
+          const operationNodeIds = planningsForProject
+            .map((planning) => {
+              const operation = operationsResult.data.find(
+                (op) => op.id === planning.operationId,
+              );
+              return operation?.nodeId;
+            })
+            .filter((nodeId): nodeId is string => nodeId !== undefined);
+
+          initializedItems.push({
+            id: planningsForProject[0].id,
+            commandProjectId,
+            operationNodeIds,
+            isExisting: true,
+          });
+        }
+      }
+
+      setPlanningItems(initializedItems);
+    } catch (error) {
+      toast.error("Failed to initialize existing plannings");
+    }
+  }, [allExistingPlannings]); // Include allExistingPlannings as dependency
+
   useEffect(() => {
     fetchInitialData();
     if (existingPlanning && allExistingPlannings) {
-      setPlanningItems(
-        allExistingPlannings.map((planning) => ({
-          commandProjectId: planning.commandProjectId,
-          operationIds: [planning.operationId],
-        })),
-      );
+      initializeExistingPlannings();
       setSelectedOperator(existingPlanning.operatorId);
       setDateRange({
         from: new Date(existingPlanning.startDate),
         to: new Date(existingPlanning.endDate),
       });
-
-      allExistingPlannings.forEach((planning) =>
-        fetchOperations(planning.commandProjectId),
-      );
+    } else {
+      setPlanningItems([
+        { commandProjectId: "", operationNodeIds: [], isExisting: false },
+      ]);
     }
-  }, [existingPlanning, allExistingPlannings]);
+  }, [existingPlanning, allExistingPlannings, initializeExistingPlannings]); // Added initializeExistingPlannings to dependencies
+
   const fetchOperations = async (commandProjectId: string) => {
     try {
       const result = await getOperations(commandProjectId);
@@ -155,24 +199,21 @@ export function PlanningForm({
   const handleCommandProjectChange = async (value: string, index: number) => {
     const newPlanningItems = [...planningItems];
     newPlanningItems[index].commandProjectId = value;
-    newPlanningItems[index].operationIds = [];
+    newPlanningItems[index].operationNodeIds = [];
     setPlanningItems(newPlanningItems);
     await fetchOperations(value);
   };
 
-  const handleOperationChange = (operationId: string, index: number) => {
+  const handleOperationChange = (nodeId: string, index: number) => {
     const newPlanningItems = [...planningItems];
-    const currentOperations = newPlanningItems[index].operationIds;
+    const currentOperations = newPlanningItems[index].operationNodeIds;
 
-    if (currentOperations.includes(operationId)) {
-      newPlanningItems[index].operationIds = currentOperations.filter(
-        (id) => id !== operationId,
+    if (currentOperations.includes(nodeId)) {
+      newPlanningItems[index].operationNodeIds = currentOperations.filter(
+        (id) => id !== nodeId,
       );
     } else {
-      newPlanningItems[index].operationIds = [
-        ...currentOperations,
-        operationId,
-      ];
+      newPlanningItems[index].operationNodeIds = [...currentOperations, nodeId];
     }
 
     setPlanningItems(newPlanningItems);
@@ -181,11 +222,17 @@ export function PlanningForm({
   const addPlanningItem = () => {
     setPlanningItems([
       ...planningItems,
-      { commandProjectId: "", operationIds: [] },
+      { commandProjectId: "", operationNodeIds: [], isExisting: false },
     ]);
   };
 
   const removePlanningItem = (index: number) => {
+    const itemToRemove = planningItems[index];
+    // Empêche la suppression des plannings existants
+    if (itemToRemove.isExisting) {
+      toast.error("Cannot remove existing planning");
+      return;
+    }
     const newPlanningItems = planningItems.filter((_, i) => i !== index);
     setPlanningItems(newPlanningItems);
   };
@@ -199,22 +246,30 @@ export function PlanningForm({
     setLoading(true);
     try {
       for (const item of planningItems) {
-        for (const operationId of item.operationIds) {
-          if (existingPlanning) {
+        for (const nodeId of item.operationNodeIds) {
+          const operation = operations[item.commandProjectId]?.find(
+            (op) => op.nodeId === nodeId,
+          );
+
+          if (!operation) continue;
+
+          if (item.isExisting && item.id) {
+            // Met à jour les plannings existants
             await updatePlanning({
-              id: existingPlanning.id,
+              id: item.id,
               postId,
               operatorId: selectedOperator,
-              operationId,
+              operationId: operation.id,
               commandProjectId: item.commandProjectId,
               startDate: dateRange.from,
               endDate: dateRange.to,
             });
           } else {
+            // Crée de nouveaux plannings
             await createPlanning({
               postId,
               operatorId: selectedOperator,
-              operationId,
+              operationId: operation.id,
               commandProjectId: item.commandProjectId,
               startDate: dateRange.from,
               endDate: dateRange.to,
@@ -227,7 +282,6 @@ export function PlanningForm({
           ? "Planning updated successfully"
           : "Planning created successfully",
       );
-      // Redirect to the planning display page
       window.location.href = `/planning?postId=${postId}`;
     } catch (error) {
       toast.error(
@@ -253,7 +307,7 @@ export function PlanningForm({
               <h3 className="text-lg font-medium">
                 Command Project {index + 1}
               </h3>
-              {index > 0 && (
+              {!item.isExisting && index > 0 && (
                 <Button
                   variant="destructive"
                   size="icon"
@@ -269,6 +323,7 @@ export function PlanningForm({
               onValueChange={(value) =>
                 handleCommandProjectChange(value, index)
               }
+              disabled={item.isExisting}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select Command Project" />
@@ -289,16 +344,17 @@ export function PlanningForm({
                   {operations[item.commandProjectId].map(
                     (operation: Operation) => (
                       <Button
-                        key={operation.id}
+                        key={operation.nodeId}
                         variant={
-                          item.operationIds.includes(operation.id)
+                          item.operationNodeIds.includes(operation.nodeId)
                             ? "default"
                             : "outline"
                         }
                         className="justify-start"
                         onClick={() =>
-                          handleOperationChange(operation.id, index)
+                          handleOperationChange(operation.nodeId, index)
                         }
+                        disabled={item.isExisting}
                       >
                         {operation.name}
                       </Button>
