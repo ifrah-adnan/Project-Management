@@ -185,7 +185,7 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Operations</CardTitle>
-            <Button type="button" size="sm" onClick={addOperation}>
+            <Button type="button" onClick={addOperation}>
               <Plus className="mr-2 h-4 w-4" />
               Add Operation
             </Button>
@@ -199,69 +199,39 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
                   className="rounded-lg border"
                 >
                   <AccordionTrigger className="px-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex w-full items-center justify-between">
                       <span>Operation {index + 1}</span>
-                      {operation.operationId && (
-                        <span className="text-sm text-muted-foreground">
-                          {
-                            operations.find(
-                              (op) => op.id === operation.operationId,
-                            )?.name
-                          }
-                        </span>
-                      )}
+                      <span className="text-sm text-muted-foreground">
+                        {operations.find(
+                          (op) => op.id === operation.operationId,
+                        )?.name || "Not selected"}
+                        {operation.time ? ` - ${operation.time} min` : ""}
+                      </span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="px-4 pb-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <Select
-                            value={operation.operationId}
-                            onValueChange={(value) =>
-                              updateOperation(index, { operationId: value })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select operation" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {operations.map((op) => (
-                                <SelectItem key={op.id} value={op.id}>
-                                  {op.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="w-32">
-                          <div className="relative">
-                            <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                            <Input
-                              type="number"
-                              placeholder="Time"
-                              value={operation.time || ""}
-                              onChange={(e) =>
-                                updateOperation(index, {
-                                  time: Number.parseInt(e.target.value),
-                                })
-                              }
-                              className="pl-9"
-                            />
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => removeOperation(index)}
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <Select
+                          value={operation.operationId}
+                          onValueChange={(value) =>
+                            updateOperation(index, { operationId: value })
+                          }
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select operation" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {operations.map((op) => (
+                              <SelectItem key={op.id} value={op.id}>
+                                {op.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="relative">
-                        <FileText className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                        <Textarea
+                      <div className="flex-[2]">
+                        <Input
                           placeholder="Operation description"
                           value={operation.description || ""}
                           onChange={(e) =>
@@ -269,9 +239,32 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
                               description: e.target.value,
                             })
                           }
-                          className="min-h-[100px] pl-9"
                         />
                       </div>
+                      <div className="w-24">
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+                          <Input
+                            type="number"
+                            placeholder="Time"
+                            value={operation.time || ""}
+                            onChange={(e) =>
+                              updateOperation(index, {
+                                time: Number.parseInt(e.target.value),
+                              })
+                            }
+                            className="pl-9"
+                          />
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeOperation(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
