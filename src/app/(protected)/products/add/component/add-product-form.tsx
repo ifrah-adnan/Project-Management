@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,20 +27,28 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Plus, X, Clock, FileText, Trash2 } from "lucide-react";
-import { createInputSchema, TCreateInput } from "../../_utils/schemas";
+import { Plus, Clock, FileText, Trash2 } from "lucide-react";
+import { createInputSchema, type TCreateInput } from "../../_utils/schemas";
 import { create } from "../../_utils/actions";
-import { FieldErrors } from "@/actions/utils";
+import type { FieldErrors } from "@/actions/utils";
 
 interface AddProductFormProps {
   operations: Array<{ id: string; name: string }>;
+}
+
+interface SelectedOperation {
+  id: string;
+  operationId: string;
+  description: string;
+  time: number;
+  order: number;
 }
 
 export default function AddProductForm({ operations }: AddProductFormProps) {
   const router = useRouter();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors<TCreateInput>>({});
   const [selectedOperations, setSelectedOperations] = useState<
-    Array<{ id: string; description: string; time: number }>
+    SelectedOperation[]
   >([]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -48,9 +57,17 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
 
     const data = {
       name: formData.get("name") as string,
+      version: formData.get("version") as string,
       code: formData.get("code") as string,
       description: (formData.get("description") as string) || undefined,
-      operations: selectedOperations,
+      operations: selectedOperations.map(
+        ({ operationId, description, time, order }) => ({
+          id: operationId,
+          description,
+          time,
+          order,
+        }),
+      ),
     };
 
     const parsed = createInputSchema.safeParse(data);
@@ -77,6 +94,38 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
     }
   };
 
+  const addOperation = () => {
+    const newOrder = selectedOperations.length;
+    setSelectedOperations([
+      ...selectedOperations,
+      {
+        id: Date.now().toString(),
+        operationId: "",
+        description: "",
+        time: 0,
+        order: newOrder,
+      },
+    ]);
+  };
+
+  const removeOperation = (index: number) => {
+    const updatedOperations = selectedOperations.filter((_, i) => i !== index);
+    // Reorder the remaining operations
+    updatedOperations.forEach((op, i) => {
+      op.order = i;
+    });
+    setSelectedOperations(updatedOperations);
+  };
+
+  const updateOperation = (
+    index: number,
+    updates: Partial<SelectedOperation>,
+  ) => {
+    const updatedOperations = [...selectedOperations];
+    updatedOperations[index] = { ...updatedOperations[index], ...updates };
+    setSelectedOperations(updatedOperations);
+  };
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="mx-auto w-full space-y-8">
@@ -99,6 +148,19 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
                   </p>
                 ))}
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Version *</label>
+                <Input
+                  name="version"
+                  required
+                  className={fieldErrors.version ? "border-red-500" : ""}
+                />
+                {fieldErrors.version?.map((error) => (
+                  <p key={error} className="text-xs text-red-500">
+                    {error}
+                  </p>
+                ))}
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Name *</label>
@@ -113,7 +175,6 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
                 </p>
               ))}
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-medium">Description</label>
               <Textarea name="description" className="min-h-[100px]" />
@@ -124,16 +185,7 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Operations</CardTitle>
-            <Button
-              type="button"
-              size="sm"
-              onClick={() =>
-                setSelectedOperations([
-                  ...selectedOperations,
-                  { id: "", description: "", time: 0 },
-                ])
-              }
-            >
+            <Button type="button" size="sm" onClick={addOperation}>
               <Plus className="mr-2 h-4 w-4" />
               Add Operation
             </Button>
@@ -142,18 +194,19 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
             <Accordion type="multiple" className="space-y-4">
               {selectedOperations.map((operation, index) => (
                 <AccordionItem
-                  key={index}
-                  value={`item-${index}`}
+                  key={operation.id}
+                  value={`item-${operation.id}`}
                   className="rounded-lg border"
                 >
                   <AccordionTrigger className="px-4">
                     <div className="flex items-center gap-4">
                       <span>Operation {index + 1}</span>
-                      {operation.id && (
+                      {operation.operationId && (
                         <span className="text-sm text-muted-foreground">
                           {
-                            operations.find((op) => op.id === operation.id)
-                              ?.name
+                            operations.find(
+                              (op) => op.id === operation.operationId,
+                            )?.name
                           }
                         </span>
                       )}
@@ -164,15 +217,10 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
                       <div className="flex items-center gap-4">
                         <div className="flex-1">
                           <Select
-                            value={operation.id}
-                            onValueChange={(value) => {
-                              const updatedOperations = [...selectedOperations];
-                              updatedOperations[index] = {
-                                ...updatedOperations[index],
-                                id: value,
-                              };
-                              setSelectedOperations(updatedOperations);
-                            }}
+                            value={operation.operationId}
+                            onValueChange={(value) =>
+                              updateOperation(index, { operationId: value })
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select operation" />
@@ -193,16 +241,11 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
                               type="number"
                               placeholder="Time"
                               value={operation.time || ""}
-                              onChange={(e) => {
-                                const updatedOperations = [
-                                  ...selectedOperations,
-                                ];
-                                updatedOperations[index] = {
-                                  ...updatedOperations[index],
-                                  time: parseInt(e.target.value),
-                                };
-                                setSelectedOperations(updatedOperations);
-                              }}
+                              onChange={(e) =>
+                                updateOperation(index, {
+                                  time: Number.parseInt(e.target.value),
+                                })
+                              }
                               className="pl-9"
                             />
                           </div>
@@ -211,11 +254,7 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
                           type="button"
                           variant="destructive"
                           size="sm"
-                          onClick={() => {
-                            setSelectedOperations(
-                              selectedOperations.filter((_, i) => i !== index),
-                            );
-                          }}
+                          onClick={() => removeOperation(index)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -225,14 +264,11 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
                         <Textarea
                           placeholder="Operation description"
                           value={operation.description || ""}
-                          onChange={(e) => {
-                            const updatedOperations = [...selectedOperations];
-                            updatedOperations[index] = {
-                              ...updatedOperations[index],
+                          onChange={(e) =>
+                            updateOperation(index, {
                               description: e.target.value,
-                            };
-                            setSelectedOperations(updatedOperations);
-                          }}
+                            })
+                          }
                           className="min-h-[100px] pl-9"
                         />
                       </div>

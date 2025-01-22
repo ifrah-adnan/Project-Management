@@ -4,6 +4,7 @@ import { z } from "zod";
 export const createInputSchema = z.object({
   name: z.string().min(1, "Name is required"),
   code: z.string().optional(),
+  version: z.string().min(1, "version is required"),
 
   description: z.string().optional(),
   operations: z.array(

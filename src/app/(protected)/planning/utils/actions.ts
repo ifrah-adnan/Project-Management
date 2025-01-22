@@ -19,6 +19,40 @@ export async function getCommandProjects() {
   }
 }
 
+// export async function getOperations(commandProjectId: string) {
+//   try {
+//     const project = await db.commandProject.findUnique({
+//       where: { id: commandProjectId },
+//       include: {
+//         project: {
+//           include: {
+//             workFlow: {
+//               include: {
+//                 WorkflowNode: {
+//                   include: {
+//                     operation: true,
+//                   },
+//                 },
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
+
+//     if (!project?.project?.workFlow) {
+//       return { success: false, error: "No workflow found for this project" };
+//     }
+
+//     const operations = project.project.workFlow.WorkflowNode.map(
+//       (node) => node.operation,
+//     );
+//     return { success: true, data: operations };
+//   } catch (error) {
+//     return { success: false, error: "Failed to fetch operations" };
+//   }
+// }
+
 export async function getOperations(commandProjectId: string) {
   try {
     const project = await db.commandProject.findUnique({
@@ -44,9 +78,10 @@ export async function getOperations(commandProjectId: string) {
       return { success: false, error: "No workflow found for this project" };
     }
 
-    const operations = project.project.workFlow.WorkflowNode.map(
-      (node) => node.operation,
-    );
+    const operations = project.project.workFlow.WorkflowNode.map((node) => ({
+      ...node.operation,
+      nodeId: node.id, // Include the WorkflowNode id to differentiate between duplicate operations
+    }));
     return { success: true, data: operations };
   } catch (error) {
     return { success: false, error: "Failed to fetch operations" };

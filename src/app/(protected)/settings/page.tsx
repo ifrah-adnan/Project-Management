@@ -5,7 +5,7 @@ import SettingsForm from "./_components/SettingForm";
 import MainHeader from "./_components/MainHeader";
 
 export const metadata: Metadata = {
-  title: "Settings | Your App Name",
+  title: "Settings | Project Management",
   description: "Manage your account and organization settings",
 };
 
