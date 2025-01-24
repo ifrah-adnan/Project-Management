@@ -4,9 +4,26 @@ import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -14,60 +31,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Plus, Clock, FileText, Trash2 } from "lucide-react";
+import { Plus, Clock, Trash2 } from "lucide-react";
 import { createInputSchema, type TCreateInput } from "../../_utils/schemas";
 import { create } from "../../_utils/actions";
 import type { FieldErrors } from "@/actions/utils";
+import TimeInput from "./time-input";
 
 interface AddProductFormProps {
   operations: Array<{ id: string; name: string }>;
 }
 
-interface SelectedOperation {
-  id: string;
-  operationId: string;
+interface ProductOperation {
+  operation: { id: string; name: string };
   description: string;
   time: number;
-  order: number;
 }
 
 export default function AddProductForm({ operations }: AddProductFormProps) {
   const router = useRouter();
   const [fieldErrors, setFieldErrors] = useState<FieldErrors<TCreateInput>>({});
-  const [selectedOperations, setSelectedOperations] = useState<
-    SelectedOperation[]
+  const [basicInfo, setBasicInfo] = useState({
+    code: "",
+    version: "",
+    name: "",
+    description: "",
+  });
+  const [productOperations, setProductOperations] = useState<
+    ProductOperation[]
   >([]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
 
     const data = {
-      name: formData.get("name") as string,
-      version: formData.get("version") as string,
-      code: formData.get("code") as string,
-      description: (formData.get("description") as string) || undefined,
-      operations: selectedOperations.map(
-        ({ operationId, description, time, order }) => ({
-          id: operationId,
-          description,
-          time,
-          order,
-        }),
-      ),
+      ...basicInfo,
+      operations: productOperations.map((po) => ({
+        id: po.operation.id,
+        description: po.description,
+        time: po.time,
+        order: productOperations.indexOf(po),
+      })),
     };
 
     const parsed = createInputSchema.safeParse(data);
@@ -95,197 +98,238 @@ export default function AddProductForm({ operations }: AddProductFormProps) {
   };
 
   const addOperation = () => {
-    const newOrder = selectedOperations.length;
-    setSelectedOperations([
-      ...selectedOperations,
+    setProductOperations([
+      ...productOperations,
       {
-        id: Date.now().toString(),
-        operationId: "",
+        operation: { id: "", name: "" },
         description: "",
         time: 0,
-        order: newOrder,
       },
     ]);
   };
 
   const removeOperation = (index: number) => {
-    const updatedOperations = selectedOperations.filter((_, i) => i !== index);
-    // Reorder the remaining operations
-    updatedOperations.forEach((op, i) => {
-      op.order = i;
-    });
-    setSelectedOperations(updatedOperations);
+    const updatedOperations = productOperations.filter((_, i) => i !== index);
+    setProductOperations(updatedOperations);
   };
 
   const updateOperation = (
     index: number,
-    updates: Partial<SelectedOperation>,
+    field: keyof ProductOperation | "operation",
+    value: any,
   ) => {
-    const updatedOperations = [...selectedOperations];
-    updatedOperations[index] = { ...updatedOperations[index], ...updates };
-    setSelectedOperations(updatedOperations);
+    const updatedOperations = [...productOperations];
+
+    if (field === "operation") {
+      const selectedOp = operations.find((op) => op.id === value);
+      updatedOperations[index] = {
+        ...updatedOperations[index],
+        operation: selectedOp || { id: "", name: "" },
+      };
+    } else {
+      updatedOperations[index] = {
+        ...updatedOperations[index],
+        [field]: value,
+      };
+    }
+
+    setProductOperations(updatedOperations);
+  };
+
+  const handleBasicInfoChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setBasicInfo((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mx-auto w-full space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Code *</label>
-                <Input
-                  name="code"
-                  required
-                  className={fieldErrors.code ? "border-red-500" : ""}
-                />
-                {fieldErrors.code?.map((error) => (
-                  <p key={error} className="text-xs text-red-500">
-                    {error}
-                  </p>
-                ))}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Version *</label>
-                <Input
-                  name="version"
-                  required
-                  className={fieldErrors.version ? "border-red-500" : ""}
-                />
-                {fieldErrors.version?.map((error) => (
-                  <p key={error} className="text-xs text-red-500">
-                    {error}
-                  </p>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Name *</label>
-              <Input
-                name="name"
-                required
-                className={fieldErrors.name ? "border-red-500" : ""}
-              />
-              {fieldErrors.name?.map((error) => (
-                <p key={error} className="text-xs text-red-500">
-                  {error}
-                </p>
-              ))}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Description</label>
-              <Textarea name="description" className="min-h-[100px]" />
-            </div>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="basic" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="basic">Basic Information</TabsTrigger>
+          <TabsTrigger value="operations">Operations</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Operations</CardTitle>
-            <Button type="button" onClick={addOperation}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Operation
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="multiple" className="space-y-4">
-              {selectedOperations.map((operation, index) => (
-                <AccordionItem
-                  key={operation.id}
-                  value={`item-${operation.id}`}
-                  className="rounded-lg border"
-                >
-                  <AccordionTrigger className="px-4">
-                    <div className="flex w-full items-center justify-between">
-                      <span>Operation {index + 1}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {operations.find(
-                          (op) => op.id === operation.operationId,
-                        )?.name || "Not selected"}
-                        {operation.time ? ` - ${operation.time} min` : ""}
-                      </span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1">
-                        <Select
-                          value={operation.operationId}
-                          onValueChange={(value) =>
-                            updateOperation(index, { operationId: value })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select operation" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {operations.map((op) => (
-                              <SelectItem key={op.id} value={op.id}>
-                                {op.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex-[2]">
-                        <Input
-                          placeholder="Operation description"
-                          value={operation.description || ""}
-                          onChange={(e) =>
-                            updateOperation(index, {
-                              description: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="w-24">
-                        <div className="relative">
-                          <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                          <Input
-                            type="number"
-                            placeholder="Time"
-                            value={operation.time || ""}
-                            onChange={(e) =>
-                              updateOperation(index, {
-                                time: Number.parseInt(e.target.value),
-                              })
+        <TabsContent value="basic">
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+              <CardDescription>Enter the product details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Code *</label>
+                  <Input
+                    name="code"
+                    value={basicInfo.code}
+                    onChange={handleBasicInfoChange}
+                    required
+                    className={fieldErrors.code ? "border-red-500" : ""}
+                  />
+                  {fieldErrors.code?.map((error) => (
+                    <p key={error} className="text-xs text-red-500">
+                      {error}
+                    </p>
+                  ))}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Version *</label>
+                  <Input
+                    name="version"
+                    value={basicInfo.version}
+                    onChange={handleBasicInfoChange}
+                    required
+                    className={fieldErrors.version ? "border-red-500" : ""}
+                  />
+                  {fieldErrors.version?.map((error) => (
+                    <p key={error} className="text-xs text-red-500">
+                      {error}
+                    </p>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Name *</label>
+                <Input
+                  name="name"
+                  value={basicInfo.name}
+                  onChange={handleBasicInfoChange}
+                  required
+                  className={fieldErrors.name ? "border-red-500" : ""}
+                />
+                {fieldErrors.name?.map((error) => (
+                  <p key={error} className="text-xs text-red-500">
+                    {error}
+                  </p>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Textarea
+                  name="description"
+                  value={basicInfo.description}
+                  onChange={handleBasicInfoChange}
+                  className="min-h-[100px]"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="operations">
+          <Card className="border-none shadow-md">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl">Operations Overview</CardTitle>
+              <CardDescription>
+                Manage and track all operations associated with this product
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50">
+                      <TableHead className="font-semibold">
+                        Operation Name
+                      </TableHead>
+                      <TableHead className="font-semibold">
+                        Description
+                      </TableHead>
+                      <TableHead className="text-right font-semibold">
+                        <span className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Duration (min)
+                        </span>
+                      </TableHead>
+                      <TableHead className="text-right font-semibold">
+                        Actions
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {productOperations.map((po, index) => (
+                      <TableRow key={index} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">
+                          <Select
+                            value={po.operation.id}
+                            onValueChange={(value) =>
+                              updateOperation(index, "operation", value)
                             }
-                            className="pl-9"
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder="Select operation" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {operations.map((op) => (
+                                <SelectItem key={op.id} value={op.id}>
+                                  {op.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={po.description || ""}
+                            onChange={(e) =>
+                              updateOperation(
+                                index,
+                                "description",
+                                e.target.value,
+                              )
+                            }
                           />
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeOperation(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </CardContent>
-        </Card>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <TimeInput
+                            value={po.time}
+                            onChange={(minutes) =>
+                              updateOperation(index, "time", minutes)
+                            }
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeOperation(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="mt-4 flex justify-between">
+                <Button type="button" onClick={addOperation}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Operation
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-        <Card>
-          <CardFooter className="flex justify-end gap-4 pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/products")}
-            >
-              Cancel
-            </Button>
-            <Button type="submit">Save Product</Button>
-          </CardFooter>
-        </Card>
-      </div>
+      <Card className="mt-4">
+        <CardFooter className="flex justify-end gap-4 pt-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push("/products")}
+          >
+            Cancel
+          </Button>
+          <Button type="submit">Save Product</Button>
+        </CardFooter>
+      </Card>
     </form>
   );
 }
