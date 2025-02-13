@@ -1,29 +1,27 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { Table } from "@/components/table";
 import { Card } from "@/components/ui/card";
 import { useSession } from "@/components/session-provider";
 import { useSearchParams } from "next/navigation";
-import IconComponent from "../IconComponent";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Ellipsis, PencilIcon, Trash2Icon } from "lucide-react";
-import { EditExpertiseButton } from "@/app/(protected)/expertise/_components/edit-expertise-button";
-import { ConfirmButton } from "@/components/confirm-button";
+import { Ellipsis, PencilIcon, Trash2Icon, ArrowUpDown } from "lucide-react";
 import { EditOperationButton } from "../edit-operation-button";
-import { handleDelete, handleDeleteO } from "../../_utils/actions";
+import { ConfirmButton } from "@/components/confirm-button";
+import { handleDeleteO } from "../../_utils/actions";
 
 interface Operation {
   id: string;
   name: string;
-  code: string;
+  code: string; // Nous gardons cela comme une chaîne, mais nous le traiterons comme un nombre pour le tri
   icon?: string;
   description: string;
   isFinal: boolean;
-  // estimatedTime: number;
 }
 
 interface ListProps {
@@ -32,11 +30,22 @@ interface ListProps {
   searchTerm: string;
 }
 
+type SortOrder = "asc" | "desc" | null;
+
 const List: React.FC<ListProps> = ({ data, userId, searchTerm }) => {
   const { session } = useSession();
   const user = session?.user;
   const searchParams = useSearchParams();
   const [filteredData, setFilteredData] = useState<Operation[]>([]);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(null);
+
+  const toggleSortOrder = () => {
+    setSortOrder((prevOrder) => {
+      if (prevOrder === null) return "asc";
+      if (prevOrder === "asc") return "desc";
+      return null;
+    });
+  };
 
   useEffect(() => {
     let filtered = data;
@@ -45,13 +54,25 @@ const List: React.FC<ListProps> = ({ data, userId, searchTerm }) => {
       filtered = filtered.filter(
         (item) =>
           item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.code.includes(searchTerm) ||
           item.description.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
+    if (sortOrder) {
+      filtered.sort((a, b) => {
+        const codeA = Number.parseInt(a.code, 10);
+        const codeB = Number.parseInt(b.code, 10);
+        if (sortOrder === "asc") {
+          return codeA - codeB;
+        } else {
+          return codeB - codeA;
+        }
+      });
+    }
+
     setFilteredData(filtered);
-  }, [data, searchTerm]);
+  }, [data, searchTerm, sortOrder]);
 
   return (
     <div className="h-1 flex-1 p-3">
@@ -59,24 +80,24 @@ const List: React.FC<ListProps> = ({ data, userId, searchTerm }) => {
         <Table>
           <thead>
             <tr>
-              <th>Icon</th>
               <th>Name</th>
-              <th>Code</th>
-              <th>Description</th>
-              <th>Is Final</th>
+              <th className="cursor-pointer" onClick={toggleSortOrder}>
+                Code
+                <ArrowUpDown className="ml-2 inline-block h-4 w-4" />
+                {sortOrder && (
+                  <span className="ml-1 text-xs">
+                    ({sortOrder === "asc" ? "↑" : "↓"})
+                  </span>
+                )}
+              </th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredData.map((item) => (
               <tr key={item.id}>
-                <td>
-                  <IconComponent iconName={item.icon || ""} />
-                </td>
                 <td>{item.name}</td>
                 <td>{item.code}</td>
-                <td>{item.description}</td>
-                <td>{item.isFinal ? "Yes" : "No"}</td>
-                {/* <td>{item.estimatedTime} minutes</td> */}
                 <td>
                   {(user.role === "ADMIN" || user.role === "SYS_ADMIN") && (
                     <Popover>

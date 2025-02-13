@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -30,16 +29,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { updateProject, updateOperations } from "../utils/action";
 import { Activity, Clock, FileText, Share2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { Project, ProjectOperation } from "../page";
+import type { Project } from "../page";
 import { getOperations } from "@/app/(protected)/expertise/_utils/actions";
+import { updateOperations, updateProject } from "../utils/action";
+import TimeInput from "../../add/component/time-input";
 
 interface Operation {
   id: string;
   name: string;
 }
+
+interface ProjectOperation {
+  id: string;
+  description: string | null;
+  time: number;
+  operation: {
+    id: string;
+    name: string;
+  };
+}
+
+type OperationUpdateField = {
+  operation: { id: string; name: string };
+  description: string;
+  time: number;
+};
 
 export default function ProductDetails({
   project: initialProject,
@@ -54,7 +70,6 @@ export default function ProductDetails({
   const [availableOperations, setAvailableOperations] = useState<Operation[]>(
     [],
   );
-
   useEffect(() => {
     const fetchOperations = async () => {
       const ops = await getOperations();
@@ -94,39 +109,49 @@ export default function ProductDetails({
   };
 
   const addOperation = () => {
-    setOperations([
-      ...operations,
-      { id: "", description: "", time: 0, operation: { id: "", name: "" } },
-    ]);
+    const newOperation: ProjectOperation = {
+      id: `temp-${Date.now()}`,
+      description: "",
+      time: 0,
+      operation: { id: "", name: "" },
+    };
+    setOperations((prev) => [...prev, newOperation]);
   };
 
   const removeOperation = (index: number) => {
-    setOperations(operations.filter((_, i) => i !== index));
+    setOperations((prev) => prev.filter((_, i) => i !== index));
   };
 
   const updateOperation = (
     index: number,
-    field: string,
-    value: string | number,
+    field: keyof Omit<ProjectOperation, "id">,
+    value: any,
   ) => {
-    const updatedOperations = [...operations];
-    if (field === "operation") {
-      const selectedOperation = availableOperations.find(
-        (op) => op.id === value,
-      );
-      if (selectedOperation) {
-        updatedOperations[index] = {
-          ...updatedOperations[index],
-          operation: { id: selectedOperation.id, name: selectedOperation.name },
+    setOperations((prev) => {
+      return prev.map((op, i) => {
+        if (i !== index) return op;
+
+        if (field === "operation") {
+          const selectedOperation = availableOperations.find(
+            (availOp) => availOp.id === value,
+          );
+          if (selectedOperation) {
+            return {
+              ...op,
+              operation: {
+                id: selectedOperation.id,
+                name: selectedOperation.name,
+              },
+            };
+          }
+        }
+
+        return {
+          ...op,
+          [field]: value,
         };
-      }
-    } else {
-      updatedOperations[index] = {
-        ...updatedOperations[index],
-        [field]: value,
-      };
-    }
-    setOperations(updatedOperations);
+      });
+    });
   };
 
   return (
@@ -240,7 +265,7 @@ export default function ProductDetails({
                       <TableHead className="text-right font-semibold">
                         <span className="flex items-center gap-2">
                           <Clock className="h-4 w-4" />
-                          Duration (min)
+                          Duration
                         </span>
                       </TableHead>
                       <TableHead className="text-right font-semibold">
@@ -250,7 +275,7 @@ export default function ProductDetails({
                   </TableHeader>
                   <TableBody>
                     {operations.map((po, index) => (
-                      <TableRow key={index} className="hover:bg-gray-50">
+                      <TableRow key={po.id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">
                           <Select
                             value={po.operation.id}
@@ -283,15 +308,10 @@ export default function ProductDetails({
                           />
                         </TableCell>
                         <TableCell className="text-right">
-                          <Input
-                            type="number"
+                          <TimeInput
                             value={po.time}
-                            onChange={(e) =>
-                              updateOperation(
-                                index,
-                                "time",
-                                parseInt(e.target.value),
-                              )
+                            onChange={(value) =>
+                              updateOperation(index, "time", value)
                             }
                           />
                         </TableCell>
