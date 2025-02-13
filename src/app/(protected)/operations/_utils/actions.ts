@@ -373,7 +373,13 @@ export async function deleteOperationById(id: string) {
     whereClause.organizationId = organizationId;
   }
 
-  await db.operation.delete({ where: whereClause });
+  await db.$transaction(async (tx) => {
+    await tx.projectOperation.deleteMany({
+      where: { operationId: id },
+    });
+
+    await tx.operation.delete({ where: whereClause });
+  });
 }
 
 export async function handleDeleteO(id: string) {
